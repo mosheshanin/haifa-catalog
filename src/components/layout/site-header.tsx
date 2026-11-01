@@ -38,15 +38,15 @@ export function SiteHeader() {
           <UserMenu />
         </div>
       </div>
-      <nav className="flex gap-1 overflow-x-auto px-4 pb-2 md:hidden" aria-label="Разделы">
-        <Link href="/biznes" className="shrink-0 rounded-full bg-primary-soft px-3 py-1.5 text-sm font-semibold text-primary">
-          {t.nav.biznes}
+      <nav className="flex flex-wrap gap-1.5 px-4 pb-2 md:hidden" aria-label="Разделы">
+        <Link href="/biznes" className="rounded-full bg-primary-soft px-3 py-1.5 text-sm font-semibold text-primary">
+          🏢 {t.nav.biznes}
         </Link>
-        <Link href="/specialisty" className="shrink-0 rounded-full bg-primary-soft px-3 py-1.5 text-sm font-semibold text-primary">
-          {t.nav.specialisty}
+        <Link href="/specialisty" className="rounded-full bg-primary-soft px-3 py-1.5 text-sm font-semibold text-primary">
+          🧑‍🔧 {t.nav.specialisty}
         </Link>
-        <Link href="/poisk" className="shrink-0 rounded-full bg-primary-soft px-3 py-1.5 text-sm font-semibold text-primary">
-          Поиск
+        <Link href="/poisk" className="rounded-full bg-primary-soft px-3 py-1.5 text-sm font-semibold text-primary">
+          🔎 Поиск
         </Link>
       </nav>
     </header>

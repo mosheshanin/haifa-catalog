@@ -9,6 +9,7 @@ export type Category = {
   parent_id: number | null;
   slug: string;
   name: string;
+  icon: string | null;
   sort: number;
   schema_type: string | null;
   seo_title: string | null;
@@ -25,7 +26,7 @@ export async function getCategories(): Promise<Category[]> {
   cacheLife("hours");
   const { data, error } = await createPublicClient()
     .from("categories")
-    .select("id, section, parent_id, slug, name, sort, schema_type, seo_title, seo_description, seo_text")
+    .select("id, section, parent_id, slug, name, icon, sort, schema_type, seo_title, seo_description, seo_text")
     .eq("is_active", true)
     .order("sort");
   if (error) throw error;

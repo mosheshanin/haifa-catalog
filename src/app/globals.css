@@ -43,6 +43,12 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+/* Без горизонтальной прокрутки страницы, особенно в Telegram Mini App (раздел 10 ТЗ). */
+html,
+body {
+  overflow-x: clip;
+}
+
 body {
   background: var(--color-surface-alt);
   color: var(--color-ink);

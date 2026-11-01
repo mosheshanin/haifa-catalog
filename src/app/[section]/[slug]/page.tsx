@@ -57,14 +57,17 @@ export default async function SlugPage({ params }: PageProps<"/[section]/[slug]"
             <Link href="/" className="hover:text-primary">Главная</Link> ›{" "}
             <Link href={`/${section}`} className="hover:text-primary">{t.sections[section].title}</Link> › {category.name}
           </nav>
-          <h1 className="text-3xl font-extrabold">{category.name} в Хайфе</h1>
+          <h1 className="text-3xl font-extrabold">
+            {category.icon ? <span aria-hidden>{category.icon} </span> : null}
+            {category.name} в Хайфе
+          </h1>
           {category.seo_text ? <p className="mt-2 max-w-3xl text-muted">{category.seo_text}</p> : null}
         </div>
-        <ul className="flex gap-2 overflow-x-auto pb-1">
+        <ul className="flex flex-wrap gap-2">
           {districts.slice(0, 8).map((d) => (
-            <li key={d.id} className="shrink-0">
+            <li key={d.id}>
               <span className="block rounded-full border border-line bg-white px-3 py-1.5 text-sm font-semibold text-muted" title="Страницы «категория + район» — этап 2">
-                {d.name}
+                📍 {d.name}
               </span>
             </li>
           ))}

@@ -26,6 +26,7 @@ import {
   whatsappHref,
 } from "@/lib/format";
 import { t } from "@/i18n/ru";
+import { Photo } from "@/components/ui/photo";
 
 const DAY_NAMES: Array<[keyof NonNullable<Extract<ListingBlock, { type: "hours" }>["data"]["week"]>, string]> = [
   ["sun", "Вс"],
@@ -37,23 +38,46 @@ const DAY_NAMES: Array<[keyof NonNullable<Extract<ListingBlock, { type: "hours" 
   ["sat", "Сб"],
 ];
 
-const FORMAT_LABELS = { at_home: "Выезд на дом", on_site: "Приём у себя", online: "Онлайн" } as const;
+const FORMAT_LABELS = { at_home: "🚗 Выезд на дом", on_site: "🏠 Приём у себя", online: "💻 Онлайн" } as const;
 
-function Section({ id, title, children }: { id?: string; title: string; children: React.ReactNode }) {
+const FEATURE_ICONS: Record<string, string> = {
+  "Оплата картой": "💳",
+  "Оплата через Bit": "📱",
+  "Wi-Fi": "📶",
+  "Доступно для колясок": "♿",
+  "Детская зона": "🧸",
+  "Кошерно": "✡️",
+  "Выезд на дом": "🚗",
+  "Онлайн": "💻",
+  "Парковка": "🅿️",
+};
+
+function Section({ id, title, icon, children }: { id?: string; title: string; icon?: string; children: React.ReactNode }) {
   return (
     <section id={id} className="rounded-[var(--radius-card)] border border-line bg-white p-5 shadow-sm">
-      <h2 className="mb-3 text-xl font-extrabold">{title}</h2>
+      <h2 className="mb-3 flex items-center gap-2 text-xl font-extrabold">
+        {icon ? (
+          <span className="grid size-9 place-items-center rounded-xl bg-primary-soft text-lg" aria-hidden>
+            {icon}
+          </span>
+        ) : null}
+        {title}
+      </h2>
       {children}
     </section>
   );
 }
 
-function PhotoPlaceholder({ label }: { label?: string }) {
+function PhotoPlaceholder({ label, url }: { label?: string; url?: string }) {
   return (
     <figure className="overflow-hidden rounded-2xl border border-line">
-      <div className="grid aspect-[4/3] place-items-center bg-gradient-to-br from-primary-soft to-[#d3ebee] text-sm font-semibold text-primary">
-        Фото
-      </div>
+      {url ? (
+        <Photo src={url} alt={label ?? ""} className="aspect-[4/3] w-full" sizes="(max-width: 640px) 50vw, 33vw" />
+      ) : (
+        <div className="grid aspect-[4/3] place-items-center bg-gradient-to-br from-primary-soft to-[#d3ebee] text-sm font-semibold text-primary">
+          📷 Фото
+        </div>
+      )}
       {label ? <figcaption className="px-3 py-2 text-sm text-muted">{label}</figcaption> : null}
     </figure>
   );
@@ -64,13 +88,13 @@ function Block({ block, districtNames }: { block: ListingBlock; districtNames: R
   switch (block.type) {
     case "description":
       return (
-        <Section title={t.listing.about}>
+        <Section title={t.listing.about} icon="📝">
           <p className="leading-relaxed">{block.data.text}</p>
         </Section>
       );
     case "offers":
       return (
-        <Section id="offers" title={t.listing.offers}>
+        <Section id="offers" title={t.listing.offers} icon="🎁">
           <ul className="grid gap-3">
             {block.data.items.map((o, i) => (
               <li key={i} className="rounded-2xl border-2 border-accent/30 bg-[#fff4ee] p-4">
@@ -92,7 +116,7 @@ function Block({ block, districtNames }: { block: ListingBlock; districtNames: R
       );
     case "services":
       return (
-        <Section id="services" title={t.listing.services}>
+        <Section id="services" title={t.listing.services} icon="💰">
           <div className="grid gap-5">
             {block.data.groups.map((g, gi) => (
               <div key={gi}>
@@ -115,7 +139,7 @@ function Block({ block, districtNames }: { block: ListingBlock; districtNames: R
       );
     case "hours":
       return (
-        <Section title={t.listing.hours}>
+        <Section title={t.listing.hours} icon="🕒">
           <div className="mb-3">
             <OpenNowBadge week={block.data.week} />
           </div>
@@ -136,7 +160,7 @@ function Block({ block, districtNames }: { block: ListingBlock; districtNames: R
       );
     case "address":
       return (
-        <Section title={t.listing.address}>
+        <Section title={t.listing.address} icon="📍">
           <p className="flex items-start gap-2 font-semibold">
             <MapPinIcon className="mt-0.5 size-5 shrink-0 text-primary" />
             {block.data.address}
@@ -160,7 +184,7 @@ function Block({ block, districtNames }: { block: ListingBlock; districtNames: R
       );
     case "service_area":
       return (
-        <Section title={t.listing.serviceArea}>
+        <Section title={t.listing.serviceArea} icon="🚗">
           <p className="mb-2 flex flex-wrap gap-2">
             {block.data.formats.map((f) => (
               <span key={f} className="rounded-full bg-primary-soft px-3 py-1 text-sm font-bold text-primary">
@@ -173,21 +197,21 @@ function Block({ block, districtNames }: { block: ListingBlock; districtNames: R
       );
     case "gallery":
       return (
-        <Section title={t.listing.gallery}>
+        <Section title={t.listing.gallery} icon="📷">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {block.data.photos.map((p, i) => (
-              <PhotoPlaceholder key={i} label={p.caption} />
+              <PhotoPlaceholder key={i} label={p.caption} url={p.url} />
             ))}
           </div>
         </Section>
       );
     case "before_after":
       return (
-        <Section title={t.listing.beforeAfter}>
+        <Section title={t.listing.beforeAfter} icon="✨">
           {block.data.pairs.map((p, i) => (
             <div key={i} className="grid grid-cols-2 gap-3">
-              <PhotoPlaceholder label="До" />
-              <PhotoPlaceholder label="После" />
+              <PhotoPlaceholder label="До" url={p.beforeUrl} />
+              <PhotoPlaceholder label="После" url={p.afterUrl} />
               {p.caption ? <p className="col-span-2 text-sm text-muted">{p.caption} · слайдер сравнения — этап 2</p> : null}
             </div>
           ))}
@@ -195,7 +219,7 @@ function Block({ block, districtNames }: { block: ListingBlock; districtNames: R
       );
     case "faq":
       return (
-        <Section title={t.listing.faq}>
+        <Section title={t.listing.faq} icon="❓">
           <div className="divide-y divide-line">
             {block.data.items.map((f, i) => (
               <details key={i} className="group py-3" open={i === 0}>
@@ -211,10 +235,11 @@ function Block({ block, districtNames }: { block: ListingBlock; districtNames: R
       );
     case "features":
       return (
-        <Section title={t.listing.features}>
+        <Section title={t.listing.features} icon="⭐">
           <ul className="flex flex-wrap gap-2">
             {block.data.items.map((f) => (
               <li key={f} className="rounded-full border border-line bg-surface-alt px-3 py-1.5 text-sm font-semibold">
+                {FEATURE_ICONS[f] ? `${FEATURE_ICONS[f]} ` : ""}
                 {f}
               </li>
             ))}
@@ -223,7 +248,7 @@ function Block({ block, districtNames }: { block: ListingBlock; districtNames: R
       );
     case "languages":
       return (
-        <Section title={t.listing.languages}>
+        <Section title={t.listing.languages} icon="🗣️">
           <p className="flex items-center gap-2">
             <GlobeIcon className="size-5 text-primary" />
             {block.data.items.join(", ")}
@@ -233,7 +258,7 @@ function Block({ block, districtNames }: { block: ListingBlock; districtNames: R
     case "request":
       if (!block.data.enabled) return null;
       return (
-        <Section id="request" title={t.listing.request}>
+        <Section id="request" title={t.listing.request} icon="✍️">
           <form className="grid gap-3" aria-describedby="request-note">
             <input disabled placeholder="Ваше имя" className="h-12 rounded-xl border border-line bg-surface-alt px-4" />
             <input disabled placeholder="Телефон или Telegram" className="h-12 rounded-xl border border-line bg-surface-alt px-4" />
@@ -292,7 +317,11 @@ export function ListingView({
       </nav>
 
       <header className="overflow-hidden rounded-[var(--radius-card)] border border-line bg-white shadow-sm">
-        <div className="h-28 bg-gradient-to-r from-primary via-[#127c8a] to-[#2aa5a0] sm:h-40" aria-hidden />
+        {header.coverUrl ? (
+          <Photo src={header.coverUrl} alt={header.title} className="h-40 w-full sm:h-56" sizes="(max-width: 768px) 100vw, 768px" priority />
+        ) : (
+          <div className="h-28 bg-gradient-to-r from-primary via-[#127c8a] to-[#2aa5a0] sm:h-40" aria-hidden />
+        )}
         <div className="px-5 pb-5">
           <div className="-mt-10 grid size-20 place-items-center rounded-3xl border-4 border-white bg-highlight text-2xl font-extrabold shadow-md">
             {header.title.replace(/[«»"()]/g, "").trim()[0]}
@@ -362,7 +391,7 @@ export function ListingView({
           <Block key={b.id} block={b} districtNames={districtNames} />
         ))}
 
-        <Section title={t.listing.reviews}>
+        <Section title={t.listing.reviews} icon="💬">
           <p className="text-muted">Отзывы посетителей и отзывы Google появятся на этапах 2–3.</p>
         </Section>
 

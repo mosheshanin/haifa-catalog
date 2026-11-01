@@ -4,6 +4,7 @@ import { OpenNowBadge } from "@/components/listing/open-now";
 import { pluralRu } from "@/lib/format";
 import type { MockListing } from "@/mocks/listings";
 import { t } from "@/i18n/ru";
+import { Photo } from "@/components/ui/photo";
 
 function initials(title: string) {
   return title
@@ -24,9 +25,13 @@ export function ListingListItem({ listing, districtLabel }: { listing: MockListi
   return (
     <article className="group relative flex gap-4 rounded-[var(--radius-card)] border border-line bg-white p-3 shadow-sm transition hover:border-primary hover:shadow-md sm:p-4">
       <div className="relative grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-[#138a99] text-2xl font-extrabold text-white sm:size-28">
-        {initials(data.header.title)}
+        {data.header.coverUrl ? (
+          <Photo src={data.header.coverUrl} alt="" className="absolute inset-0 size-full" sizes="112px" />
+        ) : (
+          initials(data.header.title)
+        )}
         {listing.hasOffer ? (
-          <span className="absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[11px] font-bold">
+          <span className="absolute left-1.5 top-1.5 z-10 inline-flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[11px] font-bold">
             <TagIcon className="size-3" /> Акция
           </span>
         ) : null}

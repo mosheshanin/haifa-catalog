@@ -1,4 +1,5 @@
 // Примерные карточки для макетов этапа 1. Все названия, телефоны и люди вымышлены.
+// Фото — Unsplash (бесплатная лицензия Unsplash), используются только как иллюстрации.
 // На этапе 2 их заменят настоящие карточки из базы.
 import type { ListingData } from "@/lib/blocks/types";
 
@@ -34,6 +35,7 @@ export const MOCK_LISTINGS: MockListing[] = [
       header: {
         title: "Салон «Лаванда» (пример)",
         slogan: "Маникюр, брови и уход за кожей в центре Хадара",
+        coverUrl: "https://images.unsplash.com/photo-1600948836101-f9ffda59d250",
         districtSlugs: ["hadar"],
         badges: ["verified", "russian_speaking"],
       },
@@ -85,8 +87,22 @@ export const MOCK_LISTINGS: MockListing[] = [
           type: "address",
           data: { address: "ул. Герцль, 10, Хайфа (пример)", howToGet: "5 минут пешком от остановки «Герцль»", parking: "Платная парковка во дворе", lat: 32.8156, lng: 34.9984 },
         },
-        { id: "g1", type: "gallery", data: { photos: [{ caption: "Зал" }, { caption: "Рабочее место мастера" }, { caption: "Ресепшн" }] } },
-        { id: "b1", type: "before_after", data: { pairs: [{ caption: "Укрепление ногтей гелем" }] } },
+        {
+          id: "g1",
+          type: "gallery",
+          data: {
+            photos: [
+              { url: "https://images.unsplash.com/photo-1632345031435-8727f6897d53", caption: "Маникюр в салоне" },
+              { url: "https://images.unsplash.com/photo-1619607146034-5a05296c8f9a", caption: "Палитра гель-лаков" },
+              { url: "https://images.unsplash.com/photo-1604654894610-df63bc536371", caption: "Дизайн «черепаха»" },
+            ],
+          },
+        },
+        {
+          id: "b1",
+          type: "before_after",
+          data: { pairs: [{ beforeUrl: "https://images.unsplash.com/photo-1610992015762-45dca7fa3a85", afterUrl: "https://images.unsplash.com/photo-1604654894610-df63bc536371", caption: "Укрепление ногтей гелем и дизайн" }] },
+        },
         {
           id: "f1",
           type: "faq",
@@ -115,12 +131,23 @@ export const MOCK_LISTINGS: MockListing[] = [
       header: {
         title: "Кафе «Самовар» (пример)",
         slogan: "Домашняя кухня, пельмени и выпечка",
+        coverUrl: "https://images.unsplash.com/photo-1521017432531-fbd92d768814",
         districtSlugs: ["merkaz-hacarmel"],
         badges: ["russian_speaking"],
       },
       contacts: { phone: "+972500000002", whatsapp: "+972500000002", website: "https://example.com" },
       blocks: [
         { id: "d2", type: "description", data: { text: "Уютное кафе с русской и европейской кухней. Бизнес-ланч по будням, торты на заказ." } },
+        {
+          id: "g2",
+          type: "gallery",
+          data: {
+            photos: [
+              { url: "https://images.unsplash.com/photo-1788603378122-1c3708b1a26a", caption: "Вареники с луком и сметаной" },
+              { url: "https://images.unsplash.com/photo-1511081692775-05d0f180a065", caption: "Зал" },
+            ],
+          },
+        },
         { id: "h2", type: "hours", data: { week: { ...workWeek, sat: [{ open: "19:00", close: "23:00" }] } } },
         { id: "a2", type: "address", data: { address: "Шдерот ха-Наси, 120, Хайфа (пример)", lat: 32.8034, lng: 34.9886 } },
         { id: "fe2", type: "features", data: { items: ["Оплата картой", "Детская зона", "Wi-Fi"] } },
@@ -140,6 +167,7 @@ export const MOCK_LISTINGS: MockListing[] = [
       header: {
         title: "Анна К. (пример)",
         profession: "Мастер маникюра на дому",
+        coverUrl: "https://images.unsplash.com/photo-1772322586754-34c9e6f5be6f",
         districtSlugs: ["kiryat-bialik", "kiryat-motzkin", "kiryat-yam"],
         badges: ["russian_speaking"],
       },
@@ -151,6 +179,16 @@ export const MOCK_LISTINGS: MockListing[] = [
           id: "s3",
           type: "services",
           data: { groups: [{ title: "Услуги", items: [{ name: "Маникюр с покрытием", price: 130, durationMin: 90 }, { name: "Наращивание", price: 220, priceFrom: true }] }] },
+        },
+        {
+          id: "g3",
+          type: "gallery",
+          data: {
+            photos: [
+              { url: "https://images.unsplash.com/photo-1772322586785-3a34772cbc61", caption: "Мраморный дизайн" },
+              { url: "https://images.unsplash.com/photo-1772322586702-73125782bd99", caption: "Омбре" },
+            ],
+          },
         },
         { id: "o3", type: "offers", data: { items: [{ title: "Первый визит", discountPercent: 10 }] } },
         { id: "l3", type: "languages", data: { items: ["Русский", "Иврит"] } },
@@ -170,6 +208,7 @@ export const MOCK_LISTINGS: MockListing[] = [
       header: {
         title: "Борис М. (пример)",
         profession: "Электрик с лицензией",
+        coverUrl: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e",
         districtSlugs: ["hadar", "ahuza", "neve-shaanan", "carmelia"],
         badges: ["verified", "russian_speaking", "documents_checked"],
       },
@@ -178,6 +217,16 @@ export const MOCK_LISTINGS: MockListing[] = [
         { id: "d4", type: "description", data: { text: "Проводка, щитки, розетки, подключение бытовой техники. Лицензия электрика, гарантия на работу." } },
         { id: "sa4", type: "service_area", data: { districtSlugs: ["hadar", "ahuza", "neve-shaanan", "carmelia"], formats: ["at_home"] } },
         { id: "s4", type: "services", data: { groups: [{ title: "Работы", items: [{ name: "Вызов и диагностика", price: 250 }, { name: "Замена розетки", price: 120, priceFrom: true }] }] } },
+        {
+          id: "g4",
+          type: "gallery",
+          data: {
+            photos: [
+              { url: "https://images.unsplash.com/photo-1758101755915-462eddc23f57", caption: "Проверка щитка" },
+              { url: "https://images.unsplash.com/photo-1660330589693-99889d60181e", caption: "Монтаж автоматов" },
+            ],
+          },
+        },
         { id: "l4", type: "languages", data: { items: ["Русский", "Иврит", "Английский"] } },
       ],
     },

@@ -35,14 +35,15 @@ export default async function SectionPage({ params }: PageProps<"/[section]">) {
         <nav aria-label="Хлебные крошки" className="mb-2 text-sm text-muted">
           <Link href="/" className="hover:text-primary">Главная</Link> › {t.sections[section].title}
         </nav>
-        <h1 className="text-3xl font-extrabold">{t.sections[section].title} Хайфы</h1>
+        <h1 className="text-3xl font-extrabold">{section === "biznes" ? "🏢" : "🧑‍🔧"} {t.sections[section].title} Хайфы</h1>
         <p className="mt-1 text-muted">{t.sections[section].lead}</p>
       </div>
 
-      <ul className="flex gap-2 overflow-x-auto pb-1 sm:flex-wrap">
+      <ul className="flex flex-wrap gap-2">
         {categories.map((c) => (
-          <li key={c.id} className="shrink-0">
-            <Link href={`/${section}/${c.slug}`} className="block rounded-full border border-line bg-white px-4 py-2 text-sm font-bold hover:border-primary hover:bg-primary-soft">
+          <li key={c.id}>
+            <Link href={`/${section}/${c.slug}`} className="flex items-center gap-1.5 rounded-full border border-line bg-white px-3.5 py-2 text-sm font-bold hover:border-primary hover:bg-primary-soft">
+              {c.icon ? <span aria-hidden>{c.icon}</span> : null}
               {c.name}
             </Link>
           </li>
@@ -51,7 +52,7 @@ export default async function SectionPage({ params }: PageProps<"/[section]">) {
 
       <div className="flex flex-wrap gap-2 rounded-2xl bg-white p-3 text-sm shadow-sm">
         <span className="font-bold">Фильтры:</span>
-        {["Район", "Язык общения", "Открыто сейчас", "Выезд на дом", "Онлайн", "Спецпредложение", "Больничные кассы"].map((f) => (
+        {["📍 Район", "🗣️ Язык общения", "🕒 Открыто сейчас", "🚗 Выезд на дом", "💻 Онлайн", "🎁 Спецпредложение", "🏥 Больничные кассы"].map((f) => (
           <span key={f} className="rounded-full border border-line px-3 py-1 text-muted">{f}</span>
         ))}
         <span className="text-muted">· заработают на этапе 2</span>

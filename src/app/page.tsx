@@ -16,9 +16,12 @@ async function CategoryGrid({ section }: { section: Section }) {
         <li key={c.id}>
           <Link
             href={`/${section}/${c.slug}`}
-            className="flex h-full min-h-14 items-center rounded-2xl border border-line bg-white px-4 py-3 text-sm font-bold leading-snug hover:border-primary hover:bg-primary-soft"
+            className="flex h-full min-h-16 items-center gap-3 rounded-2xl border border-line bg-white px-3 py-3 text-sm font-bold leading-snug hover:border-primary hover:bg-primary-soft"
           >
-            {c.name}
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary-soft text-xl" aria-hidden>
+              {c.icon ?? "📌"}
+            </span>
+            <span>{c.name}</span>
           </Link>
         </li>
       ))}
@@ -42,9 +45,9 @@ export default async function HomePage() {
             <SearchForm />
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
-            {["Маникюр", "Стоматолог", "Электрик", "Репетитор", "Юрист"].map((q) => (
+            {[["💅", "Маникюр"], ["🦷", "Стоматолог"], ["💡", "Электрик"], ["📚", "Репетитор"], ["⚖️", "Юрист"]].map(([icon, q]) => (
               <Link key={q} href={`/poisk?q=${encodeURIComponent(q)}`} className="rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold hover:bg-white/25">
-                {q}
+                {icon} {q}
               </Link>
             ))}
             <button type="button" className="inline-flex items-center gap-1 rounded-full bg-highlight px-3 py-1.5 text-sm font-bold text-ink" title="Этап 2">
@@ -60,7 +63,7 @@ export default async function HomePage() {
         <section key={section} aria-labelledby={`h-${section}`}>
           <div className="mb-3 flex items-end justify-between gap-4">
             <div>
-              <h2 id={`h-${section}`} className="text-2xl font-extrabold">{t.sections[section].title}</h2>
+              <h2 id={`h-${section}`} className="text-2xl font-extrabold">{section === "biznes" ? "🏢" : "🧑‍🔧"} {t.sections[section].title}</h2>
               <p className="text-muted">{t.sections[section].lead}</p>
             </div>
             <Link href={`/${section}`} className="hidden shrink-0 items-center gap-1 font-bold text-primary sm:inline-flex">
@@ -72,7 +75,7 @@ export default async function HomePage() {
       ))}
 
       <section aria-labelledby="h-offers">
-        <h2 id="h-offers" className="mb-3 text-2xl font-extrabold">{t.home.offers}</h2>
+        <h2 id="h-offers" className="mb-3 text-2xl font-extrabold">🎁 {t.home.offers}</h2>
         <div className="grid gap-3 md:grid-cols-2">
           {withOffers.map((l) => (
             <ListingListItem key={l.slug} listing={l} districtLabel={l.data.header.districtSlugs.map(districtName).slice(0, 2).join(", ")} />
@@ -81,7 +84,7 @@ export default async function HomePage() {
       </section>
 
       <section aria-labelledby="h-new">
-        <h2 id="h-new" className="mb-3 text-2xl font-extrabold">{t.home.newListings}</h2>
+        <h2 id="h-new" className="mb-3 text-2xl font-extrabold">✨ {t.home.newListings}</h2>
         <div className="grid gap-3 md:grid-cols-2">
           {MOCK_LISTINGS.map((l) => (
             <ListingListItem key={l.slug} listing={l} districtLabel={l.data.header.districtSlugs.map(districtName).slice(0, 2).join(", ")} />
@@ -90,7 +93,7 @@ export default async function HomePage() {
       </section>
 
       <section className="rounded-[2rem] border-2 border-dashed border-primary/30 bg-white p-6 sm:p-10">
-        <h2 className="text-2xl font-extrabold">{t.home.ownerCta}</h2>
+        <h2 className="text-2xl font-extrabold">🙋 {t.home.ownerCta}</h2>
         <p className="mt-2 max-w-2xl text-muted">{t.home.ownerCtaLead}</p>
         <Link href="/kabinet" className="mt-5 inline-flex h-12 items-center gap-2 rounded-2xl bg-accent px-6 font-bold text-white hover:bg-accent-hover">
           {t.nav.addListing} <ArrowRightIcon className="size-5" />
