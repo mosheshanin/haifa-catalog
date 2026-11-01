@@ -78,7 +78,7 @@ export async function Results({
           <>
             {" · поняли запрос как "}
             {detectedCategory ? (
-              <b className="text-ink">{categories.find((c) => c.slug === detectedCategory)?.name}</b>
+              <b className="text-ink">{categories.find((c) => c.slug === detectedCategory && c.section === (section ?? items[0].section))?.name}</b>
             ) : null}
             {detectedCategory && detectedDistrict ? " + " : null}
             {detectedDistrict ? <b className="text-ink">📍 {districts.find((d) => d.slug === detectedDistrict)?.name}</b> : null}
