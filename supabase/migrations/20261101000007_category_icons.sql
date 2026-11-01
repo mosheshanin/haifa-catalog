@@ -14,7 +14,7 @@ from (values
   ('biznes', 'nedvizhimost', '🏠'),
   ('biznes', 'dosug', '🎭'),
   ('biznes', 'turistam', '🧳'),
-  ('specialisty', 'vrachi-i-psihologi', '👩‍⚕️'),
+  ('specialisty', 'vrachi-i-psihologi', '🩺'),
   ('specialisty', 'krasota', '💄'),
   ('specialisty', 'repetitory', '📚'),
   ('specialisty', 'yuristy-i-buhgaltery', '📑'),

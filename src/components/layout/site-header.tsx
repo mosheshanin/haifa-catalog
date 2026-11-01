@@ -43,7 +43,7 @@ export function SiteHeader() {
           🏢 {t.nav.biznes}
         </Link>
         <Link href="/specialisty" className="rounded-full bg-primary-soft px-3 py-1.5 text-sm font-semibold text-primary">
-          🧑‍🔧 {t.nav.specialisty}
+          👷 {t.nav.specialisty}
         </Link>
         <Link href="/poisk" className="rounded-full bg-primary-soft px-3 py-1.5 text-sm font-semibold text-primary">
           🔎 Поиск

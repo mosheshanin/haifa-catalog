@@ -35,7 +35,7 @@ export default async function SectionPage({ params }: PageProps<"/[section]">) {
         <nav aria-label="Хлебные крошки" className="mb-2 text-sm text-muted">
           <Link href="/" className="hover:text-primary">Главная</Link> › {t.sections[section].title}
         </nav>
-        <h1 className="text-3xl font-extrabold">{section === "biznes" ? "🏢" : "🧑‍🔧"} {t.sections[section].title} Хайфы</h1>
+        <h1 className="text-3xl font-extrabold">{section === "biznes" ? "🏢" : "👷"} {t.sections[section].title} Хайфы</h1>
         <p className="mt-1 text-muted">{t.sections[section].lead}</p>
       </div>
 

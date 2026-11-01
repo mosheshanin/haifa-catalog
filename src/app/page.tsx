@@ -63,7 +63,7 @@ export default async function HomePage() {
         <section key={section} aria-labelledby={`h-${section}`}>
           <div className="mb-3 flex items-end justify-between gap-4">
             <div>
-              <h2 id={`h-${section}`} className="text-2xl font-extrabold">{section === "biznes" ? "🏢" : "🧑‍🔧"} {t.sections[section].title}</h2>
+              <h2 id={`h-${section}`} className="text-2xl font-extrabold">{section === "biznes" ? "🏢" : "👷"} {t.sections[section].title}</h2>
               <p className="text-muted">{t.sections[section].lead}</p>
             </div>
             <Link href={`/${section}`} className="hidden shrink-0 items-center gap-1 font-bold text-primary sm:inline-flex">
