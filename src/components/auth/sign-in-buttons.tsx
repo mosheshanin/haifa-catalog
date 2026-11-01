@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { GoogleLogo, TelegramLogo } from "@/components/icons";
+import { useInsideTelegram } from "@/components/telegram/use-inside-telegram";
 import { t } from "@/i18n/ru";
 
 export async function startGoogleSignIn(next: string) {
@@ -13,25 +14,6 @@ export async function startGoogleSignIn(next: string) {
     options: { redirectTo, queryParams: { prompt: "select_account" } },
   });
   if (error) throw error;
-}
-
-function insideTelegram(): boolean {
-  try {
-    return (
-      sessionStorage.getItem("hbc-tg") === "1" ||
-      document.documentElement.dataset.telegram === "1" ||
-      window.location.hash.includes("tgWebAppData")
-    );
-  } catch {
-    return false;
-  }
-}
-
-const noopSubscribe = () => () => {};
-
-// true, если страница открыта внутри Telegram Mini App. На сервере всегда false.
-function useInsideTelegram(): boolean {
-  return useSyncExternalStore(noopSubscribe, insideTelegram, () => false);
 }
 
 export function GoogleSignInButton({ next, label = t.auth.google }: { next: string; label?: string }) {

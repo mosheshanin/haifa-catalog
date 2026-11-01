@@ -4,6 +4,7 @@ import { useState } from "react";
 import { startGoogleSignIn } from "@/components/auth/sign-in-buttons";
 import { GoogleLogo, TelegramLogo } from "@/components/icons";
 import { t } from "@/i18n/ru";
+import { openExternal, useInsideTelegram } from "@/components/telegram/use-inside-telegram";
 
 async function requestLink(target: "telegram" | "google") {
   const res = await fetch("/api/auth/link", {
@@ -18,6 +19,13 @@ async function requestLink(target: "telegram" | "google") {
 export function OpenInTelegramButton() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
+  const inTelegram = useInsideTelegram();
+
+  // Внутри Telegram ссылка на Telegram не нужна (и встроенное окно на ней зависает).
+  if (inTelegram) {
+    return <p className="text-sm text-muted">Вы сейчас в приложении каталога в Telegram.</p>;
+  }
+
   return (
     <div>
       <button
@@ -49,6 +57,27 @@ export function OpenInTelegramButton() {
 export function LinkGoogleButton() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
+  const inTelegram = useInsideTelegram();
+
+  // Google запрещает вход во встроенных окнах, поэтому из Telegram отправляем в обычный браузер.
+  if (inTelegram) {
+    return (
+      <div>
+        <button
+          type="button"
+          onClick={() => openExternal(`${window.location.origin}/profil`)}
+          className="inline-flex h-11 items-center gap-2 rounded-2xl border border-line bg-white px-4 font-bold hover:border-primary"
+        >
+          Открыть сайт в браузере
+        </button>
+        <p className="mt-2 text-sm text-muted">
+          Google не разрешает вход внутри Telegram. В браузере войдите через Google и на странице профиля нажмите «
+          {t.profile.openInTelegram}» — оба способа входа будут вести в один профиль.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div>
       <button
