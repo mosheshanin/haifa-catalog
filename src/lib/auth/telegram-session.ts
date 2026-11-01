@@ -38,6 +38,20 @@ async function createTelegramUser(admin: SupabaseClient, u: TelegramUser): Promi
     },
   });
   if (error || !data.user) throw error ?? new Error("Не удалось создать пользователя Telegram");
+
+  // Supabase записывает app_metadata отдельным шагом после создания пользователя,
+  // поэтому данные Telegram в профиль дописываем явно (дублирует триггер в базе).
+  const { error: profileError } = await admin
+    .from("profiles")
+    .update({
+      telegram_id: u.id,
+      telegram_username: u.username ?? null,
+      display_name: telegramDisplayName(u),
+      avatar_url: u.photo_url ?? null,
+    })
+    .eq("id", data.user.id);
+  if (profileError) throw profileError;
+
   return data.user.id;
 }
 
