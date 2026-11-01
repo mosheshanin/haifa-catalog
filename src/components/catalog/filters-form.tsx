@@ -43,6 +43,7 @@ export function FiltersForm({
       </summary>
       <Form action={action} className="grid gap-3 border-t border-line p-4">
         {filters.q ? <input type="hidden" name="q" value={filters.q} /> : null}
+        {filters.view === "map" ? <input type="hidden" name="view" value="map" /> : null}
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {categories ? (
             <label className="grid gap-1 text-sm font-bold">

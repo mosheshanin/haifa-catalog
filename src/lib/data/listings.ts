@@ -75,6 +75,19 @@ export async function searchListings(p: SearchParams): Promise<ListingSummary[]>
   return (data ?? []) as ListingSummary[];
 }
 
+export type ListingPoint = { id: string; lat: number; lng: number };
+
+// Координаты карточек для карты (у специалистов с выездом адреса может не быть — их на карте нет).
+export async function getListingPoints(ids: string[]): Promise<ListingPoint[]> {
+  "use cache";
+  cacheTag("listings");
+  cacheLife("hours");
+  if (!ids.length) return [];
+  const { data, error } = await createPublicClient().rpc("listing_points", { p_ids: ids.slice(0, 200) });
+  if (error) throw error;
+  return (data ?? []) as ListingPoint[];
+}
+
 export type ListingPage = {
   id: string;
   section: Section;

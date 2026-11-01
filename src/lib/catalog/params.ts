@@ -1,7 +1,7 @@
 import type { SearchParams } from "@/lib/data/listings";
 import type { Section } from "@/lib/blocks/types";
 
-// Фильтры живут в адресе страницы (раздел 5 ТЗ): ?q=…&district=…&lang=…&open=1&home=1&online=1&offer=1&kupa=…&sort=…&page=2
+// Фильтры живут в адресе страницы (раздел 5 ТЗ): ?q=…&district=…&lang=…&open=1&home=1&online=1&offer=1&kupa=…&sort=…&page=2&view=map
 export type RawParams = Record<string, string | string[] | undefined>;
 
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)?.trim() || undefined;
@@ -26,6 +26,7 @@ export type CatalogFilters = {
   kupa?: string;
   sort: "relevance" | "rating" | "new";
   page: number;
+  view: "list" | "map";
 };
 
 export function parseFilters(sp: RawParams, fixed: { category?: string; district?: string } = {}): CatalogFilters {
@@ -45,6 +46,7 @@ export function parseFilters(sp: RawParams, fixed: { category?: string; district
     kupa: KUPOT.includes(kupa as (typeof KUPOT)[number]) ? kupa : undefined,
     sort: sort === "rating" || sort === "new" ? sort : "relevance",
     page: Number.isInteger(page) && page > 0 && page < 100 ? page : 1,
+    view: one(sp.view) === "map" ? "map" : "list",
   };
 }
 

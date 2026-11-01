@@ -27,3 +27,6 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# Воркер MapLibre копируется из node_modules (scripts/copy-maplibre-worker.mjs)
+public/maplibre/

@@ -28,6 +28,7 @@ import {
 import { t } from "@/i18n/ru";
 import { Photo } from "@/components/ui/photo";
 import { FavoriteButton } from "@/components/listing/favorite-button";
+import { PlaceMap } from "@/components/catalog/place-map";
 
 const DAY_NAMES: Array<[keyof NonNullable<Extract<ListingBlock, { type: "hours" }>["data"]["week"]>, string]> = [
   ["sun", "Вс"],
@@ -168,9 +169,7 @@ function Block({ block, districtNames }: { block: ListingBlock; districtNames: R
           </p>
           {block.data.howToGet ? <p className="mt-2 text-sm text-muted">{block.data.howToGet}</p> : null}
           {block.data.parking ? <p className="mt-1 text-sm text-muted">Парковка: {block.data.parking}</p> : null}
-          <div className="mt-3 grid aspect-[16/7] place-items-center rounded-2xl bg-primary-soft text-sm font-semibold text-primary">
-            Карта появится на этапе 2
-          </div>
+          {block.data.lat && block.data.lng ? <PlaceMap lat={block.data.lat} lng={block.data.lng} label={block.data.address} /> : null}
           {block.data.lat && block.data.lng ? (
             <div className="mt-3 flex flex-wrap gap-2">
               <a href={wazeHref(block.data.lat, block.data.lng)} className="rounded-full border border-line px-4 py-2 text-sm font-bold hover:border-primary">

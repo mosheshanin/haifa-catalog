@@ -9,6 +9,9 @@ type TelegramWebApp = {
   expand: () => void;
   setHeaderColor?: (color: string) => void;
   setBackgroundColor?: (color: string) => void;
+  // Bot API 7.7+: не закрывать приложение свайпом вниз (нужно, пока пользователь двигает карту)
+  disableVerticalSwipes?: () => void;
+  enableVerticalSwipes?: () => void;
 };
 
 declare global {

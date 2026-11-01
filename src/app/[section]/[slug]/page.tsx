@@ -129,6 +129,12 @@ export default async function SlugPage({ params, searchParams }: PageProps<"/[se
   if (!isSection(section)) notFound();
 
   const category = await getCategory(section, slug);
+  if (category?.parent_id) {
+    // Подкатегория живёт под своей категорией: /biznes/krasota/salony-krasoty
+    const parent = (await getCategories()).find((c) => c.id === category.parent_id);
+    if (parent) permanentRedirect(`/${section}/${parent.slug}/${category.slug}`);
+    notFound();
+  }
   if (category) return <CategoryPage section={section} category={category} searchParams={searchParams} />;
 
   const listing = await getListingBySlug(section, slug);
