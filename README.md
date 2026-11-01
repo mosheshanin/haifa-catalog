@@ -1,9 +1,47 @@
 # HBC — каталог бизнесов и специалистов Хайфы (рабочее название)
 
-Русскоязычный каталог бизнесов и специалистов Хайфы. Один сайт на Next.js работает и как обычный сайт, и как Telegram Mini App.
+Русскоязычный каталог бизнесов и специалистов Хайфы. Один сайт на Next.js работает и как обычный сайт,
+и как Telegram Mini App (бот `@haifabcbot`).
 
-Техническое задание (источник истины): https://claude.ai/artifact/FRC2GByay4wHeq3jcMyfbV
+- **Тестовый адрес:** https://haifa-catalog.vercel.app
+- **Техническое задание (источник истины):** https://claude.ai/artifact/FRC2GByay4wHeq3jcMyfbV
+- **Для новой сессии Claude:** начните с [`CLAUDE.md`](CLAUDE.md) — там статус, доступы, решения и следующие шаги.
 
-Стек: Next.js + TypeScript + Tailwind на Vercel, Supabase (Postgres, вход, хранилище фото), Cloudflare (Turnstile, тайлы карты на R2), Google Cloud (вход через Google, отзывы Google), бот на grammY.
+## Статус
 
-Секретные ключи в репозиторий не попадают: локально они лежат в `.env.local`, на сервере — в переменных окружения Vercel.
+| Этап | Что входит | Состояние |
+| --- | --- | --- |
+| 0. Подготовка | Регистрация сервисов, решения раздела 14 ТЗ, анализ аналогов | Готово, кроме анализа deloclub/sarafan |
+| 1. Основа | Репозиторий, база, вход через Google и Telegram, роли, макеты | Готово 1 ноября 2026 |
+| 2. Каталог | Карточки из базы, блоки, поиск, фильтры, карта, избранное | Следующий |
+| 3. Кабинет, админка, модерация | Редактор, очередь модерации, отзывы, импорт | — |
+| 4. Telegram | Бот, заявки, уведомления, канал | — |
+| 5. SEO, аналитика, право | Разметка, sitemap, политика, cookie | — |
+| 6–7. Проверка и запуск | Тесты, пробные владельцы, платные тарифы, домен | — |
+
+## Стек
+
+Next.js 16 + TypeScript + Tailwind CSS 4 на Vercel · Supabase (Postgres, Auth, Storage) · Cloudflare (Turnstile, R2) ·
+Google Cloud (вход через Google, Places API для отзывов) · Telegram Bot API.
+
+## Структура
+
+```
+src/app/                 страницы (App Router): главная, [section], [section]/[slug], поиск, вход, профиль, кабинет, админка
+src/app/api/auth/        вход через Telegram (Mini App и виджет), привязка аккаунтов, выход
+src/app/auth/callback/   возврат после входа через Google
+src/components/          интерфейс: шапка, карточки, вход, Telegram-мост
+src/lib/                 Supabase-клиенты, вход, проверка подписи Telegram, данные, форматирование
+src/i18n/ru.ts           все тексты интерфейса (готово к добавлению иврита, английского, арабского)
+src/mocks/listings.ts    примерные карточки для макетов (заменяются на этапе 2)
+supabase/migrations/     схема базы, правила доступа (RLS), справочники
+scripts/supabase-stub.py подмена Supabase для проверочной сборки без интернета
+```
+
+## Локальный запуск
+
+1. `npm install`
+2. Скопировать `.env.example` в `.env.local` и вписать секреты (файл не попадает в репозиторий).
+3. `npm run dev` → http://localhost:3000
+
+Проверки перед отправкой: `npx next typegen && npx tsc --noEmit && npx eslint src && npm run build`.
