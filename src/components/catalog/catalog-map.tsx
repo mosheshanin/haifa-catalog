@@ -238,7 +238,7 @@ export function CatalogMap({ items, missing }: { items: MapItem[]; missing: numb
           </p>
         ) : null}
         {current ? (
-          <div className="absolute inset-x-2 bottom-2 sm:inset-x-auto sm:left-3 sm:w-[26rem]">
+          <div className="absolute inset-x-2 bottom-8 z-10 sm:inset-x-auto sm:left-3 sm:w-[26rem]">
             <div className="relative">
               <ListingListItem listing={current} subtitle={current.subtitle} districtLabel={current.districtLabel} />
               <button
