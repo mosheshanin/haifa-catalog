@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { SearchForm } from "@/components/search/search-form";
 import { ListingListItem } from "@/components/listing/listing-list-item";
-import { MockNotice } from "@/components/ui/mock-notice";
 import { ArrowRightIcon, MapPinIcon } from "@/components/icons";
-import { getDistricts, getSectionCategories } from "@/lib/data/dictionaries";
-import { MOCK_LISTINGS } from "@/mocks/listings";
+import { getCategories, getDistricts, getSectionCategories } from "@/lib/data/dictionaries";
+import { searchListings, type ListingSummary } from "@/lib/data/listings";
 import { t } from "@/i18n/ru";
 import type { Section } from "@/lib/blocks/types";
 
@@ -29,10 +28,30 @@ async function CategoryGrid({ section }: { section: Section }) {
   );
 }
 
+function ListingGrid({ items, districtName, categoryName }: { items: ListingSummary[]; districtName: (id: number) => string; categoryName: (id: number | null) => string }) {
+  return (
+    <div className="grid gap-3 md:grid-cols-2">
+      {items.map((l) => (
+        <ListingListItem
+          key={l.id}
+          listing={l}
+          subtitle={l.section === "specialisty" && l.summary ? l.summary : categoryName(l.category_id)}
+          districtLabel={l.district_ids.map(districtName).filter(Boolean).slice(0, 2).join(", ")}
+        />
+      ))}
+    </div>
+  );
+}
+
 export default async function HomePage() {
-  const districts = await getDistricts();
-  const districtName = (slug: string) => districts.find((d) => d.slug === slug)?.name ?? slug;
-  const withOffers = MOCK_LISTINGS.filter((l) => l.hasOffer);
+  const [districts, categories, withOffers, newest] = await Promise.all([
+    getDistricts(),
+    getCategories(),
+    searchListings({ hasOffer: true, limit: 4 }),
+    searchListings({ sort: "new", limit: 6 }),
+  ]);
+  const districtName = (id: number) => districts.find((d) => d.id === id)?.name ?? "";
+  const categoryName = (id: number | null) => categories.find((c) => c.id === id)?.name ?? "";
 
   return (
     <div className="grid gap-10">
@@ -50,14 +69,12 @@ export default async function HomePage() {
                 {icon} {q}
               </Link>
             ))}
-            <button type="button" className="inline-flex items-center gap-1 rounded-full bg-highlight px-3 py-1.5 text-sm font-bold text-ink" title="Этап 2">
+            <Link href="/ryadom" className="inline-flex items-center gap-1 rounded-full bg-highlight px-3 py-1.5 text-sm font-bold text-ink">
               <MapPinIcon className="size-4" /> {t.search.nearMe}
-            </button>
+            </Link>
           </div>
         </div>
       </section>
-
-      <MockNotice text="Это макет этапа 1: категории и районы настоящие (из базы), карточки — примерные." />
 
       {(["biznes", "specialisty"] as const).map((section) => (
         <section key={section} aria-labelledby={`h-${section}`}>
@@ -74,23 +91,24 @@ export default async function HomePage() {
         </section>
       ))}
 
-      <section aria-labelledby="h-offers">
-        <h2 id="h-offers" className="mb-3 text-2xl font-extrabold">🎁 {t.home.offers}</h2>
-        <div className="grid gap-3 md:grid-cols-2">
-          {withOffers.map((l) => (
-            <ListingListItem key={l.slug} listing={l} districtLabel={l.data.header.districtSlugs.map(districtName).slice(0, 2).join(", ")} />
-          ))}
-        </div>
-      </section>
+      {withOffers.length ? (
+        <section aria-labelledby="h-offers">
+          <div className="mb-3 flex items-end justify-between gap-4">
+            <h2 id="h-offers" className="text-2xl font-extrabold">🎁 {t.home.offers}</h2>
+            <Link href="/poisk?offer=1" className="inline-flex shrink-0 items-center gap-1 font-bold text-primary">
+              Все <ArrowRightIcon className="size-4" />
+            </Link>
+          </div>
+          <ListingGrid items={withOffers} districtName={districtName} categoryName={categoryName} />
+        </section>
+      ) : null}
 
-      <section aria-labelledby="h-new">
-        <h2 id="h-new" className="mb-3 text-2xl font-extrabold">✨ {t.home.newListings}</h2>
-        <div className="grid gap-3 md:grid-cols-2">
-          {MOCK_LISTINGS.map((l) => (
-            <ListingListItem key={l.slug} listing={l} districtLabel={l.data.header.districtSlugs.map(districtName).slice(0, 2).join(", ")} />
-          ))}
-        </div>
-      </section>
+      {newest.length ? (
+        <section aria-labelledby="h-new">
+          <h2 id="h-new" className="mb-3 text-2xl font-extrabold">✨ {t.home.newListings}</h2>
+          <ListingGrid items={newest} districtName={districtName} categoryName={categoryName} />
+        </section>
+      ) : null}
 
       <section className="rounded-[2rem] border-2 border-dashed border-primary/30 bg-white p-6 sm:p-10">
         <h2 className="text-2xl font-extrabold">🙋 {t.home.ownerCta}</h2>

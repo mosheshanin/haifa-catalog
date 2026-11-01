@@ -34,7 +34,10 @@ export function SiteHeader() {
         <div className="ml-auto hidden w-full max-w-sm lg:block">
           <SearchForm compact />
         </div>
-        <div className="ml-auto lg:ml-0">
+        <div className="ml-auto flex items-center gap-1 lg:ml-0">
+          <Link href="/izbrannoe" className="grid size-10 place-items-center rounded-full text-xl hover:bg-primary-soft" aria-label={t.nav.favorites} title={t.nav.favorites}>
+            ❤️
+          </Link>
           <UserMenu />
         </div>
       </div>

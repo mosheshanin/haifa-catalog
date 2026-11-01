@@ -25,5 +25,11 @@ class H(BaseHTTPRequestHandler):
             body = b'{"message":"stub"}'; code = 401
         self.send_response(code); self.send_header("Content-Type", "application/json"); self.end_headers(); self.wfile.write(body)
     do_HEAD = do_GET
+    def do_POST(self):
+        # RPC (например, search_listings) — пустой результат
+        length = int(self.headers.get("Content-Length") or 0)
+        if length: self.rfile.read(length)
+        body = b"[]"
+        self.send_response(200); self.send_header("Content-Type", "application/json"); self.end_headers(); self.wfile.write(body)
 print(len(data["categories"]), "categories,", len(data["districts"]), "districts", flush=True)
 ThreadingHTTPServer(("127.0.0.1", 54321), H).serve_forever()

@@ -27,6 +27,7 @@ import {
 } from "@/lib/format";
 import { t } from "@/i18n/ru";
 import { Photo } from "@/components/ui/photo";
+import { FavoriteButton } from "@/components/listing/favorite-button";
 
 const DAY_NAMES: Array<[keyof NonNullable<Extract<ListingBlock, { type: "hours" }>["data"]["week"]>, string]> = [
   ["sun", "Вс"],
@@ -279,18 +280,22 @@ function Block({ block, districtNames }: { block: ListingBlock; districtNames: R
 }
 
 export function ListingView({
+  listingId,
   data,
   categoryName,
   categoryHref,
   rating,
-  reviewsCount,
+  reviewsCount = 0,
+  isDemo = false,
   districtNames,
 }: {
+  listingId: string;
   data: ListingData;
   categoryName: string;
   categoryHref: string;
-  rating?: number;
+  rating?: number | null;
   reviewsCount?: number;
+  isDemo?: boolean;
   districtNames: Record<string, string>;
 }) {
   const { header, contacts } = data;
@@ -345,11 +350,12 @@ export function ListingView({
             {header.profession ?? categoryName} · {districts.join(", ")}, Хайфа
           </p>
           {header.slogan ? <p className="mt-2 font-semibold">{header.slogan}</p> : null}
-          {rating ? (
+          {rating && reviewsCount > 0 ? (
             <p className="mt-2 inline-flex items-center gap-1 font-bold">
-              <StarIcon className="size-5 fill-highlight text-highlight" /> {rating.toFixed(1)}
+              <StarIcon className="size-5 fill-highlight text-highlight" /> {Number(rating).toFixed(1)}
               <span className="font-normal text-muted">
-                · {reviewsCount} {pluralRu(reviewsCount ?? 0, "отзыв", "отзыва", "отзывов")} (примерные)
+                · {reviewsCount} {pluralRu(reviewsCount, "отзыв", "отзыва", "отзывов")}
+                {isDemo ? " (примерные)" : ""}
               </span>
             </p>
           ) : null}
@@ -379,6 +385,7 @@ export function ListingView({
                 <SendIcon className="size-5" /> {t.listing.telegram}
               </a>
             ) : null}
+            <FavoriteButton listingId={listingId} withLabel />
             <button type="button" className="inline-flex h-12 items-center gap-2 rounded-2xl border border-line px-4 font-bold hover:border-primary">
               <ShareIcon className="size-5" /> {t.listing.share}
             </button>

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { MiniAppBridge } from "@/components/telegram/mini-app-bridge";
+import { FavoritesProvider } from "@/components/listing/favorites-provider";
 import { SITE_INDEXABLE, siteUrl } from "@/lib/env";
 import { t } from "@/i18n/ru";
 // Шрифт Nunito лежит в проекте и раздаётся с нашего домена: без запросов к Google в браузере.
@@ -33,11 +34,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-xl focus:bg-white focus:px-4 focus:py-2">
           К содержимому
         </a>
-        <SiteHeader />
-        <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
-          {children}
-        </main>
-        <SiteFooter />
+        <FavoritesProvider>
+          <SiteHeader />
+          <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
+            {children}
+          </main>
+          <SiteFooter />
+        </FavoritesProvider>
         <MiniAppBridge />
       </body>
     </html>

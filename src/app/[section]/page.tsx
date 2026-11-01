@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ListingListItem } from "@/components/listing/listing-list-item";
-import { MockNotice } from "@/components/ui/mock-notice";
+import { Suspense } from "react";
+import { FiltersForm } from "@/components/catalog/filters-form";
+import { Results, ResultsSkeleton } from "@/components/catalog/results";
 import { getDistricts, getSectionCategories, isSection } from "@/lib/data/dictionaries";
-import { mockListingsFor } from "@/mocks/listings";
+import { parseFilters } from "@/lib/catalog/params";
 import { t } from "@/i18n/ru";
+import type { Section } from "@/lib/blocks/types";
 
 export async function generateStaticParams() {
   return [{ section: "biznes" }, { section: "specialisty" }];
@@ -16,18 +18,26 @@ export async function generateMetadata({ params }: PageProps<"/[section]">): Pro
   if (!isSection(section)) return {};
   return {
     title: `${t.sections[section].title} Хайфы`,
-    description: `${t.sections[section].lead}. Русскоязычный каталог Хайфы.`,
+    description: `${t.sections[section].lead}. Русскоязычный каталог Хайфы: контакты, цены, часы работы и отзывы.`,
     alternates: { canonical: `/${section}` },
   };
 }
 
-export default async function SectionPage({ params }: PageProps<"/[section]">) {
+async function Explorer({ section, searchParams }: { section: Section; searchParams: PageProps<"/[section]">["searchParams"] }) {
+  const [sp, districts, categories] = await Promise.all([searchParams, getDistricts(), getSectionCategories(section)]);
+  const filters = parseFilters(sp);
+  return (
+    <div className="grid gap-4">
+      <FiltersForm action={`/${section}`} filters={filters} districts={districts} categories={categories} resetHref={`/${section}`} />
+      <Results filters={filters} section={section} basePath={`/${section}`} rawParams={sp} />
+    </div>
+  );
+}
+
+export default async function SectionPage({ params, searchParams }: PageProps<"/[section]">) {
   const { section } = await params;
   if (!isSection(section)) notFound();
-
-  const [categories, districts] = await Promise.all([getSectionCategories(section), getDistricts()]);
-  const listings = mockListingsFor(section);
-  const districtName = (slug: string) => districts.find((d) => d.slug === slug)?.name ?? slug;
+  const categories = await getSectionCategories(section);
 
   return (
     <div className="grid gap-6">
@@ -50,21 +60,9 @@ export default async function SectionPage({ params }: PageProps<"/[section]">) {
         ))}
       </ul>
 
-      <div className="flex flex-wrap gap-2 rounded-2xl bg-white p-3 text-sm shadow-sm">
-        <span className="font-bold">Фильтры:</span>
-        {["📍 Район", "🗣️ Язык общения", "🕒 Открыто сейчас", "🚗 Выезд на дом", "💻 Онлайн", "🎁 Спецпредложение", "🏥 Больничные кассы"].map((f) => (
-          <span key={f} className="rounded-full border border-line px-3 py-1 text-muted">{f}</span>
-        ))}
-        <span className="text-muted">· заработают на этапе 2</span>
-      </div>
-
-      <MockNotice />
-
-      <div className="grid gap-3 md:grid-cols-2">
-        {listings.map((l) => (
-          <ListingListItem key={l.slug} listing={l} districtLabel={l.data.header.districtSlugs.map(districtName).slice(0, 2).join(", ")} />
-        ))}
-      </div>
+      <Suspense fallback={<ResultsSkeleton />}>
+        <Explorer section={section} searchParams={searchParams} />
+      </Suspense>
     </div>
   );
 }
