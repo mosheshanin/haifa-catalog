@@ -1,7 +1,9 @@
-// Публичные значения (видны в браузере). Секреты читаются только в server-only модулях.
-export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-export const SUPABASE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "";
-export const TELEGRAM_BOT_USERNAME = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME ?? "haifabcbot";
+// Публичные значения (видны в браузере, не секрет). Значения по умолчанию — рабочие для этого проекта;
+// переменные NEXT_PUBLIC_* в Vercel их переопределяют. Секреты читаются только в server-only модулях.
+export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://kqzrnjjeyppkmqtwnspo.supabase.co";
+export const SUPABASE_PUBLISHABLE_KEY =
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "sb_publishable_VvVZ-5gZbn86HDU4vi-yzg_chbbFFSB";
+export const TELEGRAM_BOT_USERNAME = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || "haifabcbot";
 // Короткое имя Mini App из @BotFather (t.me/<бот>/<имя>). Пусто — используется главное приложение бота.
 export const TELEGRAM_MINIAPP_SHORT_NAME = process.env.NEXT_PUBLIC_TELEGRAM_MINIAPP_SHORT_NAME ?? "";
 
