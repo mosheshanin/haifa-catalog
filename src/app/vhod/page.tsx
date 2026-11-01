@@ -1,16 +1,20 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { GoogleSignInButton, TelegramSignInWidget } from "@/components/auth/sign-in-buttons";
-import { safeNext } from "@/lib/auth/current-user";
+import { getCurrentUser, safeNext } from "@/lib/auth/current-user";
 import { TELEGRAM_BOT_USERNAME } from "@/lib/env";
 import { t } from "@/i18n/ru";
 
 export const metadata: Metadata = { title: t.auth.title, robots: { index: false } };
 
 async function SignInOptions({ searchParams }: { searchParams: PageProps<"/vhod">["searchParams"] }) {
-  const sp = await searchParams;
+  const [sp, user] = await Promise.all([searchParams, getCurrentUser()]);
   const next = safeNext(typeof sp.next === "string" ? sp.next : undefined);
   const error = typeof sp.error === "string" ? sp.error : undefined;
+
+  // Уже вошли — страница входа не нужна.
+  if (user) redirect(next);
 
   return (
     <div className="grid gap-4">

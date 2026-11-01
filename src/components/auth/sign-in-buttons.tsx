@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { GoogleLogo, TelegramLogo } from "@/components/icons";
 import { useInsideTelegram } from "@/components/telegram/use-inside-telegram";
@@ -57,6 +58,32 @@ export function GoogleSignInButton({ next, label = t.auth.google }: { next: stri
 export function TelegramSignInWidget({ botUsername, next }: { botUsername: string; next: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const inTelegram = useInsideTelegram();
+  const router = useRouter();
+  const [slow, setSlow] = useState(false);
+
+  // Если автоматический вход затянулся, подсказываем, что делать.
+  useEffect(() => {
+    if (!inTelegram) return;
+    const id = setTimeout(() => setSlow(true), 8000);
+    return () => clearTimeout(id);
+  }, [inTelegram]);
+
+  // Внутри Telegram вход происходит автоматически (MiniAppBridge). Как только сессия есть — уходим.
+  useEffect(() => {
+    if (!inTelegram) return;
+    const supabase = createClient();
+    let active = true;
+    const check = async () => {
+      const { data } = await supabase.auth.getClaims();
+      if (active && data?.claims?.sub) router.replace(next);
+    };
+    check();
+    window.addEventListener("hbc-auth-changed", check);
+    return () => {
+      active = false;
+      window.removeEventListener("hbc-auth-changed", check);
+    };
+  }, [inTelegram, next, router]);
 
   useEffect(() => {
     if (inTelegram) return;
@@ -82,7 +109,8 @@ export function TelegramSignInWidget({ botUsername, next }: { botUsername: strin
   if (inTelegram) {
     return (
       <p className="flex items-center gap-2 rounded-2xl bg-primary-soft p-4 text-sm font-semibold text-primary">
-        <TelegramLogo /> {t.auth.telegramSigningIn}
+        <TelegramLogo />
+        {slow ? "Не получилось войти автоматически. Закройте каталог и откройте его снова через бота." : t.auth.telegramSigningIn}
       </p>
     );
   }
