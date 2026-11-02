@@ -12,15 +12,16 @@ async function CategoryGrid({ section }: { section: Section }) {
   return (
     <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
       {categories.map((c) => (
-        <li key={c.id}>
+        <li key={c.id} className="min-w-0">
           <Link
             href={`/${section}/${c.slug}`}
-            className="flex h-full min-h-16 items-center gap-3 rounded-2xl border border-line bg-white px-3 py-3 text-sm font-bold leading-snug hover:border-primary hover:bg-primary-soft"
+            className="flex h-full min-h-16 items-center gap-2.5 rounded-2xl border border-line bg-white px-2.5 py-3 text-sm font-bold leading-snug hover:border-primary hover:bg-primary-soft"
           >
             <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary-soft text-xl" aria-hidden>
               {c.icon ?? "📌"}
             </span>
-            <span>{c.name}</span>
+            {/* Длинные слова («Недвижимость») переносятся по слогам, а не раздвигают сетку на узком экране */}
+            <span className="min-w-0 hyphens-auto break-words">{c.name}</span>
           </Link>
         </li>
       ))}

@@ -370,7 +370,8 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
                     <TeamBookButton name={m.name} />
                   ) : ctx.whatsapp ? (
                     <a
-                      href={whatsappHref(ctx.whatsapp, `Здравствуйте! Хочу записаться к мастеру ${m.name} (нашёл(а) вас в каталоге HBC).`)}
+                      href={whatsappHref(ctx.whatsapp, `Здравствуйте! Хочу записаться. Мастер: ${m.name}. Нашёл(а) вас в каталоге HBC.`)}
+                      aria-label={`Записаться в WhatsApp: ${m.name}`}
                       className="mt-2 inline-flex min-h-11 items-center justify-center rounded-xl bg-[#1fa855] px-3 py-2 text-sm font-bold text-white"
                     >
                       💬 Записаться
@@ -776,13 +777,13 @@ export function ListingView({
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white/95 px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur md:hidden">
         <div className="mx-auto flex max-w-xl gap-2">
           {contacts.phone ? (
-            <a href={telHref(contacts.phone)} className="flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-primary font-bold text-white">
-              <PhoneIcon className="size-5" /> {t.listing.call}
+            <a href={telHref(contacts.phone)} className="flex h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-2xl bg-primary px-1 font-bold text-white">
+              <PhoneIcon className="size-5 shrink-0 max-[359px]:hidden" /> {t.listing.call}
             </a>
           ) : null}
           {contacts.whatsapp ? (
-            <a href={whatsappHref(contacts.whatsapp, waText)} className="flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-[#1fa855] font-bold text-white">
-              <ChatIcon className="size-5" /> WhatsApp
+            <a href={whatsappHref(contacts.whatsapp, waText)} className="flex h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-2xl bg-[#1fa855] px-1 font-bold text-white">
+              <ChatIcon className="size-5 shrink-0 max-[359px]:hidden" /> WhatsApp
             </a>
           ) : null}
           {address?.type === "address" && address.data.lat && address.data.lng ? (
@@ -794,7 +795,7 @@ export function ListingView({
               <MapPinIcon className="size-5" />
             </a>
           ) : data.blocks.some((b) => b.type === "request") ? (
-            <a href="#request" className="flex h-12 flex-1 items-center justify-center rounded-2xl bg-accent font-bold text-white">
+            <a href="#request" className="flex h-12 min-w-0 flex-1 items-center justify-center rounded-2xl bg-accent px-1 font-bold text-white">
               Записаться
             </a>
           ) : null}
