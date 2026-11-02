@@ -37,13 +37,15 @@ export function GoogleRating({ url, placeId, cid }: { url: string; placeId?: str
           onClick={() => setShown(true)}
           className="flex min-h-24 w-full flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-line bg-surface-alt p-4 text-center hover:border-primary"
         >
-          <span className="text-lg font-extrabold">⭐ Показать рейтинг и отзывы Google</span>
-          <span className="text-xs text-muted">Загрузится карта Google: рейтинг, число отзывов и ссылка на все отзывы</span>
+          <span className="text-lg font-extrabold">🗺️ Показать на карте Google</span>
+          <span className="text-xs text-muted">На широком экране карта показывает рейтинг и число отзывов</span>
         </button>
       ) : null}
+      {/* На узкой карте Google прячет карточку с рейтингом, поэтому отзывы всегда доступны по кнопке
+          (на телефоне откроется приложение Google Карт). */}
       {href ? (
-        <a href={href} target="_blank" rel="noopener noreferrer" className="justify-self-start text-sm font-bold text-primary underline-offset-2 hover:underline">
-          Открыть в Google Картах ↗
+        <a href={href} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center justify-center gap-2 justify-self-start rounded-2xl border border-line bg-white px-4 text-sm font-bold hover:border-primary">
+          ⭐ Читать отзывы в Google Картах ↗
         </a>
       ) : null}
     </div>
