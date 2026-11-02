@@ -110,7 +110,7 @@ export default async function SubPage({ params, searchParams }: PageProps<"/[sec
         </h1>
         {r.kind === "district" ? (
           <p className="mt-3 leading-relaxed text-muted">
-            Русскоязычные {section === "biznes" ? "заведения и компании" : "специалисты"} в районе {r.district.name} и рядом.
+            Проверенные {section === "biznes" ? "заведения и компании" : "специалисты"} в районе {r.district.name} и рядом.
           </p>
         ) : r.category.seo_text ? (
           <p className="mt-2 max-w-3xl text-muted">{r.category.seo_text}</p>

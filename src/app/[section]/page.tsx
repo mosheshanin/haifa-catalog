@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: PageProps<"/[section]">): Pro
   if (!isSection(section)) return {};
   return {
     title: `${t.sections[section].title} Хайфы`,
-    description: `${t.sections[section].lead}. Русскоязычный каталог Хайфы: контакты, цены, часы работы и отзывы.`,
+    description: `${t.sections[section].lead}. HaifaBusinessClub — сообщество проверенных бизнесов и специалистов Хайфы: контакты, цены, часы работы и отзывы.`,
     alternates: { canonical: `/${section}` },
   };
 }
