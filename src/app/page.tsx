@@ -120,7 +120,7 @@ export default async function HomePage() {
       <section className="rounded-[2rem] border-2 border-dashed border-primary/30 bg-white p-6 sm:p-12">
         <h2 className="text-xl font-extrabold leading-snug text-balance sm:text-2xl">🙋 {t.home.ownerCta}</h2>
         <p className="mt-3 max-w-2xl leading-relaxed text-muted">{t.home.ownerCtaLead}</p>
-        <Link href="/kabinet/novaya" className="mt-6 inline-flex h-12 items-center gap-2 whitespace-nowrap rounded-2xl bg-accent px-6 font-bold text-white hover:bg-accent-hover">
+        <Link href="/kabinet/novaya" className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-accent px-5 font-bold text-white hover:bg-accent-hover sm:w-auto sm:px-6">
           {t.home.ownerCtaButton} <ArrowRightIcon className="size-5" />
         </Link>
       </section>
