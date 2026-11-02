@@ -5,7 +5,7 @@ import { FavoriteButton } from "@/components/listing/favorite-button";
 import { Photo } from "@/components/ui/photo";
 import { pluralRu } from "@/lib/format";
 import { t } from "@/i18n/ru";
-import type { Section } from "@/lib/blocks/types";
+import type { HoursException, HoursInterval, Section, WeekdayKey } from "@/lib/blocks/types";
 
 // Минимум данных для строки списка (подходит и для результатов поиска, и для избранного).
 export type ListItemData = {
@@ -19,7 +19,7 @@ export type ListItemData = {
   has_offer: boolean;
   rating_avg: number | null;
   rating_count: number;
-  hours: Record<string, Array<{ open: string; close: string }>> | null;
+  hours: (Partial<Record<WeekdayKey, HoursInterval[]>> & { exceptions?: HoursException[] }) | null;
   is_verified: boolean;
   is_demo: boolean;
   distance_m?: number | null;

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 type TelegramWebApp = {
   initData: string;
+  initDataUnsafe?: { start_param?: string };
   ready: () => void;
   expand: () => void;
   setHeaderColor?: (color: string) => void;
@@ -69,6 +70,16 @@ export function MiniAppBridge() {
         wa.setHeaderColor?.("#ffffff");
         wa.setBackgroundColor?.("#f4fbfb");
         document.documentElement.dataset.telegram = "1";
+
+        // Ссылка «Открыть в Telegram» с карточки: t.me/<бот>?startapp=b_<slug> (бизнес) или s_<slug> (специалист).
+        // Mini App открывается на главной — переходим на карточку один раз за сессию.
+        const start = wa.initDataUnsafe?.start_param ?? "";
+        if (/^[bs]_[a-z0-9-]{1,120}$/.test(start) && sessionStorage.getItem("hbc-tg-start") !== start) {
+          sessionStorage.setItem("hbc-tg-start", start);
+          if (window.location.pathname === "/") {
+            router.replace(`/${start[0] === "b" ? "biznes" : "specialisty"}/${start.slice(2)}`);
+          }
+        }
 
         if (!wa.initData || sessionStorage.getItem("hbc-tg-auth") === "1") return;
         const res = await fetch("/api/auth/telegram/miniapp", {

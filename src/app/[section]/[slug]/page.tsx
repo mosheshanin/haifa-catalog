@@ -10,8 +10,10 @@ import { MockNotice } from "@/components/ui/mock-notice";
 import { getCategories, getCategory, getDistricts, isSection, type Category } from "@/lib/data/dictionaries";
 import { getListingBySlug, getPublishedSlugs, getSimilar } from "@/lib/data/listings";
 import { parseFilters } from "@/lib/catalog/params";
-import { breadcrumbsJsonLd, jsonLdScript, listingJsonLd } from "@/lib/seo/jsonld";
-import { siteUrl } from "@/lib/env";
+import { breadcrumbsJsonLd, jsonLdScript, listingEventsJsonLd, listingJsonLd } from "@/lib/seo/jsonld";
+import { miniAppLink, siteUrl, SITE_INDEXABLE } from "@/lib/env";
+import QRCode from "qrcode";
+import { getVimeoThumbs } from "@/lib/data/video";
 import { t } from "@/i18n/ru";
 import type { Section } from "@/lib/blocks/types";
 
@@ -155,6 +157,17 @@ export default async function SlugPage({ params, searchParams }: PageProps<"/[se
   });
   const districtById = new Map(districts.map((d) => [d.id, d.name]));
 
+  // «Поделиться»: QR ведёт на короткую ссылку /k/<код> (раздел 4 ТЗ), Mini App открывает карточку по start_param.
+  const shortUrl = listing.shortCode ? `${siteUrl()}/k/${listing.shortCode}` : undefined;
+  const qrSvg = await QRCode.toString(shortUrl ?? url, {
+    type: "svg",
+    errorCorrectionLevel: "M",
+    margin: 1,
+    color: { dark: "#0a3d45", light: "#ffffff" },
+  });
+  const vimeoIds = listing.data.blocks.flatMap((b) => (b.type === "video" && !b.hidden ? b.data.items.filter((v) => v.provider === "vimeo").map((v) => v.videoId) : []));
+  const vimeoThumbs = vimeoIds.length ? await getVimeoThumbs(vimeoIds) : {};
+
   return (
     <div className="mx-auto max-w-3xl">
       {!listing.isDemo ? (
@@ -175,6 +188,7 @@ export default async function SlugPage({ params, searchParams }: PageProps<"/[se
               ...(topCategory ? [{ name: topCategory.name, url: `${siteUrl()}/${section}/${topCategory.slug}` }] : []),
               { name: listing.data.header.title, url },
             ]),
+            ...listingEventsJsonLd({ url, data: listing.data }),
           ])}
         />
       ) : (
@@ -191,6 +205,14 @@ export default async function SlugPage({ params, searchParams }: PageProps<"/[se
         reviewsCount={listing.ratingCount}
         isDemo={listing.isDemo}
         districtNames={districtNames}
+        vimeoThumbs={vimeoThumbs}
+        share={{
+          url,
+          shortUrl,
+          qrSvg,
+          miniAppUrl: miniAppLink(`${section === "biznes" ? "b" : "s"}_${slug}`),
+          temporaryAddress: !SITE_INDEXABLE,
+        }}
       />
       {similar.length ? (
         <section className="mt-8" aria-labelledby="similar">

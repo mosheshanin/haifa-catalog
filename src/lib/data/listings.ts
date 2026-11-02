@@ -1,7 +1,8 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { createPublicClient } from "@/lib/supabase/server";
-import type { ListingData, Section } from "@/lib/blocks/types";
+import type { HoursException, HoursInterval, ListingData, Section, WeekdayKey } from "@/lib/blocks/types";
+import { israelToday, pruneExpired } from "@/lib/blocks/expire";
 
 // Строка результата поиска (функция public.search_listings).
 export type ListingSummary = {
@@ -18,7 +19,7 @@ export type ListingSummary = {
   has_offer: boolean;
   rating_avg: number | null;
   rating_count: number;
-  hours: Record<string, Array<{ open: string; close: string }>> | null;
+  hours: (Partial<Record<WeekdayKey, HoursInterval[]>> & { exceptions?: HoursException[] }) | null; // + исключения
   is_verified: boolean;
   is_demo: boolean;
   distance_m: number | null;
@@ -97,6 +98,7 @@ export type ListingPage = {
   isDemo: boolean;
   ratingAvg: number | null;
   ratingCount: number;
+  shortCode: string | null;
   publishedAt: string | null;
   updatedAt: string;
   data: ListingData;
@@ -113,7 +115,7 @@ export async function getListingBySlug(
   const sb = createPublicClient();
   const { data: l, error } = await sb
     .from("listings")
-    .select("id, section, slug, category_id, is_verified, is_demo, rating_avg, rating_count, published_version_id, published_at, updated_at")
+    .select("id, section, slug, category_id, is_verified, is_demo, rating_avg, rating_count, short_code, published_version_id, published_at, updated_at")
     .eq("section", section)
     .eq("slug", slug)
     .eq("status", "published")
@@ -149,10 +151,28 @@ export async function getListingBySlug(
     isDemo: l.is_demo,
     ratingAvg: l.rating_avg,
     ratingCount: l.rating_count,
+    shortCode: l.short_code,
     publishedAt: l.published_at,
     updatedAt: l.updated_at,
-    data: v.data as ListingData,
+    // Устаревшие спецпредложения, мероприятия и вакансии скрываются (раздел 4 ТЗ).
+    data: pruneExpired(v.data as ListingData, israelToday()),
   };
+}
+
+// Короткая ссылка /k/<код> → адрес карточки. Код не зависит от названия, поэтому переживает переименование.
+export async function getListingPathByShortCode(code: string): Promise<string | null> {
+  "use cache";
+  cacheTag("listings");
+  cacheLife("hours");
+  if (!/^[a-z0-9]{4,12}$/i.test(code)) return null;
+  const { data, error } = await createPublicClient()
+    .from("listings")
+    .select("section, slug")
+    .eq("short_code", code.toLowerCase())
+    .eq("status", "published")
+    .maybeSingle();
+  if (error) throw error;
+  return data ? `/${data.section}/${data.slug}` : null;
 }
 
 // Адреса опубликованных карточек для предварительной сборки страниц.

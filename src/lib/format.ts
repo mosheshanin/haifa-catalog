@@ -48,3 +48,24 @@ export function formatDateRu(iso: string): string {
     new Date(iso),
   );
 }
+
+// Дата и время мероприятия: значения хранятся как местное время Израиля ("2026-11-20T18:00"),
+// поэтому форматируем их «как есть», без пересчёта часовых поясов.
+const asUtc = (local: string) => new Date(`${local.length === 10 ? `${local}T00:00` : local}:00Z`);
+
+export function formatDayMonth(localDate: string, withWeekday = false): string {
+  return new Intl.DateTimeFormat("ru-RU", {
+    timeZone: "UTC",
+    day: "numeric",
+    month: "long",
+    ...(withWeekday ? { weekday: "short" as const } : {}),
+  }).format(asUtc(localDate.slice(0, 10)));
+}
+
+export function formatEventWhen(start: string, end?: string): string {
+  const day = formatDayMonth(start, true);
+  const time = start.length > 10 ? start.slice(11, 16) : "";
+  const endTime = end && end.slice(0, 10) === start.slice(0, 10) && end.length > 10 ? `–${end.slice(11, 16)}` : "";
+  const endDay = end && end.slice(0, 10) !== start.slice(0, 10) ? ` — ${formatDayMonth(end)}` : "";
+  return `${day}${time ? `, ${time}${endTime}` : ""}${endDay}`;
+}

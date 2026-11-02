@@ -1,4 +1,5 @@
 import type { ListingBlock, ListingData } from "@/lib/blocks/types";
+import { israelOffset } from "@/lib/blocks/expire";
 
 const DAY_SCHEMA: Record<string, string> = {
   sun: "Sunday",
@@ -81,6 +82,25 @@ export function listingJsonLd(opts: {
     };
   }
 
+  const menu = block("menu");
+  if (menu?.data.sections.length) {
+    json.hasMenu = {
+      "@type": "Menu",
+      name: "Меню",
+      hasMenuSection: menu.data.sections.map((sec) => ({
+        "@type": "MenuSection",
+        name: sec.title,
+        hasMenuItem: sec.items.map((it) => ({
+          "@type": "MenuItem",
+          name: it.name,
+          description: it.description,
+          ...(it.tags?.includes("veg") ? { suitableForDiet: "https://schema.org/VegetarianDiet" } : {}),
+          ...(it.price !== undefined ? { offers: { "@type": "Offer", price: it.price, priceCurrency: "ILS" } } : {}),
+        })),
+      })),
+    };
+  }
+
   if (opts.rating && opts.rating.count > 0) {
     json.aggregateRating = { "@type": "AggregateRating", ratingValue: opts.rating.value, reviewCount: opts.rating.count };
   }
@@ -99,4 +119,37 @@ export function breadcrumbsJsonLd(items: Array<{ name: string; url: string }>) {
 // Безопасная вставка JSON-LD в HTML.
 export function jsonLdScript(data: unknown) {
   return { __html: JSON.stringify(data).replace(/</g, "\\u003c") };
+}
+
+// Мероприятия карточки — отдельные объекты Event (раздел 8 ТЗ). Прошедшие уже убраны при загрузке карточки.
+export function listingEventsJsonLd(opts: { url: string; data: ListingData }) {
+  const { data } = opts;
+  const events = data.blocks.find((b) => b.type === "events" && !b.hidden) as Extract<ListingBlock, { type: "events" }> | undefined;
+  const address = data.blocks.find((b) => b.type === "address" && !b.hidden) as Extract<ListingBlock, { type: "address" }> | undefined;
+  const when = (local: string) => (local.length > 10 ? `${local}:00${israelOffset(local)}` : local);
+  return (events?.data.items ?? []).map((e) => ({
+    "@context": "https://schema.org",
+    "@type": "Event",
+    name: e.title,
+    description: e.description,
+    image: e.photoUrl,
+    startDate: when(e.start),
+    endDate: e.end ? when(e.end) : undefined,
+    eventStatus: "https://schema.org/EventScheduled",
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    location: {
+      "@type": "Place",
+      name: e.place ?? data.header.title,
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: e.place ?? address?.data.address,
+        addressLocality: "Хайфа",
+        addressCountry: "IL",
+      },
+    },
+    organizer: { "@type": "Organization", name: data.header.title, url: opts.url },
+    ...(e.price !== undefined
+      ? { offers: { "@type": "Offer", price: e.price, priceCurrency: "ILS", url: e.registerUrl ?? opts.url, availability: "https://schema.org/InStock" } }
+      : {}),
+  }));
 }
