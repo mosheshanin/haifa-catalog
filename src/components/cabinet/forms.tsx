@@ -10,6 +10,7 @@ export function NotifyPrefsForm({ prefs }: { prefs: Record<string, boolean> }) {
     { k: "requests", label: "✍️ Новые заявки" },
     { k: "reviews", label: "💬 Новые отзывы" },
     { k: "moderation", label: "🛡 Результат проверки карточки" },
+    { k: "updates", label: "📬 Ответы на мои отзывы, решения по моим заявкам, акции в избранном" },
   ];
   return (
     <form action={action} className="grid gap-2">

@@ -10,6 +10,7 @@ type TelegramWebApp = {
   expand: () => void;
   setHeaderColor?: (color: string) => void;
   setBackgroundColor?: (color: string) => void;
+  setBottomBarColor?: (color: string) => void;
   // Bot API 7.7+: не закрывать приложение свайпом вниз (нужно, пока пользователь двигает карту)
   disableVerticalSwipes?: () => void;
   enableVerticalSwipes?: () => void;
@@ -69,7 +70,10 @@ export function MiniAppBridge() {
         wa.expand();
         wa.setHeaderColor?.("#ffffff");
         wa.setBackgroundColor?.("#f4fbfb");
+        wa.setBottomBarColor?.("#ffffff");
         document.documentElement.dataset.telegram = "1";
+        // Кнопки Telegram («Назад», «Оставить заявку», ярлык) ждут этого события.
+        window.dispatchEvent(new Event("hbc-telegram-ready"));
 
         // Ссылка «Открыть в Telegram» с карточки: t.me/<бот>?startapp=b_<slug> (бизнес) или s_<slug> (специалист).
         // Mini App открывается на главной — переходим на карточку один раз за сессию.

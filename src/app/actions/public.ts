@@ -3,7 +3,8 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ActionError, audit, getSessionUser, requireUser, runAction, type ActionResult } from "@/lib/server/session";
 import { clientIp, honeypot, rateLimit, verifyCaptcha } from "@/lib/server/protect";
-import { escapeHtml, notifyAdmins, notifyUser } from "@/lib/telegram/notify";
+import { escapeHtml, notifyAdmins } from "@/lib/telegram/notify";
+import { notifyNewRequest } from "@/lib/telegram/requests";
 import { getSiteSettings } from "@/lib/data/settings";
 import { israelToday } from "@/lib/blocks/expire";
 
@@ -116,7 +117,7 @@ export async function submitRequest(_: unknown, form: FormData): Promise<ActionR
     if (date && (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date < today)) throw new ActionError("Выберите сегодняшнюю или будущую дату.");
     if (time && !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) throw new ActionError("Неверное время.");
     const sb = createAdminClient();
-    const { error } = await sb
+    const { data: created, error } = await sb
       .from("requests")
       .insert({
         listing_id: listing.id,
@@ -129,11 +130,14 @@ export async function submitRequest(_: unknown, form: FormData): Promise<ActionR
         desired_time: time,
         comment: text(form, "comment", 1000) || null,
       })
+      .select("id")
+      .single();
     if (error) throw error;
     // Счётчик заявок в статистике владельца.
     const { data: stat } = await sb.from("listing_stats").select("count").eq("listing_id", listing.id).eq("day", today).eq("kind", "request").maybeSingle();
     await sb.from("listing_stats").upsert({ listing_id: listing.id, day: today, kind: "request", count: (stat?.count ?? 0) + 1 });
-    notifyUser(listing.owner_id, `✍️ Новая заявка на «${escapeHtml(listing.title ?? "")}» от ${escapeHtml(name)}.`, "/kabinet/zayavki", "requests");
+    // Владельцу в Telegram — с кнопками «Принять» и «Отклонить» (этап 4).
+    notifyNewRequest(created.id as string);
   }, "Заявка отправлена. Владелец свяжется с вами.");
 }
 

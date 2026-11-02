@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { LoginRequired, Panel, STATUS_STYLE, Skeleton } from "@/components/cabinet/common";
 import { RequestStatusForm } from "@/components/cabinet/forms";
 import { formatDayMonth, telHref, whatsappHref } from "@/lib/format";
+import { TelegramStatus } from "@/components/cabinet/telegram-status";
 
 export const metadata: Metadata = { title: "Заявки", robots: { index: false } };
 
@@ -26,6 +27,7 @@ async function Content({ searchParams }: { searchParams: Promise<Record<string, 
 
   return (
     <Panel title="✍️ Заявки">
+      {ids.length ? <TelegramStatus userId={user.id} context="requests" /> : null}
       <div className="mb-4 flex flex-wrap gap-2 text-sm">
         {[undefined, "new", "accepted", "rejected"].map((s) => (
           <Link key={s ?? "all"} href={s ? `/kabinet/zayavki?status=${s}` : "/kabinet/zayavki"} className={`min-h-11 rounded-full px-4 py-2.5 font-bold ${status === s ? "bg-primary text-white" : "border border-line bg-white"}`}>

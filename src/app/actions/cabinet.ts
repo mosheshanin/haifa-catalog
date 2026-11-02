@@ -9,7 +9,9 @@ import { rateLimit } from "@/lib/server/protect";
 import { assertCanEdit, cleanListingData, getEditState, getListingRow, uniqueSlug } from "@/lib/server/listing-edit";
 import { applyChanges, changeTitle, diffListing } from "@/lib/blocks/moderation";
 import { BLOCK_TITLES, type ListingData, type Section } from "@/lib/blocks/types";
-import { escapeHtml, notifyAdmins } from "@/lib/telegram/notify";
+import { escapeHtml, notifyAdmins, notifyUser } from "@/lib/telegram/notify";
+import { onFirstPublish, onOffersPublished } from "@/lib/telegram/channel";
+import { decideRequest } from "@/lib/telegram/requests";
 import { israelToday } from "@/lib/blocks/expire";
 
 const titles = BLOCK_TITLES as Record<string, string>;
@@ -105,6 +107,9 @@ export async function submitListing(listingId: string, raw: unknown): Promise<Ac
       if (state.draft) await sb.from("listing_versions").update({ status: "superseded" }).eq("id", state.draft.id);
       await sb.from("listings").update({ title: data.header.title }).eq("id", listing.id);
       await audit(user.id, "listing.admin_published", "listing", listing.id, { version: v.id });
+      // Канал: первая публикация — пост о карточке; иначе — пост о новых спецпредложениях (этап 4).
+      if (!publishedData) onFirstPublish(listing.id);
+      else onOffersPublished(listing.id, publishedData, data, {}, user.id);
       updateTag("listings");
       return { published: ["Вся карточка"], moderated: [], isNew: !publishedData };
     }
@@ -144,10 +149,14 @@ export async function submitListing(listingId: string, raw: unknown): Promise<Ac
       if (error) throw error;
       const { error: pErr } = await sb.rpc("publish_listing_version", { p_version: v.id, p_comment: "Опубликовано без проверки" });
       if (pErr) throw pErr;
-      const { error: jErr } = await sb.from("instant_changes").insert(
-        instant.map((c) => ({ listing_id: listing.id, version_id: v.id, block_key: c.key, block_type: c.type, before: c.before, after: c.after, created_by: user.id })),
-      );
+      const { data: journal, error: jErr } = await sb
+        .from("instant_changes")
+        .insert(instant.map((c) => ({ listing_id: listing.id, version_id: v.id, block_key: c.key, block_type: c.type, before: c.before, after: c.after, created_by: user.id })))
+        .select("id, block_key");
       if (jErr) throw jErr;
+      // Спецпредложения публикуются без проверки: пост в канал и сообщение тем, у кого карточка в избранном.
+      // Связь с записью журнала нужна, чтобы «Снять» удалило и пост.
+      onOffersPublished(listing.id, publishedData, merged, Object.fromEntries((journal ?? []).map((j) => [j.block_key as string, j.id as number])), user.id);
       notifyAdmins(
         `✏️ Опубликовано без проверки — «${title}»: ${instant.map((c) => changeTitle(c, titles).toLowerCase()).join(", ")}.`,
         "/admin?tab=instant",
@@ -180,7 +189,7 @@ export async function replyToReview(_: unknown, form: FormData): Promise<ActionR
     const reviewId = String(form.get("reviewId") ?? "");
     const reply = String(form.get("reply") ?? "").trim().slice(0, 2000);
     const sb = createAdminClient();
-    const { data: r } = await sb.from("reviews").select("id, listing_id, owner_reply, status").eq("id", reviewId).maybeSingle();
+    const { data: r } = await sb.from("reviews").select("id, listing_id, user_id, owner_reply, status").eq("id", reviewId).maybeSingle();
     if (!r || r.status !== "approved") throw new ActionError("Отзыв не найден.");
     const listing = await getListingRow(r.listing_id);
     assertCanEdit(listing, user);
@@ -195,6 +204,10 @@ export async function replyToReview(_: unknown, form: FormData): Promise<ActionR
       created_by: user.id,
     });
     notifyAdmins(`💬 Ответ владельца на отзыв — «${escapeHtml(listing.title ?? "")}».`, "/admin?tab=instant");
+    // Автору отзыва — если он вошёл через Telegram и ответ новый или изменён.
+    if (reply && reply !== r.owner_reply && r.user_id && r.user_id !== user.id) {
+      notifyUser(r.user_id, `💬 Владелец «${escapeHtml(listing.title ?? "")}» ответил на ваш отзыв:\n«${escapeHtml(reply.slice(0, 500))}»`, `/${listing.section}/${listing.slug}#reviews`, "updates");
+    }
     updateTag("listings");
     refresh();
   }, "Ответ опубликован.");
@@ -212,8 +225,8 @@ export async function updateRequest(_: unknown, form: FormData): Promise<ActionR
     if (!r) throw new ActionError("Заявка не найдена.");
     assertCanEdit(await getListingRow(r.listing_id), user);
     const note = String(form.get("note") ?? "").trim().slice(0, 500) || null;
-    const { error } = await sb.from("requests").update({ status, owner_note: note }).eq("id", id);
-    if (error) throw error;
+    // Общая логика с кнопками в Telegram: обновит сообщение владельцу и сообщит клиенту о решении.
+    await decideRequest(id, status as "new" | "accepted" | "rejected", note);
     refresh();
   }, "Сохранено.");
 }
@@ -222,7 +235,12 @@ export async function updateRequest(_: unknown, form: FormData): Promise<ActionR
 export async function updateNotifyPrefs(_: unknown, form: FormData): Promise<ActionResult> {
   return runAction(async () => {
     const user = await requireUser();
-    const prefs = { requests: form.get("requests") === "on", reviews: form.get("reviews") === "on", moderation: form.get("moderation") === "on" };
+    const prefs = {
+      requests: form.get("requests") === "on",
+      reviews: form.get("reviews") === "on",
+      moderation: form.get("moderation") === "on",
+      updates: form.get("updates") === "on",
+    };
     const supabase = await createClient();
     const { error } = await supabase.from("profiles").update({ notify_prefs: prefs }).eq("id", user.id);
     if (error) throw error;

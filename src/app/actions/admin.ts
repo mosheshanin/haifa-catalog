@@ -9,6 +9,23 @@ import { getListingRow, getVersion } from "@/lib/server/listing-edit";
 import { applyChanges, changeTitle, revertChange } from "@/lib/blocks/moderation";
 import { BLOCK_TITLES, type ListingData } from "@/lib/blocks/types";
 import { escapeHtml, notifyUser } from "@/lib/telegram/notify";
+import { botApi, webhookSecret } from "@/lib/telegram/api";
+import { BOT_COMMANDS } from "@/lib/telegram/bot";
+import {
+  getBotSetting,
+  getChannel,
+  onFirstPublish,
+  onOffersPublished,
+  postManually,
+  removePost,
+  removePostsForChange,
+  sendPost,
+  setBotSetting,
+  type ChannelCandidate,
+  type ChannelMode,
+} from "@/lib/telegram/channel";
+import { telegramBotTokenOptional } from "@/lib/env.server";
+import { siteUrl } from "@/lib/env";
 
 const titles = BLOCK_TITLES as Record<string, string>;
 const str = (f: FormData, k: string, max = 500) => String(f.get(k) ?? "").trim().slice(0, max);
@@ -35,6 +52,9 @@ export async function decideVersion(_: unknown, form: FormData): Promise<ActionR
         await sb.from("listing_versions").update({ reviewed_by: admin.id }).eq("id", v.id);
         await sb.from("listings").update({ title: v.data.header.title }).eq("id", listing.id);
         notifyUser(listing.owner_id, `✅ Карточка «${title}» опубликована в каталоге.`, `/${listing.section}/${listing.slug}`);
+        // Канал (этап 4): первая публикация — пост о карточке.
+        if (!published) onFirstPublish(listing.id);
+        else onOffersPublished(listing.id, published, v.data, {}, admin.id);
       } else {
         if (!comment) throw new ActionError("Напишите причину отказа — она уйдёт владельцу.");
         await sb.from("listing_versions").update({ status: "rejected", review_comment: comment, reviewed_by: admin.id, reviewed_at: now }).eq("id", v.id);
@@ -190,6 +210,8 @@ export async function revertInstant(_: unknown, form: FormData): Promise<ActionR
       if (pErr) throw pErr;
     }
     await sb.from("instant_changes").update({ reverted_at: new Date().toISOString(), reverted_by: admin.id, revert_reason: reason }).eq("id", id);
+    // Снятое спецпредложение убирается и из канала (решение 2 ноября 2026 к этапу 4).
+    if (ch.block_type === "offers") await removePostsForChange(id);
     const what = ch.block_type === "review_reply" ? "ответ на отзыв" : changeTitle({ type: ch.block_type }, titles).toLowerCase();
     notifyUser(listing.owner_id, `↩️ Модератор снял правку «${what}» в карточке «${escapeHtml(listing.title ?? "")}». Причина: ${escapeHtml(reason)}`, `/kabinet/kartochka/${listing.id}`);
     await audit(admin.id, "instant_change.reverted", "listing", listing.id, { change: id, reason });
@@ -221,6 +243,8 @@ export async function updateListingAdmin(_: unknown, form: FormData): Promise<Ac
       }
       await sb.from("listings").update({ owner_id: ownerId }).eq("id", listing.id);
       if (ownerId) notifyUser(ownerId, `🔑 Вам выданы права на карточку «${escapeHtml(listing.title ?? "")}».`, "/kabinet");
+    } else if (op === "channel") {
+      await sb.from("listings").update({ publish_to_channel: form.get("value") === "1" }).eq("id", listing.id);
     } else if (op === "features") {
       let features: unknown;
       try {
@@ -384,4 +408,105 @@ export async function saveSettings(_: unknown, form: FormData): Promise<ActionRe
     updateTag("settings");
     refresh();
   }, "Сохранено.");
+}
+
+// ---------- Telegram: бот и канал (этап 4) ----------
+
+// Подключить бота: адрес вебхука с секретом, команды меню, описание. Повторное нажатие безопасно.
+export async function setupBot(): Promise<ActionResult> {
+  return runAction(async () => {
+    const admin = await requireAdmin();
+    const token = telegramBotTokenOptional();
+    const api = botApi();
+    if (!token || !api) throw new ActionError("В Vercel не задан TELEGRAM_BOT_TOKEN.");
+    const url = `${siteUrl()}/api/telegram/webhook`;
+    if (!url.startsWith("https://")) throw new ActionError("Вебхук работает только на адресе https (на сайте Vercel).");
+    try {
+      await api.setWebhook(url, {
+        secret_token: webhookSecret(token),
+        allowed_updates: ["message", "callback_query", "inline_query", "my_chat_member"],
+        max_connections: 20,
+      });
+      await api.setMyCommands(BOT_COMMANDS);
+      await api.setMyShortDescription("Каталог бизнесов и специалистов Хайфы: поиск, избранное, заявки.");
+      await api.setMyDescription("Найдите мастера, кафе или специалиста в Хайфе. Нажмите «Старт», чтобы искать и получать заявки и ответы владельцев.");
+    } catch (e) {
+      throw new ActionError(`Telegram не принял настройки: ${e instanceof Error ? e.message : e}`);
+    }
+    await audit(admin.id, "telegram.webhook_set", "settings", "telegram", { url });
+    refresh();
+  }, "Бот подключён.");
+}
+
+export async function setChannelMode(_: unknown, form: FormData): Promise<ActionResult> {
+  return runAction(async () => {
+    const admin = await requireAdmin();
+    const mode = String(form.get("mode")) as ChannelMode;
+    if (!["instant", "digest", "off"].includes(mode)) throw new ActionError("Неизвестный режим.");
+    const channel = await getChannel();
+    if (!channel) throw new ActionError("Канал не подключён.");
+    await setBotSetting("channel", { ...channel, mode });
+    // Выключили — накопленная очередь отменяется, чтобы при включении не ушли старые посты.
+    if (mode === "off") await createAdminClient().from("channel_posts").update({ status: "cancelled" }).eq("status", "queued");
+    await audit(admin.id, "telegram.channel_mode", "settings", "channel", { mode });
+    refresh();
+  }, "Режим сохранён.");
+}
+
+export async function connectChannelCandidate(): Promise<ActionResult> {
+  return runAction(async () => {
+    const admin = await requireAdmin();
+    const cand = await getBotSetting<ChannelCandidate>("channel_candidate");
+    if (!cand) throw new ActionError("Бот не добавлен ни в один новый канал.");
+    const member = await botApi()?.getChatMember(cand.chatId, (await botApi()!.getMe()).id).catch(() => null);
+    if (!member || member.status !== "administrator") throw new ActionError("Бот больше не администратор этого канала. Добавьте его снова.");
+    await setBotSetting("channel", { chatId: cand.chatId, title: cand.title, username: cand.username, mode: "instant" });
+    await setBotSetting("channel_candidate", null);
+    await audit(admin.id, "telegram.channel_connected", "settings", "channel", { title: cand.title });
+    refresh();
+  }, "Канал подключён.");
+}
+
+export async function disconnectChannel(): Promise<ActionResult> {
+  return runAction(async () => {
+    const admin = await requireAdmin();
+    await setBotSetting("channel", null);
+    await createAdminClient().from("channel_posts").update({ status: "cancelled" }).eq("status", "queued");
+    await audit(admin.id, "telegram.channel_disconnected", "settings", "channel", {});
+    refresh();
+  }, "Канал отключён от каталога. Бота из канала удалите в настройках канала.");
+}
+
+// Пост в очереди: отправить сейчас / отменить; опубликованный — удалить из канала.
+export async function channelPostAction(_: unknown, form: FormData): Promise<ActionResult> {
+  return runAction(async () => {
+    const admin = await requireAdmin();
+    const id = Number(form.get("id"));
+    const op = String(form.get("op"));
+    const sb = createAdminClient();
+    const { data: p } = await sb.from("channel_posts").select("id, status, chat_id, message_id").eq("id", id).maybeSingle();
+    if (!p) throw new ActionError("Пост не найден.");
+    if (op === "send") {
+      if (p.status !== "queued" && p.status !== "failed") throw new ActionError("Пост уже обработан.");
+      const r = await sendPost(id);
+      if (!r.ok) throw new ActionError(r.error ?? "Не отправилось.");
+    } else if (op === "remove") {
+      const ok = await removePost(p as never);
+      if (!ok) throw new ActionError("Удалить не получилось — удалите пост в канале вручную.");
+    } else throw new ActionError("Неизвестное действие.");
+    await audit(admin.id, `telegram.post_${op}`, "channel_post", String(id), {});
+    refresh();
+  }, "Готово.");
+}
+
+export async function postListingToChannel(_: unknown, form: FormData): Promise<ActionResult> {
+  return runAction(async () => {
+    const admin = await requireAdmin();
+    const listing = await getListingRow(str(form, "id", 40));
+    if (!(await getChannel())) throw new ActionError("Сначала подключите канал: админка → «Telegram».");
+    const r = await postManually(listing.id, admin.id);
+    if (!r.ok) throw new ActionError(r.error ?? "Не отправилось.");
+    await audit(admin.id, "telegram.post_manual", "listing", listing.id, {});
+    refresh();
+  }, "Пост опубликован в канале.");
 }

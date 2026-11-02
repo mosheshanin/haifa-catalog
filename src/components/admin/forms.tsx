@@ -13,6 +13,12 @@ import {
   saveSynonym,
   setUserAccess,
   updateListingAdmin,
+  setupBot,
+  setChannelMode,
+  connectChannelCandidate,
+  disconnectChannel,
+  channelPostAction,
+  postListingToChannel,
 } from "@/app/actions/admin";
 import { FormMessage, SubmitButton, inputCls, labelCls, textareaCls } from "@/components/forms/ui";
 
@@ -152,9 +158,49 @@ function Mini({ action, children, msg = true }: { action: (p: unknown, f: FormDa
   );
 }
 
-export function ListingAdminForms({ id, status, verified, ownerLabel, features }: { id: string; status: string; verified: boolean; ownerLabel: string; features: string }) {
+export function ListingAdminForms({
+  id,
+  status,
+  verified,
+  ownerLabel,
+  features,
+  channel,
+}: {
+  id: string;
+  status: string;
+  verified: boolean;
+  ownerLabel: string;
+  features: string;
+  channel?: { connected: boolean; auto: boolean; isDemo: boolean };
+}) {
   return (
     <div className="grid gap-4">
+      {channel ? (
+        <div className="grid gap-3 rounded-2xl border border-line p-3">
+          <p className="text-sm font-bold">📣 Канал в Telegram</p>
+          <Mini action={updateListingAdmin}>
+            <input type="hidden" name="id" value={id} />
+            <input type="hidden" name="op" value="channel" />
+            <input type="hidden" name="value" value={channel.auto ? "0" : "1"} />
+            <p className="text-sm text-muted">
+              {channel.isDemo
+                ? "Примерные карточки в канал не попадают."
+                : channel.auto
+                  ? "Первая публикация и новые спецпредложения этой карточки уходят в канал автоматически."
+                  : "Автоматическая публикация в канал для этой карточки отключена."}
+            </p>
+            <SubmitButton className="w-fit">{channel.auto ? "🔕 Не публиковать в канал" : "🔔 Публиковать в канал"}</SubmitButton>
+          </Mini>
+          {channel.connected && status === "published" ? (
+            <Mini action={postListingToChannel}>
+              <input type="hidden" name="id" value={id} />
+              <SubmitButton tone="accent" className="w-fit">📣 Отправить пост о карточке сейчас</SubmitButton>
+            </Mini>
+          ) : !channel.connected ? (
+            <p className="text-sm text-muted">Канал ещё не подключён: админка → «Telegram».</p>
+          ) : null}
+        </div>
+      ) : null}
       <Mini action={updateListingAdmin}>
         <input type="hidden" name="id" value={id} />
         <input type="hidden" name="op" value={status === "archived" ? "unarchive" : "archive"} />
@@ -381,5 +427,70 @@ export function SettingsForm({ rules, amenities, languages }: { rules: { minLeng
       </label>
       <SubmitButton className="w-fit">Сохранить настройки</SubmitButton>
     </Mini>
+  );
+}
+
+// ---------- Telegram: бот и канал (этап 4) ----------
+
+export function SetupBotButton({ label }: { label: string }) {
+  return (
+    <Mini action={setupBot}>
+      <SubmitButton className="w-fit">{label}</SubmitButton>
+    </Mini>
+  );
+}
+
+const MODES = [
+  { v: "instant", label: "Сразу после публикации" },
+  { v: "digest", label: "Дайджест раз в неделю (воскресенье утром)" },
+  { v: "off", label: "Выключено" },
+] as const;
+
+export function ChannelModeForm({ mode }: { mode: string }) {
+  return (
+    <Mini action={setChannelMode}>
+      <fieldset className="grid gap-1">
+        <legend className="mb-1 text-sm font-bold">Когда публиковать</legend>
+        {MODES.map((m) => (
+          <label key={m.v} className="flex min-h-11 items-center gap-2 text-sm">
+            <input type="radio" name="mode" value={m.v} defaultChecked={mode === m.v} className="size-5 accent-primary" /> {m.label}
+          </label>
+        ))}
+      </fieldset>
+      <SubmitButton className="w-fit">Сохранить режим</SubmitButton>
+    </Mini>
+  );
+}
+
+export function ConnectCandidateButton({ title }: { title: string }) {
+  return (
+    <Mini action={connectChannelCandidate}>
+      <SubmitButton tone="accent" className="w-fit">📣 Подключить канал «{title}»</SubmitButton>
+    </Mini>
+  );
+}
+
+export function DisconnectChannelButton() {
+  return (
+    <Mini action={disconnectChannel}>
+      <SubmitButton tone="danger" className="w-fit">Отключить канал</SubmitButton>
+    </Mini>
+  );
+}
+
+export function ChannelPostButtons({ id, status }: { id: number; status: string }) {
+  const [state, act] = useActionState(channelPostAction, null);
+  if (state?.ok) return <FormMessage state={state} />;
+  return (
+    <form action={act} className="flex flex-wrap gap-2">
+      <input type="hidden" name="id" value={id} />
+      {status === "queued" || status === "failed" ? (
+        <button name="op" value="send" className={`${btn} bg-primary text-white`}>📣 Отправить сейчас</button>
+      ) : null}
+      {status === "queued" || status === "posted" ? (
+        <button name="op" value="remove" className={`${btn} border border-line bg-white text-danger`}>{status === "posted" ? "🗑 Удалить из канала" : "✖ Отменить"}</button>
+      ) : null}
+      <FormMessage state={state} />
+    </form>
   );
 }

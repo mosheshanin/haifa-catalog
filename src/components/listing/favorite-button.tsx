@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { HeartIcon } from "@/components/icons";
 import { useFavorites } from "@/components/listing/favorites-provider";
+import { haptic } from "@/components/telegram/webapp";
 
 export function FavoriteButton({ listingId, className = "", withLabel = false }: { listingId: string; className?: string; withLabel?: boolean }) {
   const fav = useFavorites();
@@ -17,6 +18,7 @@ export function FavoriteButton({ listingId, className = "", withLabel = false }:
       title={active ? "Убрать из избранного" : "Добавить в избранное"}
       onClick={async () => {
         if (!fav) return;
+        haptic("light");
         const result = await fav.toggle(listingId);
         if (result === "login") router.push(`/vhod?next=${encodeURIComponent(window.location.pathname)}`);
       }}

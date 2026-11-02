@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useSyncExternalStore } from "react";
+import { useInsideTelegram } from "@/components/telegram/use-inside-telegram";
+import { haptic, tg } from "@/components/telegram/webapp";
 
 const noSubscribe = () => () => {};
 
@@ -24,6 +26,7 @@ export function SharePanel({
   const [copied, setCopied] = useState<string | null>(null);
   // Системное меню «Поделиться» есть не во всех браузерах; на сервере кнопку не показываем.
   const canShare = useSyncExternalStore(noSubscribe, () => typeof navigator.share === "function", () => false);
+  const inTelegram = useInsideTelegram();
   const link = shortUrl ?? url;
   const text = `${title} — в каталоге HBC`;
 
@@ -83,15 +86,34 @@ export function SharePanel({
           </button>
         </div>
         <div className="flex flex-wrap gap-2">
-          <a className={btn} href={`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`} target="_blank" rel="noopener noreferrer">
-            ✈️ Telegram
-          </a>
+          {inTelegram ? (
+            // В Mini App: выбор чата прямо в Telegram, получатель откроет карточку в каталоге внутри Telegram.
+            <button
+              type="button"
+              className={btn}
+              onClick={() => {
+                haptic("light");
+                const share = `https://t.me/share/url?url=${encodeURIComponent(miniAppUrl)}&text=${encodeURIComponent(text)}`;
+                const wa = tg();
+                if (wa?.openTelegramLink) wa.openTelegramLink(share);
+                else window.open(share, "_blank");
+              }}
+            >
+              ✈️ Отправить в чат
+            </button>
+          ) : (
+            <a className={btn} href={`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`} target="_blank" rel="noopener noreferrer">
+              ✈️ Telegram
+            </a>
+          )}
           <a className={btn} href={`https://wa.me/?text=${encodeURIComponent(`${text}: ${link}`)}`} target="_blank" rel="noopener noreferrer">
             💬 WhatsApp
           </a>
-          <a className={btn} href={miniAppUrl} target="_blank" rel="noopener noreferrer">
-            📱 Открыть в Telegram
-          </a>
+          {inTelegram ? null : (
+            <a className={btn} href={miniAppUrl} target="_blank" rel="noopener noreferrer">
+              📱 Открыть в Telegram
+            </a>
+          )}
           {qrSvg ? (
             <button type="button" className={btn} onClick={() => void downloadPng()}>
               ⬇️ Скачать QR

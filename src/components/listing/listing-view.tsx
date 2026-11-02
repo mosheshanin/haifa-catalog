@@ -40,6 +40,7 @@ import { safeHref } from "@/lib/blocks/links";
 import { GoogleRating } from "@/components/listing/blocks/google-rating";
 import { ListingTracker } from "@/components/listing/listing-tracker";
 import { ClaimButton, ComplaintButton, ReportListingButton, RequestForm, ReviewForm } from "@/components/listing/public-forms";
+import { TelegramRequestButton } from "@/components/telegram/mini-app-chrome";
 import type { PublicReview } from "@/lib/data/reviews";
 
 export type ShareInfo = { url: string; shortUrl?: string; miniAppUrl: string; qrSvg?: string; temporaryAddress: boolean };
@@ -653,6 +654,7 @@ export function ListingView({
 
   return (
     <div className="pb-action-bar md:pb-0">
+      {requestEnabled && !preview ? <TelegramRequestButton /> : null}
       <nav aria-label="Хлебные крошки" className="mb-4 text-sm text-muted">
         <ol className="flex flex-wrap gap-1">
           <li>

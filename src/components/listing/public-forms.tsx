@@ -6,6 +6,7 @@ import { useActionState, useEffect, useState } from "react";
 import { submitClaim, submitComplaint, submitRequest, submitReview } from "@/app/actions/public";
 import { Captcha } from "@/components/forms/captcha";
 import { FormMessage, Modal, SubmitButton, inputCls, labelCls, textareaCls } from "@/components/forms/ui";
+import { haptic } from "@/components/telegram/webapp";
 import { useFavorites } from "@/components/listing/favorites-provider";
 import { FlagIcon } from "@/components/icons";
 
@@ -215,6 +216,9 @@ export function RequestForm({
     // eslint-disable-next-line react-hooks/set-state-in-effect -- дата известна только в браузере
     setToday(new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jerusalem" }));
   }, []);
+  useEffect(() => {
+    if (state) haptic(state.ok ? "success" : "error");
+  }, [state]);
   if (state?.ok) return <FormMessage state={state} />;
   return (
     <form action={action} className="relative grid gap-3">

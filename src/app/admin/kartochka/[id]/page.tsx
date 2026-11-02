@@ -8,6 +8,7 @@ import { getListingRow } from "@/lib/server/listing-edit";
 import { Panel, STATUS_STYLE, Skeleton } from "@/components/cabinet/common";
 import { ListingAdminForms } from "@/components/admin/forms";
 import { t } from "@/i18n/ru";
+import { getChannel } from "@/lib/telegram/channel";
 
 export const metadata: Metadata = { title: "Управление карточкой", robots: { index: false } };
 
@@ -19,10 +20,12 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
   const listing = await getListingRow(id).catch(() => null);
   if (!listing) notFound();
   const sb = createAdminClient();
-  const [{ data: owner }, { data: versions }, { data: log }] = await Promise.all([
+  const [{ data: owner }, { data: versions }, { data: log }, channel, { data: flags }] = await Promise.all([
     listing.owner_id ? sb.from("profiles").select("display_name, google_email, telegram_username").eq("id", listing.owner_id).maybeSingle() : Promise.resolve({ data: null }),
     sb.from("listing_versions").select("id, status, created_at, review_comment").eq("listing_id", id).order("created_at", { ascending: false }).limit(20),
     sb.from("audit_log").select("action, created_at, details").eq("entity_id", id).order("created_at", { ascending: false }).limit(30),
+    getChannel(),
+    sb.from("listings").select("publish_to_channel").eq("id", id).maybeSingle(),
   ]);
   const ownerLabel = owner ? [owner.display_name, owner.google_email, owner.telegram_username ? `@${owner.telegram_username}` : null].filter(Boolean).join(" · ") : "нет";
   return (
@@ -38,7 +41,9 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
         ) : null}
       </div>
       <Panel title="Действия">
-        <ListingAdminForms id={id} status={listing.status} verified={listing.is_verified} ownerLabel={ownerLabel} features={JSON.stringify(listing.features ?? {}, null, 1)} />
+        <ListingAdminForms id={id} status={listing.status} verified={listing.is_verified} ownerLabel={ownerLabel} features={JSON.stringify(listing.features ?? {}, null, 1)}
+          channel={{ connected: Boolean(channel), auto: flags?.publish_to_channel ?? true, isDemo: listing.is_demo }}
+        />
       </Panel>
       <Panel title="Версии">
         <ul className="divide-y divide-line text-sm">

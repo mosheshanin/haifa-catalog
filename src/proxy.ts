@@ -6,7 +6,7 @@ export async function proxy(request: NextRequest) {
 }
 
 // Сессия нужна только личным разделам и обработчикам входа.
-// Публичные страницы каталога остаются статичными и быстрыми.
+// Публичные страницы каталога остаются статичными и быстрыми; вебхук бота и cron сессия не нужна.
 export const config = {
-  matcher: ["/profil/:path*", "/kabinet/:path*", "/admin/:path*", "/vhod/:path*", "/auth/:path*", "/api/:path*"],
+  matcher: ["/profil/:path*", "/kabinet/:path*", "/admin/:path*", "/vhod/:path*", "/auth/:path*", "/api/auth/:path*"],
 };

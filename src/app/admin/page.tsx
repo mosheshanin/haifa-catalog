@@ -4,7 +4,25 @@ import { Suspense } from "react";
 import { getSessionUser } from "@/lib/server/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { LoginRequired, Panel, STATUS_STYLE, Skeleton } from "@/components/cabinet/common";
-import { CategoryForm, ClaimDecision, ComplaintDecision, DistrictForm, RevertForm, ReviewDecision, SettingsForm, SynonymForm, UserAccessForm } from "@/components/admin/forms";
+import {
+  CategoryForm,
+  ChannelModeForm,
+  ChannelPostButtons,
+  ClaimDecision,
+  ComplaintDecision,
+  ConnectCandidateButton,
+  DisconnectChannelButton,
+  DistrictForm,
+  RevertForm,
+  ReviewDecision,
+  SetupBotButton,
+  SettingsForm,
+  SynonymForm,
+  UserAccessForm,
+} from "@/components/admin/forms";
+import { botApi } from "@/lib/telegram/api";
+import { getBotSetting, getChannel, type ChannelCandidate } from "@/lib/telegram/channel";
+import { siteUrl } from "@/lib/env";
 import { ImportPanel } from "@/components/admin/import-panel";
 import { BlockPreview } from "@/components/listing/listing-view";
 import { changeTitle } from "@/lib/blocks/moderation";
@@ -22,6 +40,7 @@ const TABS = [
   { k: "users", label: "👥 Пользователи" },
   { k: "dict", label: "📚 Справочники" },
   { k: "import", label: "📥 Импорт" },
+  { k: "telegram", label: "✈️ Telegram" },
   { k: "log", label: "🧾 Журнал" },
 ] as const;
 type Tab = (typeof TABS)[number]["k"];
@@ -377,6 +396,112 @@ async function Log({ actor }: { actor?: string }) {
   );
 }
 
+
+const POST_STATUS: Record<string, string> = { queued: "🕓 В очереди", posted: "✅ В канале", deleted: "🗑 Удалён", failed: "⚠️ Ошибка", cancelled: "✖ Отменён" };
+
+// Бот и канал (этап 4): подключение вебхука, встроенный поиск, канал и его очередь.
+async function TelegramTab({ adminTelegramId }: { adminTelegramId: number | null }) {
+  const api = botApi();
+  const sb = createAdminClient();
+  const [me, hook, channel, candidate, { data: posts }, { data: chat }] = await Promise.all([
+    api?.getMe().catch(() => null) ?? null,
+    api?.getWebhookInfo().catch(() => null) ?? null,
+    getChannel(),
+    getBotSetting<ChannelCandidate>("channel_candidate"),
+    sb.from("channel_posts").select("id, kind, item_title, status, error, created_at, posted_at, listings(title, section, slug)").order("created_at", { ascending: false }).limit(40),
+    adminTelegramId ? sb.from("telegram_chats").select("blocked_at").eq("telegram_id", adminTelegramId).maybeSingle() : Promise.resolve({ data: null }),
+  ]);
+  const expectedUrl = `${siteUrl()}/api/telegram/webhook`;
+  const hookOk = Boolean(hook && hook.url === expectedUrl);
+  const ok = (b: boolean) => (b ? "✅" : "⚠️");
+  return (
+    <div className="grid gap-5">
+      <Panel title="🤖 Бот">
+        {!api ? (
+          <p className="text-sm text-danger">В Vercel не задан TELEGRAM_BOT_TOKEN — бот не работает.</p>
+        ) : (
+          <div className="grid gap-3 text-sm">
+            <p>
+              {ok(Boolean(me))} Бот: {me ? <b>@{me.username}</b> : "Telegram не ответил"}
+            </p>
+            <p className="break-words">
+              {ok(hookOk)} Приём сообщений (вебхук): {hookOk ? "подключён" : hook?.url ? `указан другой адрес: ${hook.url}` : "не подключён"}
+              {hook?.pending_update_count ? ` · в очереди ${hook.pending_update_count}` : ""}
+            </p>
+            {hook?.last_error_message ? (
+              <p className="break-words text-danger">
+                Последняя ошибка ({hook.last_error_date ? dt(new Date(hook.last_error_date * 1000).toISOString()) : ""}): {hook.last_error_message}
+              </p>
+            ) : null}
+            <p>
+              {ok(Boolean(me?.supports_inline_queries))} Поиск в чатах (@{me?.username ?? "бот"} маникюр):{" "}
+              {me?.supports_inline_queries ? "включён" : "выключен — включается в @BotFather командой /setinline"}
+            </p>
+            <p>
+              {ok(Boolean(adminTelegramId && chat && !chat.blocked_at))} Уведомления вам:{" "}
+              {!adminTelegramId ? "привяжите Telegram в профиле" : !chat ? "нажмите «Старт» у бота" : chat.blocked_at ? "бот заблокирован или «Старт» не нажат" : "бот может вам писать"}
+            </p>
+            <SetupBotButton label={hookOk ? "🔄 Обновить настройки бота" : "🔌 Подключить бота"} />
+            <p className="text-xs text-muted">Кнопка ставит адрес приёма сообщений, меню команд и описание бота. Нажимать безопасно сколько угодно раз.</p>
+          </div>
+        )}
+      </Panel>
+
+      <Panel title="📣 Канал">
+        {channel ? (
+          <div className="grid gap-3 text-sm">
+            <p>
+              ✅ Подключён: <b>{channel.title}</b>
+              {channel.username ? (
+                <>
+                  {" "}
+                  ·{" "}
+                  <a href={`https://t.me/${channel.username}`} target="_blank" rel="noopener noreferrer" className="font-bold text-primary">
+                    @{channel.username}
+                  </a>
+                </>
+              ) : null}
+            </p>
+            <ChannelModeForm mode={channel.mode} />
+            <p className="text-xs text-muted">
+              В канал попадают: первая публикация карточки и новые спецпредложения проверенных карточек. Примерные карточки и импорт — нет. Отдельную карточку можно
+              отправить вручную или исключить на её странице управления.
+            </p>
+            <DisconnectChannelButton />
+          </div>
+        ) : (
+          <div className="grid gap-3 text-sm">
+            <p>Канал не подключён. Добавьте бота @{me?.username ?? "haifabcbot"} в администраторы своего канала с правом публиковать сообщения.</p>
+            {candidate ? <ConnectCandidateButton title={candidate.title} /> : <p className="text-muted">Если вы вошли через Telegram, канал подключится сам, как только вы добавите бота.</p>}
+          </div>
+        )}
+      </Panel>
+
+      <Panel title="🧾 Посты канала">
+        {posts?.length ? (
+          <ul className="divide-y divide-line">
+            {posts.map((p) => {
+              const l = p.listings as unknown as { title: string; section: string; slug: string } | null;
+              return (
+                <li key={p.id} className="grid gap-2 py-3 text-sm">
+                  <p className="min-w-0 break-words">
+                    <span className="text-muted">{dt(p.posted_at ?? p.created_at)}</span> · {POST_STATUS[p.status] ?? p.status} · {p.kind === "offer" ? `🎁 ${p.item_title ?? ""} — ` : "🆕 "}
+                    <b>{l?.title ?? ""}</b>
+                  </p>
+                  {p.error ? <p className="break-words text-xs text-danger">{p.error}</p> : null}
+                  {["queued", "failed", "posted"].includes(p.status) ? <ChannelPostButtons id={p.id} status={p.status} /> : null}
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <p className="text-muted">Постов пока не было.</p>
+        )}
+      </Panel>
+    </div>
+  );
+}
+
 async function AdminContent({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const user = await getSessionUser();
   if (!user) return <LoginRequired next="/admin" text={t.admin.noAccess} />;
@@ -425,6 +550,7 @@ async function AdminContent({ searchParams }: { searchParams: Promise<Record<str
       {tab === "users" ? <Users q={one("q")} selfId={user.id} /> : null}
       {tab === "dict" ? <Dictionaries /> : null}
       {tab === "import" ? <ImportPanel /> : null}
+      {tab === "telegram" ? <TelegramTab adminTelegramId={user.telegramId} /> : null}
       {tab === "log" ? <Log actor={one("actor")} /> : null}
     </div>
   );

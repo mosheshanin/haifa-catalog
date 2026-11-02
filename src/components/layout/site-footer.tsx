@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { t } from "@/i18n/ru";
+import { AddToHomeScreenButton } from "@/components/telegram/mini-app-chrome";
 
 export function SiteFooter() {
   return (
@@ -8,6 +9,9 @@ export function SiteFooter() {
         <div>
           <p className="text-lg font-extrabold text-primary">{t.site.name}</p>
           <p className="mt-2 text-muted">{t.site.tagline}</p>
+          <div className="mt-3 empty:hidden">
+            <AddToHomeScreenButton />
+          </div>
         </div>
         <nav className="flex flex-col gap-2" aria-label="Каталог">
           <Link href="/biznes" className="hover:text-primary">{t.nav.biznes}</Link>

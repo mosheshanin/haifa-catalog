@@ -1,48 +1,48 @@
 import "server-only";
 import { after } from "next/server";
+import type { InlineKeyboardButton } from "grammy/types";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { telegramBotTokenOptional } from "@/lib/env.server";
 import { siteUrl } from "@/lib/env";
+import { escapeHtml, safeCall } from "@/lib/telegram/api";
 
-// Простые уведомления через Bot API (этап 3). Полноценный бот — этап 4.
-// Бот может написать человеку, только если тот хоть раз нажал «Старт» у @haifabcbot.
-async function send(chatId: number, text: string) {
-  const token = telegramBotTokenOptional();
-  if (!token) return;
-  try {
-    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML", disable_web_page_preview: true }),
-      signal: AbortSignal.timeout(5000),
-    });
-    if (!res.ok) console.warn("Telegram sendMessage:", res.status, await res.text());
-  } catch (e) {
-    console.warn("Telegram sendMessage failed", e);
-  }
+export { escapeHtml };
+
+export type NotifyPref = "moderation" | "reviews" | "requests" | "updates";
+
+// Бот может написать человеку, только если тот хоть раз нажал «Старт» у @haifabcbot (раздел 7).
+export async function sendText(chatId: number, text: string, keyboard?: InlineKeyboardButton[][]) {
+  return safeCall(chatId, (api) =>
+    api.sendMessage(chatId, text, {
+      parse_mode: "HTML",
+      link_preview_options: { is_disabled: true },
+      reply_markup: keyboard?.length ? { inline_keyboard: keyboard } : undefined,
+    }),
+  );
 }
 
-export function escapeHtml(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
+const openButton = (path: string, text = "Открыть"): InlineKeyboardButton[][] => [[{ text, url: `${siteUrl()}${path}` }]];
 
 // Администраторам: новый элемент очереди или правка, опубликованная без проверки. Отправка после ответа пользователю.
 export function notifyAdmins(text: string, path = "/admin") {
   after(async () => {
     const { data } = await createAdminClient().from("profiles").select("telegram_id").eq("role", "admin").eq("is_blocked", false).not("telegram_id", "is", null);
-    const link = `${siteUrl()}${path}`;
-    await Promise.all((data ?? []).map((p) => send(p.telegram_id as number, `${text}\n\n<a href="${link}">Открыть в админке</a>`)));
+    await Promise.all((data ?? []).map((p) => sendText(p.telegram_id as number, text, openButton(path, "Открыть в админке"))));
   });
 }
 
-// Пользователю (владельцу): итог проверки и т. п., если он разрешил такие уведомления.
-export function notifyUser(userId: string | null | undefined, text: string, path?: string, pref: "moderation" | "reviews" | "requests" = "moderation") {
+// Telegram-адрес пользователя, если он разрешил этот вид уведомлений (нет отметки — значит разрешил).
+export async function telegramOf(userId: string, pref: NotifyPref): Promise<number | null> {
+  const { data } = await createAdminClient().from("profiles").select("telegram_id, notify_prefs, is_blocked").eq("id", userId).maybeSingle();
+  if (!data?.telegram_id || data.is_blocked) return null;
+  const prefs = (data.notify_prefs ?? {}) as Record<string, boolean>;
+  return prefs[pref] === false ? null : (data.telegram_id as number);
+}
+
+// Пользователю: итог проверки, ответ владельца, решение по заявке и т. п.
+export function notifyUser(userId: string | null | undefined, text: string, path?: string, pref: NotifyPref = "moderation") {
   if (!userId) return;
   after(async () => {
-    const { data } = await createAdminClient().from("profiles").select("telegram_id, notify_prefs").eq("id", userId).maybeSingle();
-    if (!data?.telegram_id) return;
-    const prefs = (data.notify_prefs ?? {}) as Record<string, boolean>;
-    if (prefs[pref] === false) return;
-    await send(data.telegram_id as number, path ? `${text}\n\n<a href="${siteUrl()}${path}">Открыть</a>` : text);
+    const chatId = await telegramOf(userId, pref);
+    if (chatId) await sendText(chatId, text, path ? openButton(path) : undefined);
   });
 }

@@ -5,7 +5,7 @@ import { getSessionUser } from "@/lib/server/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { LoginRequired, Panel, STATUS_STYLE, Skeleton } from "@/components/cabinet/common";
 import { NotifyPrefsForm } from "@/components/cabinet/forms";
-import { TELEGRAM_BOT_USERNAME } from "@/lib/env";
+import { TelegramStatus } from "@/components/cabinet/telegram-status";
 import { t } from "@/i18n/ru";
 
 export const metadata: Metadata = { title: t.cabinet.title, robots: { index: false } };
@@ -80,13 +80,7 @@ async function CabinetContent() {
       </Panel>
 
       <Panel title="🔔 Уведомления в Telegram">
-        {profile?.telegram_id ? (
-          <p className="mb-3 text-sm">Telegram привязан. Чтобы бот мог писать вам, один раз нажмите «Старт» в <a href={`https://t.me/${TELEGRAM_BOT_USERNAME}`} className="font-bold text-primary" target="_blank" rel="noopener noreferrer">@{TELEGRAM_BOT_USERNAME}</a>.</p>
-        ) : (
-          <p className="mb-3 text-sm">
-            Telegram не привязан. <Link href="/profil" className="font-bold text-primary">Привяжите его в профиле</Link>, чтобы получать уведомления о заявках, отзывах и проверке карточки.
-          </p>
-        )}
+        <TelegramStatus userId={user.id} context="settings" />
         <NotifyPrefsForm prefs={(profile?.notify_prefs ?? {}) as Record<string, boolean>} />
       </Panel>
 

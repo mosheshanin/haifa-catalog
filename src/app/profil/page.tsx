@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { telegramState } from "@/components/cabinet/telegram-status";
+import { TELEGRAM_BOT_USERNAME } from "@/lib/env";
 import { Suspense } from "react";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { createClient } from "@/lib/supabase/server";
@@ -83,6 +85,7 @@ async function ProfileContent({ searchParams }: { searchParams: PageProps<"/prof
                   : t.profile.telegramNotLinked}
               </p>
               <OpenInTelegramButton />
+              {user.hasTelegram ? <BotHint userId={user.id} /> : null}
             </div>
           </div>
         </div>
@@ -170,5 +173,26 @@ export default function ProfilePage(props: PageProps<"/profil">) {
         <ProfileContent searchParams={props.searchParams} />
       </Suspense>
     </div>
+  );
+}
+
+// Клиенту: что пришлёт бот и как это включить (этап 4).
+async function BotHint({ userId }: { userId: string }) {
+  const state = await telegramState(userId);
+  return (
+    <p className="mt-2 text-sm text-muted">
+      {state === "ok" ? (
+        <>✈️ Бот пришлёт решение владельца по вашей заявке, напоминание накануне и новые акции из избранного. </>
+      ) : (
+        <>
+          ✈️ Нажмите «Старт» у{" "}
+          <a href={`https://t.me/${TELEGRAM_BOT_USERNAME}`} target="_blank" rel="noopener noreferrer" className="font-bold text-primary">
+            @{TELEGRAM_BOT_USERNAME}
+          </a>
+          , чтобы бот сообщал о решениях по вашим заявкам и акциях в избранном.{" "}
+        </>
+      )}
+      <Link href="/kabinet" className="font-bold text-primary">Настроить уведомления</Link>
+    </p>
   );
 }

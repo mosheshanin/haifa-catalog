@@ -1,7 +1,9 @@
+import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { MiniAppBridge } from "@/components/telegram/mini-app-bridge";
+import { TelegramBackButton } from "@/components/telegram/mini-app-chrome";
 import { FavoritesProvider } from "@/components/listing/favorites-provider";
 import { SITE_INDEXABLE, siteUrl } from "@/lib/env";
 import { t } from "@/i18n/ru";
@@ -42,6 +44,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <SiteFooter />
         </FavoritesProvider>
         <MiniAppBridge />
+        <Suspense fallback={null}>
+          <TelegramBackButton />
+        </Suspense>
       </body>
     </html>
   );
