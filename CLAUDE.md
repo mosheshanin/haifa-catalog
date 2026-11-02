@@ -254,10 +254,12 @@ Vercel не дал заказчику сохранить имена с `NEXT_PUB
 - **Этап 5 — SEO:** правило индексации карточки — `isListingComplete` (`src/lib/seo/indexable.ts`) **и** SQL
   `listing_is_complete` (sitemap) — менять вместе. Карты сайта — свои обработчики: `src/app/sitemap.xml/route.ts` (индекс)
   и `src/app/sitemaps/[file]/route.ts` (pages/biznes/specialisty), данные — SQL `sitemap_entries` (без `is_demo`).
-  Картинки предпросмотра — `src/lib/seo/og.tsx` + `opengraph-image.tsx` (корень и `[section]/[slug]`): шрифты WOFF
-  из `assets/fonts` (WOFF2 ImageResponse не читает), подмножества кириллица/латиница — **разные семейства** (иначе
-  латиница и знаки препинания квадратиками), файлы включены в функцию через `outputFileTracingIncludes` в
-  `next.config.ts`; фото перекодируется sharp в JPEG (WebP не читается); эмодзи в картинку не ставить.
+  Картинки предпросмотра — `src/lib/seo/og.tsx` + `opengraph-image.tsx` (корень и `[section]/[slug]`): шрифты —
+  `assets/fonts/manrope-800.woff`, `onest-500.woff`: статичные начертания из Google Fonts (fontTools: instancer + subset
+  кириллица и латиница в **одном** файле; WOFF2 ImageResponse не читает, а с двумя файлами-подмножествами латиница
+  была квадратиками и строки неверно переносились). Текст рисуется по словам (`Words`): правила Unicode не переносят
+  строку между «»» и «(». Файлы включены в функцию через `outputFileTracingIncludes` в `next.config.ts`; фото
+  перекодируется sharp в JPEG (WebP не читается); эмодзи в картинку не ставить.
   Текст категории (`seo_text`): первый абзац — под заголовком, остальное — блок «Как выбрать» внизу; формат — пустая
   строка между абзацами, `## ` подзаголовок, `- ` пункт.
 - **Этап 5 — право и cookie:** документы — `src/app/{politika,usloviya,dostupnost}`, общий вид и пометка «проект» —

@@ -4,26 +4,19 @@ import { join } from "node:path";
 import { ImageResponse } from "next/og";
 
 // Картинки для предпросмотра ссылок в Telegram и соцсетях (раздел 8 ТЗ): логотип, название, подпись и фото.
-// Шрифты — WOFF с кириллицей из assets/fonts (ImageResponse не читает WOFF2). Эмодзи сюда не ставим: без
-// отдельного набора картинок они рисуются квадратиками.
+// Шрифты — assets/fonts: статичные начертания Manrope 800 и Onest 500 (из Google Fonts, OFL) с кириллицей и латиницей
+// в одном файле WOFF (ImageResponse не читает WOFF2; с двумя файлами-подмножествами переносы строк считались неверно).
+// Эмодзи сюда не ставим: без отдельного набора картинок они рисуются квадратиками.
 
 export const OG_SIZE = { width: 1200, height: 630 };
 
 const font = (name: string) => readFile(join(process.cwd(), "assets/fonts", name));
 
 async function fonts() {
-  const [mc, ml, oc, ol] = await Promise.all([
-    font("manrope-cyrillic-800-normal.woff"),
-    font("manrope-latin-800-normal.woff"),
-    font("onest-cyrillic-500-normal.woff"),
-    font("onest-latin-500-normal.woff"),
-  ]);
-  // Подмножества шрифта — разные семейства: в стиле перечисляем оба, латиница и знаки берутся из второго.
+  const [manrope, onest] = await Promise.all([font("manrope-800.woff"), font("onest-500.woff")]);
   return [
-    { name: "Manrope", data: mc, weight: 800 as const, style: "normal" as const },
-    { name: "ManropeLatin", data: ml, weight: 800 as const, style: "normal" as const },
-    { name: "Onest", data: oc, weight: 500 as const, style: "normal" as const },
-    { name: "OnestLatin", data: ol, weight: 500 as const, style: "normal" as const },
+    { name: "Manrope", data: manrope, weight: 800 as const, style: "normal" as const },
+    { name: "Onest", data: onest, weight: 500 as const, style: "normal" as const },
   ];
 }
 
@@ -52,22 +45,38 @@ export async function photoForOg(src: string | undefined | null): Promise<string
   }
 }
 
+// Слова — отдельными элементами с переносом: правила переноса Unicode не разрывают строку между «»» и «(»
+// («Салон «Лаванда» (пример)» уходил под фото одной строкой).
+function Words({ text, style }: { text: string; style: Record<string, string | number> }) {
+  const words = text.split(/\s+/).filter(Boolean);
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", ...style }}>
+      {words.map((w, i) => (
+        <span key={i} style={{ marginRight: i < words.length - 1 ? "0.27em" : 0 }}>
+          {w}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 const clip = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1).trimEnd()}…` : s);
 
 export async function renderOg(o: { eyebrow?: string; title: string; subtitle?: string; photo?: string | null }) {
   const [f, mark] = await Promise.all([fonts(), logo()]);
-  const title = clip(o.title, 70);
+  // Неразрывные пробелы из названий мешают переносу строки в картинке.
+  const title = clip(o.title.replace(/\u00a0/g, " "), 70);
   return new ImageResponse(
     (
-      <div style={{ display: "flex", width: "100%", height: "100%", background: "#f6f6fb", fontFamily: "OnestLatin, Onest" }}>
+      <div style={{ display: "flex", width: "100%", height: "100%", background: "#f6f6fb", fontFamily: "Onest" }}>
         {/* Ширина колонки задана явно: иначе длинное название уходит под фото, а не переносится */}
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", width: o.photo ? 640 : 1176, padding: "56px 60px" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={mark} width={170} height={72} alt="" style={{ borderRadius: 14 }} />
           <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-            {o.eyebrow ? <div style={{ fontSize: 30, color: "#c2410c" }}>{clip(o.eyebrow, 60)}</div> : null}
-            <div style={{ fontFamily: "ManropeLatin, Manrope", fontSize: o.photo ? (title.length > 30 ? 48 : 58) : title.length > 40 ? 56 : 68, lineHeight: 1.08, color: "#1e1b4b" }}>{title}</div>
-            {o.subtitle ? <div style={{ fontSize: 30, lineHeight: 1.3, color: "#4b4a6b" }}>{clip(o.subtitle, o.photo ? 90 : 110)}</div> : null}
+            {o.eyebrow ? <Words text={clip(o.eyebrow, 60)} style={{ fontSize: 30, color: "#c2410c" }} /> : null}
+            <Words text={title} style={{ fontFamily: "Manrope", fontSize: o.photo ? (title.length > 30 ? 48 : 58) : title.length > 40 ? 56 : 68, lineHeight: 1.08, color: "#1e1b4b" }} />
+            {o.subtitle ? <Words text={clip(o.subtitle, o.photo ? 90 : 110)} style={{ fontSize: 30, lineHeight: 1.3, color: "#4b4a6b" }} /> : null}
           </div>
           <div style={{ fontSize: 26, color: "#4b4a6b" }}>HaifaBusinessClub · Хайфа</div>
         </div>
