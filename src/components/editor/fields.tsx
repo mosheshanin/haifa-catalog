@@ -6,6 +6,7 @@ import { DAYS, fillDefaults } from "@/lib/editor/schemas";
 import type { Limits } from "@/lib/blocks/types";
 import { parseVideoUrl } from "@/lib/blocks/links";
 import { inputCls, labelCls, textareaCls } from "@/components/forms/ui";
+import { KUPOT_LIST, type FilterConfig } from "@/lib/catalog/filter-config";
 import { Photo } from "@/components/ui/photo";
 import { uploadMedia } from "@/components/editor/upload";
 import { geocodeAddress } from "@/app/actions/cabinet";
@@ -20,6 +21,8 @@ export type EditorOptions = {
   districts: Option[];
   amenities: string[];
   languages: string[];
+  section: "biznes" | "specialisty";
+  filter: FilterConfig; // фильтры категории карточки: какие поля «Особенностей» показывать и как их назвать
   limits: Limits;
 };
 export const EditorContext = createContext<EditorOptions | null>(null);
@@ -31,10 +34,23 @@ function optionsOf(o: Option[] | string, opts: EditorOptions): Option[] {
   if (o === "days") return DAYS;
   if (o === "amenities") return opts.amenities.map((v) => ({ value: v, label: v }));
   if (o === "languages") return opts.languages.map((v) => ({ value: v, label: v }));
+  if (o === "kupot") return KUPOT_LIST.map((v) => ({ value: v, label: v }));
+  if (o === "bizFormats")
+    return [
+      opts.filter.home ? { value: "at_home", label: opts.filter.home } : null,
+      opts.filter.online ? { value: "online", label: opts.filter.online } : null,
+    ].filter((x): x is Option => Boolean(x));
   return [];
 }
 
 const maxOf = (m: number | keyof Limits, opts: EditorOptions) => (typeof m === "number" ? m : opts.limits[m]);
+
+// Отмеченное раньше значение, которого больше нет в списке (например, «Выезд на дом» в особенностях), остаётся видимым, чтобы его можно было снять.
+const FORMAT_LABELS: Record<string, string> = { at_home: "🚗 Выезд или доставка", online: "💻 Онлайн" };
+function multiOptions(options: Option[], value: string[]): Option[] {
+  const known = new Set(options.map((o) => o.value));
+  return [...options, ...value.filter((v) => !known.has(v)).map((v) => ({ value: v, label: FORMAT_LABELS[v] ?? v }))];
+}
 
 // ---------- Фото ----------
 export function PhotoInput({ value, onChange, label, kind = "image" }: { value?: string; onChange: (v: string | undefined) => void; label: string; kind?: "image" | "file" }) {
@@ -442,7 +458,8 @@ function FieldView({ field, obj, onChange }: { field: Field; obj: Obj; onChange:
       return (
         <div className="grid gap-1">
           <span className="text-sm font-bold">{field.label}</span>
-          <MultiSelect options={optionsOf(field.options, opts)} value={(v as string[]) ?? []} onChange={set} />
+          <MultiSelect options={multiOptions(optionsOf(field.options, opts), (v as string[]) ?? [])} value={(v as string[]) ?? []} onChange={set} />
+          {field.help ? <span className="text-xs text-muted">{field.help}</span> : null}
         </div>
       );
     case "photo":
@@ -477,10 +494,20 @@ function FieldView({ field, obj, onChange }: { field: Field; obj: Obj; onChange:
   }
 }
 
+// Поле с условием when видно только в подходящей категории; уже отмеченные значения показываем всегда, чтобы их можно было снять.
+function applicable(f: Field, obj: Obj, opts: EditorOptions): boolean {
+  if (f.type !== "multiselect" || !f.when) return true;
+  const has = Array.isArray(obj[f.k]) && (obj[f.k] as unknown[]).length > 0;
+  if (f.when === "kupa") return opts.filter.kupa || has;
+  if (f.when === "bizFormats") return (opts.section === "biznes" && Boolean(opts.filter.home || opts.filter.online)) || has;
+  return true;
+}
+
 export function Fields({ fields, obj, onChange }: { fields: Field[]; obj: Obj; onChange: (o: Obj) => void }) {
+  const opts = useOpts();
   return (
     <>
-      {fields.map((f) => (
+      {fields.filter((f) => applicable(f, obj, opts)).map((f) => (
         <FieldView key={f.k} field={f} obj={obj} onChange={onChange} />
       ))}
     </>

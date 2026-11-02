@@ -1,4 +1,5 @@
 import { FREE_LIMITS, type Limits, type ListingBlock, type ListingData, type WeekdayKey } from "@/lib/blocks/types";
+import { KUPOT_LIST } from "@/lib/catalog/filter-config";
 import { isGoogleMapsUrl, isMediaUrl, parseGoogleMapsUrl, safeHref } from "@/lib/blocks/links";
 
 // Проверка и очистка данных карточки, пришедших из редактора (на сервере, перед сохранением).
@@ -182,7 +183,16 @@ function block(raw: unknown, ctx: Ctx): ListingBlock | undefined {
           }),
         },
       };
-    case "features":
+    case "features": {
+      const kupot = arr(d.kupot, 4, (x) => ((KUPOT_LIST as readonly string[]).includes(String(x)) ? String(x) : undefined));
+      const formats = arr(d.formats, 2, (x) => (x === "at_home" || x === "online" ? x : undefined)) as Array<"at_home" | "online">;
+      return {
+        id,
+        type: "features",
+        hidden,
+        data: { items: arr(d.items, 40, (x) => str(x, 40)), ...(kupot.length ? { kupot } : {}), ...(formats.length ? { formats } : {}) },
+      };
+    }
     case "languages":
       return { id, type: b.type, hidden, data: { items: arr(d.items, 40, (x) => str(x, 40)) } };
     case "request":

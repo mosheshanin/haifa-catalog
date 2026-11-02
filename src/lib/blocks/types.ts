@@ -102,7 +102,8 @@ export type ListingBlock =
   | { id: string; type: "gallery"; hidden?: boolean; data: { photos: Array<{ url?: string; caption?: string }> } }
   | { id: string; type: "before_after"; hidden?: boolean; data: { pairs: Array<{ beforeUrl?: string; afterUrl?: string; caption?: string }> } }
   | { id: string; type: "faq"; hidden?: boolean; data: { items: FaqItem[] } }
-  | { id: string; type: "features"; hidden?: boolean; data: { items: string[] } }
+  // kupot — больничные кассы (только медицинские категории), formats — доставка/выезд/онлайн у бизнесов (решение 2 ноября 2026)
+  | { id: string; type: "features"; hidden?: boolean; data: { items: string[]; kupot?: string[]; formats?: Array<"at_home" | "online"> } }
   | { id: string; type: "languages"; hidden?: boolean; data: { items: string[] } }
   | { id: string; type: "request"; hidden?: boolean; data: { enabled: boolean; withTime: boolean } }
   | { id: string; type: "video"; hidden?: boolean; data: { items: VideoItem[] } }

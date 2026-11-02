@@ -1,13 +1,14 @@
 import type { SearchParams } from "@/lib/data/listings";
 import type { Section } from "@/lib/blocks/types";
+import { KUPOT_LIST } from "@/lib/catalog/filter-config";
 
-// Фильтры живут в адресе страницы (раздел 5 ТЗ): ?q=…&district=…&lang=…&open=1&home=1&online=1&offer=1&kupa=…&sort=…&page=2&view=map
+// Фильтры живут в адресе страницы (раздел 5 ТЗ): ?q=…&district=…&lang=…&open=1&home=1&site=1&online=1&offer=1&kupa=…&sort=…&page=2&view=map
 export type RawParams = Record<string, string | string[] | undefined>;
 
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)?.trim() || undefined;
 
 export const LANGUAGES = ["Русский", "Иврит", "Английский", "Арабский"] as const;
-export const KUPOT = ["Клалит", "Маккаби", "Меухедет", "Леумит"] as const;
+export const KUPOT = KUPOT_LIST;
 export const SORTS = [
   { value: "relevance", label: "По релевантности" },
   { value: "rating", label: "По рейтингу" },
@@ -21,6 +22,7 @@ export type CatalogFilters = {
   language?: string;
   openNow: boolean;
   atHome: boolean;
+  onSite: boolean;
   online: boolean;
   hasOffer: boolean;
   kupa?: string;
@@ -41,6 +43,7 @@ export function parseFilters(sp: RawParams, fixed: { category?: string; district
     language: LANGUAGES.includes(language as (typeof LANGUAGES)[number]) ? language : undefined,
     openNow: one(sp.open) === "1",
     atHome: one(sp.home) === "1",
+    onSite: one(sp.site) === "1",
     online: one(sp.online) === "1",
     hasOffer: one(sp.offer) === "1",
     kupa: KUPOT.includes(kupa as (typeof KUPOT)[number]) ? kupa : undefined,
@@ -51,7 +54,7 @@ export function parseFilters(sp: RawParams, fixed: { category?: string; district
 }
 
 export function toSearch(f: CatalogFilters, section: Section | undefined, pageSize: number): SearchParams {
-  const formats = [f.atHome ? "at_home" : null, f.online ? "online" : null].filter(Boolean) as string[];
+  const formats = [f.atHome ? "at_home" : null, f.onSite ? "on_site" : null, f.online ? "online" : null].filter(Boolean) as string[];
   return {
     q: f.q,
     section,
@@ -76,6 +79,7 @@ export function hasActiveFilters(f: CatalogFilters, fixed: { category?: string; 
       f.language ||
       f.openNow ||
       f.atHome ||
+      f.onSite ||
       f.online ||
       f.hasOffer ||
       f.kupa ||

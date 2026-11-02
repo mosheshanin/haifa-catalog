@@ -7,7 +7,7 @@ export type SiteSettings = { reviewRules: ReviewRules; amenities: string[]; lang
 
 export const DEFAULT_SETTINGS: SiteSettings = {
   reviewRules: { minLength: 20, forbidLinks: true, forbidPhones: true },
-  amenities: ["Оплата картой", "Оплата через Bit", "Wi-Fi", "Доступно для колясок", "Детская зона", "Кошерно", "Парковка", "Выезд на дом", "Онлайн"],
+  amenities: ["Оплата картой", "Оплата через Bit", "Wi-Fi", "Доступно для колясок", "Детская зона", "Кошерно", "Парковка"],
   languages: ["Русский", "Иврит", "Английский", "Арабский"],
 };
 

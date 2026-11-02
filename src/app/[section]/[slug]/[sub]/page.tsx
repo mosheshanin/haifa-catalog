@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { getFilterAvailability } from "@/lib/data/filters";
 import { FiltersForm } from "@/components/catalog/filters-form";
 import { Results, ResultsSkeleton } from "@/components/catalog/results";
 import { getCategories, getDistricts, isSection, type Category, type District } from "@/lib/data/dictionaries";
@@ -63,9 +64,10 @@ export async function generateMetadata({ params }: PageProps<"/[section]/[slug]/
 async function Explorer({ section, base, fixed, searchParams }: { section: Section; base: string; fixed: { category: string; district?: string }; searchParams: PageProps<"/[section]/[slug]/[sub]">["searchParams"] }) {
   const [sp, districts] = await Promise.all([searchParams, getDistricts()]);
   const filters = parseFilters(sp, fixed);
+  const avail = await getFilterAvailability({ section, categorySlug: fixed.category }, filters);
   return (
     <div className="grid gap-4">
-      <FiltersForm action={base} filters={filters} districts={districts} showDistrict={!fixed.district} resetHref={base} />
+      <FiltersForm action={base} filters={filters} districts={districts} showDistrict={!fixed.district} resetHref={base} avail={avail} />
       <Results filters={filters} section={section} basePath={base} rawParams={sp} />
     </div>
   );

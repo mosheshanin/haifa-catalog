@@ -7,12 +7,13 @@ import { BLOCK_ICONS, BLOCK_TITLES } from "@/lib/blocks/types";
 import { MODERATED_TYPES } from "@/lib/blocks/moderation";
 import { ADDABLE_ORDER, BLOCK_SCHEMAS, defaultBlockData, type Field, type Option } from "@/lib/editor/schemas";
 import { EditorContext, Fields, PhotoInput } from "@/components/editor/fields";
+import { filterConfig } from "@/lib/catalog/filter-config";
 import { inputCls, labelCls } from "@/components/forms/ui";
 import { ListingView } from "@/components/listing/listing-view";
 import { saveDraft, submitListing } from "@/app/actions/cabinet";
 
 type Obj = Record<string, unknown>;
-type Category = { id: number; name: string; icon: string | null; parentId: number | null };
+type Category = { id: number; name: string; slug: string; icon: string | null; parentId: number | null };
 
 const CONTACT_FIELDS: Field[] = [
   { k: "phone", label: "Телефон", type: "tel", placeholder: "050-000-0000" },
@@ -126,6 +127,12 @@ export function ListingEditor(props: {
   const addable = ADDABLE_ORDER.filter((t) => !present.has(t));
   const districtNames = Object.fromEntries(props.districts.map((d) => [d.value, d.label]));
   const categoryName = props.categories.find((c) => c.id === data.header.categoryId)?.name ?? "";
+  // Фильтры категории: какие поля «Особенностей» показывать (кассы, доставка/выезд) и как их назвать.
+  const filter = useMemo(() => {
+    const cat = props.categories.find((c) => c.id === data.header.categoryId);
+    const parent = cat?.parentId ? props.categories.find((c) => c.id === cat.parentId) : undefined;
+    return filterConfig(listing.section, cat ? { slug: cat.slug, parentSlug: parent?.slug ?? null } : null);
+  }, [props.categories, data.header.categoryId, listing.section]);
 
   const doSave = () =>
     startSave(async () => {
@@ -157,7 +164,7 @@ export function ListingEditor(props: {
       : "✅ Карточка опубликована.";
 
   return (
-    <EditorContext.Provider value={{ districts: props.districts, amenities: props.amenities, languages: props.languages, limits: props.limits }}>
+    <EditorContext.Provider value={{ districts: props.districts, amenities: props.amenities, languages: props.languages, limits: props.limits, section: listing.section, filter }}>
       <div className="grid gap-4 pb-28">
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <Link href={isAdmin ? "/admin?tab=listings" : "/kabinet"} className="font-bold text-primary">

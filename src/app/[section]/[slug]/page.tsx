@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { Suspense } from "react";
+import { getFilterAvailability } from "@/lib/data/filters";
 import { FiltersForm } from "@/components/catalog/filters-form";
 import { Results, ResultsSkeleton } from "@/components/catalog/results";
 import { ListingView } from "@/components/listing/listing-view";
@@ -58,9 +59,10 @@ async function CategoryExplorer({ section, category, searchParams }: { section: 
   const [sp, districts] = await Promise.all([searchParams, getDistricts()]);
   const filters = parseFilters(sp, { category: category.slug });
   const base = `/${section}/${category.slug}`;
+  const avail = await getFilterAvailability({ section, category }, filters);
   return (
     <div className="grid gap-4">
-      <FiltersForm action={base} filters={filters} districts={districts} resetHref={base} />
+      <FiltersForm action={base} filters={filters} districts={districts} resetHref={base} avail={avail} />
       <Results filters={filters} section={section} basePath={base} rawParams={sp} />
     </div>
   );

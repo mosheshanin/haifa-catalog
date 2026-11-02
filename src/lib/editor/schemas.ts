@@ -11,7 +11,8 @@ export type Field =
   | { k: string; label: string; type: "date" | "datetime" | "time"; help?: string; required?: boolean }
   | { k: string; label: string; type: "checkbox"; help?: string }
   | { k: string; label: string; type: "select"; options: Option[] | "districts" | "days"; required?: boolean }
-  | { k: string; label: string; type: "multiselect"; options: Option[] | "districts" | "amenities" | "languages" }
+  // when: поле видно только там, где оно имеет смысл (кассы — медицина, доставка/онлайн — бизнесы по таблице фильтров)
+  | { k: string; label: string; type: "multiselect"; options: Option[] | "districts" | "amenities" | "languages" | "kupot" | "bizFormats"; when?: "kupa" | "bizFormats"; help?: string }
   | { k: string; label: string; type: "photo"; help?: string }
   | { k: string; label: string; type: "photos"; max: number | keyof Limits }
   | { k: string; label: string; type: "file"; help?: string }
@@ -118,7 +119,11 @@ export const BLOCK_SCHEMAS: Record<ListingBlock["type"], Field[]> = {
       { k: "a", label: "Ответ", type: "textarea", rows: 3, max: 2000, required: true },
     ] },
   ],
-  features: [{ k: "items", label: "Особенности", type: "multiselect", options: "amenities" }],
+  features: [
+    { k: "items", label: "Особенности", type: "multiselect", options: "amenities" },
+    { k: "formats", label: "Как работаете", type: "multiselect", options: "bizFormats", when: "bizFormats", help: "По этим отметкам вас найдут фильтры каталога." },
+    { k: "kupot", label: "Больничные кассы", type: "multiselect", options: "kupot", when: "kupa", help: "С какими кассами вы работаете: по ним ищут в фильтре «Больничная касса»." },
+  ],
   languages: [{ k: "items", label: "Языки общения", type: "multiselect", options: "languages" }],
   request: [
     { k: "enabled", label: "Принимать заявки с карточки", type: "checkbox" },

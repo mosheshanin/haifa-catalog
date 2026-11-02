@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { SearchForm } from "@/components/search/search-form";
+import { getFilterAvailability } from "@/lib/data/filters";
 import { FiltersForm } from "@/components/catalog/filters-form";
 import { Results, ResultsSkeleton } from "@/components/catalog/results";
 import { getCategories, getDistricts } from "@/lib/data/dictionaries";
@@ -16,6 +17,7 @@ export const metadata: Metadata = {
 async function SearchContent({ searchParams }: { searchParams: PageProps<"/poisk">["searchParams"] }) {
   const [sp, districts, categories] = await Promise.all([searchParams, getDistricts(), getCategories()]);
   const filters = parseFilters(sp);
+  const avail = await getFilterAvailability({ categorySlug: filters.category }, filters);
   return (
     <>
       <div className="max-w-2xl">
@@ -27,6 +29,7 @@ async function SearchContent({ searchParams }: { searchParams: PageProps<"/poisk
         districts={districts}
         categories={categories.filter((c) => c.parent_id === null)}
         resetHref={filters.q ? `/poisk?q=${encodeURIComponent(filters.q)}` : "/poisk"}
+        avail={avail}
       />
       <Results filters={filters} basePath="/poisk" rawParams={sp} />
     </>

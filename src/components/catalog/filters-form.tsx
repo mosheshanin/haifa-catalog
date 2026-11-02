@@ -2,9 +2,11 @@ import Form from "next/form";
 import Link from "next/link";
 import { KUPOT, LANGUAGES, SORTS, type CatalogFilters } from "@/lib/catalog/params";
 import type { Category, District } from "@/lib/data/dictionaries";
+import type { FilterAvailability } from "@/lib/data/filters";
 
 // Фильтры как обычная HTML-форма (GET): работают без JavaScript, результат можно отправить ссылкой.
 // На телефоне свёрнуты в раскрывающуюся панель (раздел 10 ТЗ).
+// Набор и названия фильтров зависят от категории, пустые фильтры скрыты (avail, решение 2 ноября 2026).
 export function FiltersForm({
   action,
   filters,
@@ -12,6 +14,7 @@ export function FiltersForm({
   categories,
   showDistrict = true,
   resetHref,
+  avail,
 }: {
   action: string;
   filters: CatalogFilters;
@@ -19,12 +22,14 @@ export function FiltersForm({
   categories?: Category[];
   showDistrict?: boolean;
   resetHref: string;
+  avail: FilterAvailability;
 }) {
   const active = [
     filters.district,
     filters.language,
     filters.openNow,
     filters.atHome,
+    filters.onSite,
     filters.online,
     filters.hasOffer,
     filters.kupa,
@@ -85,15 +90,17 @@ export function FiltersForm({
               ))}
             </select>
           </label>
-          <label className="grid gap-1 text-sm font-bold">
-            🏥 Больничная касса
-            <select name="kupa" defaultValue={filters.kupa ?? ""} className={select}>
-              <option value="">Не важно</option>
-              {KUPOT.map((k) => (
-                <option key={k} value={k}>{k}</option>
-              ))}
-            </select>
-          </label>
+          {avail.kupa ? (
+            <label className="grid gap-1 text-sm font-bold">
+              🏥 Больничная касса
+              <select name="kupa" defaultValue={filters.kupa ?? ""} className={select}>
+                <option value="">Не важно</option>
+                {KUPOT.map((k) => (
+                  <option key={k} value={k}>{k}</option>
+                ))}
+              </select>
+            </label>
+          ) : null}
           <label className="grid gap-1 text-sm font-bold">
             ↕️ Сортировка
             <select name="sort" defaultValue={filters.sort} className={select}>
@@ -104,18 +111,31 @@ export function FiltersForm({
           </label>
         </div>
         <div className="flex flex-wrap gap-2">
-          <label className={check}>
-            <input type="checkbox" name="open" value="1" defaultChecked={filters.openNow} className="size-4 accent-[var(--color-primary)]" /> 🕒 Открыто сейчас
-          </label>
-          <label className={check}>
-            <input type="checkbox" name="home" value="1" defaultChecked={filters.atHome} className="size-4 accent-[var(--color-primary)]" /> 🚗 Выезд на дом
-          </label>
-          <label className={check}>
-            <input type="checkbox" name="online" value="1" defaultChecked={filters.online} className="size-4 accent-[var(--color-primary)]" /> 💻 Онлайн
-          </label>
-          <label className={check}>
-            <input type="checkbox" name="offer" value="1" defaultChecked={filters.hasOffer} className="size-4 accent-[var(--color-primary)]" /> 🎁 Есть акция
-          </label>
+          {avail.open ? (
+            <label className={check}>
+              <input type="checkbox" name="open" value="1" defaultChecked={filters.openNow} className="size-4 accent-[var(--color-primary)]" /> 🕒 Открыто сейчас
+            </label>
+          ) : null}
+          {avail.home ? (
+            <label className={check}>
+              <input type="checkbox" name="home" value="1" defaultChecked={filters.atHome} className="size-4 accent-[var(--color-primary)]" /> {avail.home}
+            </label>
+          ) : null}
+          {avail.site ? (
+            <label className={check}>
+              <input type="checkbox" name="site" value="1" defaultChecked={filters.onSite} className="size-4 accent-[var(--color-primary)]" /> {avail.site}
+            </label>
+          ) : null}
+          {avail.online ? (
+            <label className={check}>
+              <input type="checkbox" name="online" value="1" defaultChecked={filters.online} className="size-4 accent-[var(--color-primary)]" /> {avail.online}
+            </label>
+          ) : null}
+          {avail.offer ? (
+            <label className={check}>
+              <input type="checkbox" name="offer" value="1" defaultChecked={filters.hasOffer} className="size-4 accent-[var(--color-primary)]" /> 🎁 Есть акция
+            </label>
+          ) : null}
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <button type="submit" className="h-11 rounded-2xl bg-primary px-6 font-bold text-white hover:bg-primary-hover">

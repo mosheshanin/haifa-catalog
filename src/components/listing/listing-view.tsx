@@ -40,6 +40,7 @@ import { safeHref } from "@/lib/blocks/links";
 import { GoogleRating } from "@/components/listing/blocks/google-rating";
 import { ListingTracker } from "@/components/listing/listing-tracker";
 import { ClaimButton, ComplaintButton, ReportListingButton, RequestForm, ReviewForm } from "@/components/listing/public-forms";
+import { filterConfig, type FilterConfig } from "@/lib/catalog/filter-config";
 import { TelegramRequestButton } from "@/components/telegram/mini-app-chrome";
 import type { PublicReview } from "@/lib/data/reviews";
 
@@ -57,6 +58,7 @@ type BlockContext = {
   whatsapp?: string;
   title: string;
   bookableNames: string[];
+  filter: FilterConfig; // подписи «Доставка», «Выезд к клиенту»… по категории карточки
 };
 
 const DAY_FULL: Record<WeekdayKey, string> = {
@@ -96,10 +98,15 @@ const FEATURE_ICONS: Record<string, string> = {
   "Доступно для колясок": "♿",
   "Детская зона": "🧸",
   "Кошерно": "✡️",
-  "Выезд на дом": "🚗",
-  "Онлайн": "💻",
   "Парковка": "🅿️",
 };
+
+// Категория карточки из ссылки «/<раздел>/<категория>» → подписи фильтров (без лишнего запроса в базу).
+function filterFromHref(section: "biznes" | "specialisty", href: string): FilterConfig {
+  const [, , top, sub] = href.split("/");
+  if (!top) return filterConfig(section, null);
+  return filterConfig(section, sub ? { slug: sub, parentSlug: top } : { slug: top });
+}
 
 function Section({ id, title, icon, children }: { id?: string; title: string; icon?: string; children: React.ReactNode }) {
   return (
@@ -296,19 +303,24 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
           </div>
         </Section>
       );
-    case "features":
+    case "features": {
+      const kupot = block.data.kupot ?? [];
+      const formats = (block.data.formats ?? []).map((f) => (f === "at_home" ? ctx.filter.home ?? "🚗 Выезд или доставка" : ctx.filter.online ?? "💻 Онлайн"));
+      if (!block.data.items.length && !kupot.length && !formats.length) return null;
       return (
         <Section title={t.listing.features} icon="⭐">
           <ul className="flex flex-wrap gap-2">
-            {block.data.items.map((f) => (
+            {[...formats, ...block.data.items].map((f) => (
               <li key={f} className="rounded-full border border-line bg-surface-alt px-3 py-1.5 text-sm font-semibold">
                 {FEATURE_ICONS[f] ? `${FEATURE_ICONS[f]} ` : ""}
                 {f}
               </li>
             ))}
           </ul>
+          {kupot.length ? <p className="mt-3 text-sm">🏥 Работает с больничными кассами: <b>{kupot.join(", ")}</b></p> : null}
         </Section>
       );
+    }
     case "languages":
       return (
         <Section title={t.listing.languages} icon="🗣️">
@@ -653,6 +665,7 @@ export function ListingView({
     whatsapp: contacts.whatsapp,
     title: header.title,
     bookableNames: team?.type === "team" ? team.data.members.filter((m) => m.bookable).map((m) => m.name) : [],
+    filter: filterFromHref(data.section, categoryHref),
   };
 
   return (
@@ -874,6 +887,7 @@ export function BlockPreview({ block, districtNames }: { block: ListingBlock; di
     requestEnabled: false,
     title: "",
     bookableNames: [],
+    filter: filterConfig("biznes", null),
   };
   return <Block block={{ ...block, hidden: false } as ListingBlock} ctx={ctx} />;
 }

@@ -49,7 +49,7 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
             }
           : null
       }
-      categories={categories.filter((c) => c.section === listing.section).map((c) => ({ id: c.id, name: c.name, icon: c.icon, parentId: c.parent_id }))}
+      categories={categories.filter((c) => c.section === listing.section).map((c) => ({ id: c.id, name: c.name, slug: c.slug, icon: c.icon, parentId: c.parent_id }))}
       districts={districts.map((d) => ({ value: d.slug, label: d.name }))}
       amenities={settings.amenities}
       languages={settings.languages}
