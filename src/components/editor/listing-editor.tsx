@@ -351,13 +351,13 @@ export function ListingEditor(props: {
         {/* Закреплённая панель действий */}
         <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white/95 px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur">
           <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-2">
-            <span className="min-w-0 flex-1 text-xs text-muted">{dirty ? "Есть несохранённые изменения" : "Всё сохранено"}</span>
+            <span className="hidden min-w-0 flex-1 text-xs text-muted sm:block">{dirty ? "Есть несохранённые изменения" : "Всё сохранено"}</span>
             {!isAdmin ? (
-              <button type="button" onClick={doSave} disabled={pendingSave || pendingSubmit} className="min-h-12 rounded-2xl border border-line bg-white px-4 font-bold hover:border-primary disabled:opacity-60">
+              <button type="button" onClick={doSave} disabled={pendingSave || pendingSubmit} className="min-h-12 flex-1 rounded-2xl border border-line bg-white px-3 font-bold hover:border-primary disabled:opacity-60 sm:flex-none">
                 {pendingSave ? "Сохраняем…" : "💾 Черновик"}
               </button>
             ) : null}
-            <button type="button" onClick={doSubmit} disabled={pendingSave || pendingSubmit} className="min-h-12 rounded-2xl bg-accent px-5 font-bold text-white hover:bg-accent-hover disabled:opacity-60">
+            <button type="button" onClick={doSubmit} disabled={pendingSave || pendingSubmit} className="min-h-12 flex-1 rounded-2xl bg-accent px-3 font-bold text-white hover:bg-accent-hover disabled:opacity-60 sm:flex-none sm:px-5">
               {pendingSubmit ? "Отправляем…" : isAdmin ? "🚀 Опубликовать" : props.hasPublished ? "📤 Отправить" : "📤 На проверку"}
             </button>
           </div>

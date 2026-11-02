@@ -13,6 +13,9 @@ import { PlaceMap } from "@/components/catalog/place-map";
 
 type Obj = Record<string, unknown>;
 
+// Поля времени и даты узкие, чтобы «с — по» помещались в одну строку на телефоне.
+const timeCls = "h-12 w-[6.5rem] shrink-0 rounded-xl border border-line bg-white px-1.5 text-base outline-none focus:border-primary focus:ring-2 focus:ring-primary/20";
+
 export type EditorOptions = {
   districts: Option[];
   amenities: string[];
@@ -141,7 +144,7 @@ function HoursEditor({ obj, onChange }: { obj: Obj; onChange: (o: Obj) => void }
         const iv = week[d.value] ?? [];
         const open = iv.length > 0;
         return (
-          <div key={d.value} className="grid gap-2 rounded-xl border border-line p-3 sm:grid-cols-[9rem_1fr] sm:items-center">
+          <div key={d.value} className="grid gap-2 rounded-xl border border-line p-2 sm:grid-cols-[9rem_1fr] sm:items-center sm:p-3">
             <label className="flex min-h-11 items-center gap-2 font-bold">
               <input type="checkbox" checked={open} onChange={(e) => setDay(d.value, e.target.checked ? [{ open: "09:00", close: "18:00" }] : [])} className="size-5 accent-primary" />
               {d.label}
@@ -149,10 +152,10 @@ function HoursEditor({ obj, onChange }: { obj: Obj; onChange: (o: Obj) => void }
             {open ? (
               <div className="grid gap-2">
                 {iv.map((x, i) => (
-                  <div key={i} className="flex flex-wrap items-center gap-2">
-                    <input type="time" value={x.open} onChange={(e) => setDay(d.value, iv.map((y, j) => (j === i ? { ...y, open: e.target.value } : y)))} className={`${inputCls} w-32`} aria-label="Открытие" />
+                  <div key={i} className="flex flex-wrap items-center gap-1">
+                    <input type="time" value={x.open} onChange={(e) => setDay(d.value, iv.map((y, j) => (j === i ? { ...y, open: e.target.value } : y)))} className={timeCls} aria-label="Открытие" />
                     <span>—</span>
-                    <input type="time" value={x.close} onChange={(e) => setDay(d.value, iv.map((y, j) => (j === i ? { ...y, close: e.target.value } : y)))} className={`${inputCls} w-32`} aria-label="Закрытие" />
+                    <input type="time" value={x.close} onChange={(e) => setDay(d.value, iv.map((y, j) => (j === i ? { ...y, close: e.target.value } : y)))} className={timeCls} aria-label="Закрытие" />
                     {iv.length > 1 ? (
                       <button type="button" onClick={() => setDay(d.value, iv.filter((_, j) => j !== i))} className="min-h-11 px-2 text-sm text-danger">
                         убрать
@@ -178,7 +181,7 @@ function HoursEditor({ obj, onChange }: { obj: Obj; onChange: (o: Obj) => void }
           {exceptions.map((x, i) => (
             <div key={i} className="grid gap-2 rounded-xl bg-white p-3">
               <div className="flex flex-wrap items-center gap-2">
-                <input type="date" value={x.date} onChange={(e) => setExc(exceptions.map((y, j) => (j === i ? { ...y, date: e.target.value } : y)))} className={`${inputCls} w-44`} aria-label="Дата" />
+                <input type="date" value={x.date} onChange={(e) => setExc(exceptions.map((y, j) => (j === i ? { ...y, date: e.target.value } : y)))} className={`${timeCls} w-44`} aria-label="Дата" />
                 <label className="flex min-h-11 items-center gap-2 text-sm font-bold">
                   <input
                     type="checkbox"
@@ -194,9 +197,9 @@ function HoursEditor({ obj, onChange }: { obj: Obj; onChange: (o: Obj) => void }
               </div>
               {!x.closed ? (
                 <div className="flex flex-wrap items-center gap-2">
-                  <input type="time" value={x.intervals?.[0]?.open ?? "09:00"} onChange={(e) => setExc(exceptions.map((y, j) => (j === i ? { ...y, intervals: [{ open: e.target.value, close: y.intervals?.[0]?.close ?? "14:00" }] } : y)))} className={`${inputCls} w-32`} aria-label="Открытие" />
+                  <input type="time" value={x.intervals?.[0]?.open ?? "09:00"} onChange={(e) => setExc(exceptions.map((y, j) => (j === i ? { ...y, intervals: [{ open: e.target.value, close: y.intervals?.[0]?.close ?? "14:00" }] } : y)))} className={timeCls} aria-label="Открытие" />
                   <span>—</span>
-                  <input type="time" value={x.intervals?.[0]?.close ?? "14:00"} onChange={(e) => setExc(exceptions.map((y, j) => (j === i ? { ...y, intervals: [{ open: y.intervals?.[0]?.open ?? "09:00", close: e.target.value }] } : y)))} className={`${inputCls} w-32`} aria-label="Закрытие" />
+                  <input type="time" value={x.intervals?.[0]?.close ?? "14:00"} onChange={(e) => setExc(exceptions.map((y, j) => (j === i ? { ...y, intervals: [{ open: y.intervals?.[0]?.open ?? "09:00", close: e.target.value }] } : y)))} className={timeCls} aria-label="Закрытие" />
                 </div>
               ) : null}
               <input value={x.note ?? ""} onChange={(e) => setExc(exceptions.map((y, j) => (j === i ? { ...y, note: e.target.value } : y)))} maxLength={120} placeholder="Причина: Песах, санитарный день…" className={inputCls} />
