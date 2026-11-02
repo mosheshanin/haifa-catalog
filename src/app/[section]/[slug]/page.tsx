@@ -8,7 +8,7 @@ import { ListingView } from "@/components/listing/listing-view";
 import { ListingListItem } from "@/components/listing/listing-list-item";
 import { MockNotice } from "@/components/ui/mock-notice";
 import { getCategories, getCategory, getDistricts, isSection, type Category } from "@/lib/data/dictionaries";
-import { getListingBySlug, getPublishedSlugs, getSimilar } from "@/lib/data/listings";
+import { getCategoryDistrictCounts, getListingBySlug, getPublishedSlugs, getSimilar } from "@/lib/data/listings";
 import { parseFilters } from "@/lib/catalog/params";
 import { breadcrumbsJsonLd, jsonLdScript, listingEventsJsonLd, listingJsonLd } from "@/lib/seo/jsonld";
 import { miniAppLink, siteUrl, SITE_INDEXABLE } from "@/lib/env";
@@ -67,8 +67,11 @@ async function CategoryExplorer({ section, category, searchParams }: { section: 
 }
 
 async function CategoryPage({ section, category, searchParams }: { section: Section; category: Category; searchParams: PageProps<"/[section]/[slug]">["searchParams"] }) {
-  const [districts, categories] = await Promise.all([getDistricts(), getCategories()]);
+  const [districts, categories, perDistrict] = await Promise.all([getDistricts(), getCategories(), getCategoryDistrictCounts(category.id)]);
   const subcategories = categories.filter((c) => c.parent_id === category.id);
+  // Районы — только те, где в этой категории есть карточки (решение 2 ноября 2026): пустые страницы «категория + район»
+  // не нужны ни посетителю, ни поиску. Список свёрнут, ссылки остаются в разметке для поисковиков.
+  const withCards = districts.filter((d) => perDistrict.has(d.id)).sort((a, b) => (perDistrict.get(b.id) ?? 0) - (perDistrict.get(a.id) ?? 0) || a.sort - b.sort);
   const url = siteUrl();
   return (
     <div className="grid gap-6">
@@ -107,18 +110,27 @@ async function CategoryPage({ section, category, searchParams }: { section: Sect
         </ul>
       ) : null}
 
-      <section aria-label="Районы">
-        <p className="mb-2 text-sm font-bold text-muted">По районам:</p>
-        <ul className="flex flex-wrap gap-2">
-          {districts.map((d) => (
-            <li key={d.id}>
-              <Link href={`/${section}/${category.slug}/${d.slug}`} className="block rounded-full border border-line bg-white px-3 py-1.5 text-sm font-semibold hover:border-primary hover:bg-primary-soft">
-                📍 {d.name}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </section>
+      {withCards.length ? (
+        <details className="group rounded-2xl border border-line bg-white px-4 py-1">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 text-sm font-bold [&::-webkit-details-marker]:hidden">
+            📍 По районам
+            <span className="rounded-full bg-primary-soft px-2 py-0.5 text-xs text-primary">{withCards.length}</span>
+            <span className="ml-auto text-muted transition group-open:rotate-90" aria-hidden>›</span>
+          </summary>
+          <ul className="flex flex-wrap gap-2 pb-3 pt-1">
+            {withCards.map((d) => (
+              <li key={d.id}>
+                <Link
+                  href={`/${section}/${category.slug}/${d.slug}`}
+                  className="flex items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-white px-3 py-1.5 text-sm font-semibold hover:border-primary hover:bg-primary-soft"
+                >
+                  {d.name} <span className="text-xs font-normal text-muted">{perDistrict.get(d.id)}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
 
       <Suspense fallback={<ResultsSkeleton />}>
         <CategoryExplorer section={section} category={category} searchParams={searchParams} />

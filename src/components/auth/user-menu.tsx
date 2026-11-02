@@ -59,7 +59,7 @@ export function UserMenu() {
     return (
       <Link
         href="/vhod"
-        className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-4 text-sm font-bold text-white hover:bg-primary-hover"
+        className="inline-flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-full bg-primary px-4 text-sm font-bold text-white hover:bg-primary-hover"
       >
         <UserIcon className="size-4" />
         {t.nav.login}
@@ -68,19 +68,21 @@ export function UserMenu() {
   }
 
   return (
-    <div className="flex items-center gap-2">
+    // Пункты в одну строку; «Админка» и «Мои карточки» — с широкого экрана (на телефоне они в профиле), имя — с 1280 px.
+    <div className="flex shrink-0 items-center gap-1">
       {profile.isAdmin ? (
-        <Link href="/admin" className="hidden rounded-full px-3 py-2 text-sm font-semibold text-primary hover:bg-primary-soft sm:inline-block">
+        <Link href="/admin" className="hidden whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold text-primary hover:bg-primary-soft lg:inline-block">
           {t.nav.admin}
         </Link>
       ) : null}
-      <Link href="/kabinet" className="hidden rounded-full px-3 py-2 text-sm font-semibold text-primary hover:bg-primary-soft sm:inline-block">
+      <Link href="/kabinet" className="hidden whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold text-primary hover:bg-primary-soft lg:inline-block">
         {t.nav.cabinet}
       </Link>
       <Link
         href="/profil"
-        className="inline-flex h-10 items-center gap-2 rounded-full border border-line bg-white pl-1 pr-3 text-sm font-semibold hover:border-primary"
-        title={t.nav.profile}
+        className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-line bg-white p-1 text-sm font-semibold hover:border-primary xl:pr-3"
+        title={`${t.nav.profile}: ${profile.name}`}
+        aria-label={`${t.nav.profile}: ${profile.name}`}
       >
         {profile.avatar ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -90,7 +92,7 @@ export function UserMenu() {
             <UserIcon className="size-4" />
           </span>
         )}
-        <span className="max-w-28 truncate">{profile.name}</span>
+        <span className="hidden max-w-32 truncate xl:inline">{profile.name}</span>
       </Link>
     </div>
   );

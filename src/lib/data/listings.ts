@@ -76,6 +76,16 @@ export async function searchListings(p: SearchParams): Promise<ListingSummary[]>
   return (data ?? []) as ListingSummary[];
 }
 
+// Сколько карточек категории (с подкатегориями) в каждом районе: id района → число. Для списка «По районам».
+export async function getCategoryDistrictCounts(categoryId: number): Promise<Map<number, number>> {
+  "use cache";
+  cacheTag("listings");
+  cacheLife("minutes");
+  const { data, error } = await createPublicClient().rpc("category_district_counts", { p_category_id: categoryId });
+  if (error) throw error;
+  return new Map(((data ?? []) as Array<{ district_id: number; listings: number }>).map((r) => [Number(r.district_id), r.listings]));
+}
+
 export type ListingPoint = { id: string; lat: number; lng: number };
 
 // Координаты карточек для карты (у специалистов с выездом адреса может не быть — их на карте нет).

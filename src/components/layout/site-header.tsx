@@ -19,18 +19,19 @@ export function SiteHeader() {
     <header className="sticky top-0 z-30 border-b border-line bg-white/95 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2.5">
         <Logo />
-        <nav className="ml-2 hidden items-center gap-1 md:flex" aria-label="Разделы">
-          <Link href="/biznes" className="rounded-full px-3 py-2 text-sm font-semibold hover:bg-primary-soft">
+        <nav className="ml-2 hidden shrink-0 items-center gap-1 md:flex" aria-label="Разделы">
+          <Link href="/biznes" className="whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold hover:bg-primary-soft">
             {t.nav.biznes}
           </Link>
-          <Link href="/specialisty" className="rounded-full px-3 py-2 text-sm font-semibold hover:bg-primary-soft">
+          <Link href="/specialisty" className="whitespace-nowrap rounded-full px-3 py-2 text-sm font-semibold hover:bg-primary-soft">
             {t.nav.specialisty}
           </Link>
         </nav>
-        <div className="ml-auto hidden w-full max-w-sm lg:block">
+        {/* Поиск сжимается первым, чтобы пункты справа не ломались на две строки */}
+        <div className="ml-auto hidden min-w-40 max-w-sm flex-1 lg:block">
           <SearchForm compact />
         </div>
-        <div className="ml-auto flex items-center gap-1 lg:ml-0">
+        <div className="ml-auto flex shrink-0 items-center gap-1 lg:ml-0">
           {/* Поиск — значком в верхней строке: три пункта в нижней строке на телефоне не помещались в одну линию */}
           <Link href="/poisk" className="grid size-10 place-items-center rounded-full text-xl hover:bg-primary-soft lg:hidden" aria-label="Поиск" title="Поиск">
             🔎
