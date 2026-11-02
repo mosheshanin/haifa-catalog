@@ -110,8 +110,8 @@ function filterFromHref(section: "biznes" | "specialisty", href: string): Filter
 
 function Section({ id, title, icon, children }: { id?: string; title: string; icon?: string; children: React.ReactNode }) {
   return (
-    <section id={id} className="scroll-mt-32 rounded-[var(--radius-card)] border border-line bg-white p-4 shadow-sm sm:p-5">
-      <h2 className="mb-3 flex items-center gap-2 text-lg font-extrabold leading-snug sm:text-xl">
+    <section id={id} className="scroll-mt-32 rounded-[var(--radius-card)] border border-line bg-white p-5 shadow-sm sm:p-7">
+      <h2 className="mb-4 flex items-center gap-2.5 text-lg font-extrabold leading-snug sm:mb-5 sm:text-xl">
         {icon ? (
           <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary-soft text-lg" aria-hidden>
             {icon}
@@ -152,7 +152,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
     case "offers":
       return (
         <Section id="offers" title={t.listing.offers} icon="🎁">
-          <ul className="grid gap-3">
+          <ul className="grid grid-cols-1 gap-3">
             {block.data.items.map((o, i) => (
               <li key={i} className="rounded-2xl border-2 border-accent/30 bg-[#fff4ee] p-4">
                 <p className="flex items-start gap-2 font-extrabold leading-snug text-accent">
@@ -176,7 +176,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
     case "services":
       return (
         <Section id="services" title={t.listing.services} icon="💰">
-          <div className="grid gap-5">
+          <div className="grid grid-cols-1 gap-5">
             {block.data.groups.map((g, gi) => (
               <div key={gi}>
                 <h3 className="mb-2 font-bold text-primary">{g.title}</h3>
@@ -402,7 +402,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
       if (!block.data.items.length) return null;
       return (
         <Section title={t.listing.portfolio} icon="🗂️">
-          <ul className="grid gap-5">
+          <ul className="grid grid-cols-1 gap-5">
             {block.data.items.map((w, i) => (
               <li key={i} className="min-w-0 rounded-2xl border border-line p-3">
                 {w.photos.length ? (
@@ -431,7 +431,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
       if (!block.data.sections.length && !block.data.files?.length) return null;
       return (
         <Section id="menu" title={t.listing.menu} icon="🍽️">
-          <div className="grid gap-6">
+          <div className="grid grid-cols-1 gap-6">
             {block.data.sections.map((sec, si) => (
               <div key={si}>
                 <h3 className="mb-2 font-bold text-primary">{sec.title}</h3>
@@ -480,11 +480,11 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
       const days = DAY_ORDER.filter((d) => block.data.classes.some((c) => c.day === d));
       return (
         <Section id="schedule" title={t.listing.schedule} icon="🗓️">
-          <div className="grid gap-4">
+          <div className="grid grid-cols-1 gap-4">
             {days.map((d) => (
               <div key={d}>
                 <h3 className="mb-1.5 font-bold text-primary">{DAY_FULL[d]}</h3>
-                <ul className="grid gap-2">
+                <ul className="grid grid-cols-1 gap-2">
                   {block.data.classes
                     .filter((c) => c.day === d)
                     .sort((a, b) => a.start.localeCompare(b.start))
@@ -515,7 +515,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
     case "events":
       return (
         <Section id="events" title={t.listing.events} icon="🎉">
-          <ul className="grid gap-4">
+          <ul className="grid grid-cols-1 gap-4">
             {block.data.items.map((e, i) => (
               <li key={i} className="grid min-w-0 gap-3 overflow-hidden rounded-2xl border border-line sm:grid-cols-[12rem_1fr]">
                 {e.photoUrl ? <Photo src={e.photoUrl} alt={e.title} className="aspect-[16/9] w-full sm:aspect-auto sm:h-full" sizes="(max-width: 640px) 100vw, 192px" /> : null}
@@ -543,7 +543,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
     case "vacancies":
       return (
         <Section id="vacancies" title={t.listing.vacancies} icon="💼">
-          <ul className="grid gap-3">
+          <ul className="grid grid-cols-1 gap-3">
             {block.data.items.map((v, i) => (
               <li key={i} className="min-w-0 rounded-2xl border border-line p-4">
                 <h3 className="text-lg font-extrabold">{v.title}</h3>
@@ -575,7 +575,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
       );
       return (
         <Section id="news" title={t.listing.news} icon="📰">
-          <ul className="grid gap-4">{block.data.posts.slice(0, NEWS_VISIBLE).map(post)}</ul>
+          <ul className="grid grid-cols-1 gap-4">{block.data.posts.slice(0, NEWS_VISIBLE).map(post)}</ul>
           {block.data.posts.length > NEWS_VISIBLE ? (
             <details className="group mt-4">
               <summary className="inline-flex min-h-11 cursor-pointer list-none items-center rounded-2xl border border-line px-4 font-bold hover:border-primary group-open:hidden">
@@ -629,6 +629,7 @@ export function ListingView({
   reviews = [],
   hasOwner = true,
   preview = false,
+  wide = false,
 }: {
   listingId: string;
   data: ListingData;
@@ -643,6 +644,8 @@ export function ListingView({
   reviews?: PublicReview[];
   hasOwner?: boolean;
   preview?: boolean;
+  // Страница карточки на компьютере: справа закреплённая панель «Связаться» (2 ноября 2026). В редакторе и проверке — нет.
+  wide?: boolean;
 }) {
   const { header, contacts } = data;
   const hours = data.blocks.find((b) => b.type === "hours");
@@ -685,13 +688,15 @@ export function ListingView({
         </ol>
       </nav>
 
+      <div className={wide ? "lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-8" : undefined}>
+      <div className="min-w-0">
       <header className="overflow-hidden rounded-[var(--radius-card)] border border-line bg-white shadow-sm">
         {header.coverUrl ? (
           <Photo src={header.coverUrl} alt={header.title} className="h-40 w-full sm:h-56" sizes="(max-width: 768px) 100vw, 768px" priority />
         ) : (
           <div className="h-28 bg-gradient-to-r from-primary via-[#312e81] to-[#4f46e5] sm:h-40" aria-hidden />
         )}
-        <div className="px-5 pb-5">
+        <div className="px-5 pb-6 sm:px-7 sm:pb-7">
           {header.logoUrl ? (
             <div className="relative -mt-10 size-20 overflow-hidden rounded-3xl border-4 border-white bg-white shadow-md">
               <Photo src={header.logoUrl} alt={`Логотип: ${header.title}`} className="size-full" sizes="80px" priority />
@@ -701,7 +706,7 @@ export function ListingView({
               {header.title.replace(/[«»"()]/g, "").trim()[0]}
             </div>
           )}
-          <div className="mt-3 flex flex-wrap items-center gap-2">
+          <div className="mt-4 flex flex-wrap items-center gap-2">
             {header.badges.includes("verified") ? (
               <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-highlight px-2.5 py-1 text-xs font-extrabold">
                 <CheckBadgeIcon className="size-3.5" /> {t.listing.verified}
@@ -715,13 +720,13 @@ export function ListingView({
             ) : null}
             {hours?.type === "hours" ? <OpenNowBadge week={hours.data.week} /> : null}
           </div>
-          <h1 className="mt-2 text-2xl font-extrabold leading-tight sm:text-3xl">{header.title}</h1>
-          <p className="mt-1 text-muted">
+          <h1 className="mt-3 text-2xl font-extrabold leading-tight sm:text-3xl">{header.title}</h1>
+          <p className="mt-2 text-muted">
             {header.profession ?? categoryName} · {districts.join(", ")}, Хайфа
           </p>
-          {header.slogan ? <p className="mt-2 font-semibold">{header.slogan}</p> : null}
+          {header.slogan ? <p className="mt-3 text-lg font-semibold leading-snug">{header.slogan}</p> : null}
           {rating && reviewsCount > 0 ? (
-            <p className="mt-2 inline-flex items-center gap-1 font-bold">
+            <p className="mt-3 inline-flex items-center gap-1 font-bold">
               <StarIcon className="size-5 fill-highlight text-highlight" /> {Number(rating).toFixed(1)}
               <span className="font-normal text-muted">
                 · {reviewsCount} {pluralRu(reviewsCount, "отзыв", "отзыва", "отзывов")}
@@ -730,16 +735,8 @@ export function ListingView({
             </p>
           ) : null}
 
-          {/* Короткое фактическое резюме для поисковиков и нейросетей (раздел 8 ТЗ). */}
-          <p className="mt-4 rounded-2xl bg-surface-alt p-4 text-sm leading-relaxed">
-            {header.title} — {(header.profession ?? categoryName).toLowerCase()} в районе {districts.join(", ")}, Хайфа.
-            {contacts.phone ? ` Телефон: ${formatPhone(contacts.phone)}.` : ""}
-            {data.blocks.some((b) => b.type === "languages")
-              ? ` Языки: ${(data.blocks.find((b) => b.type === "languages") as Extract<ListingBlock, { type: "languages" }>).data.items.join(", ").toLowerCase()}.`
-              : ""}
-          </p>
 
-          <div className="mt-4 hidden flex-wrap gap-2 md:flex">
+          <div className={`mt-6 hidden flex-wrap gap-2 md:flex ${wide ? "lg:hidden" : ""}`}>
             {contacts.phone ? (
               <a href={telHref(contacts.phone)} className="inline-flex h-12 items-center gap-2 rounded-2xl bg-primary px-5 font-bold text-white hover:bg-primary-hover">
                 <PhoneIcon className="size-5" /> {formatPhone(contacts.phone)}
@@ -763,7 +760,7 @@ export function ListingView({
         </div>
       </header>
 
-      <div className="mt-5 grid gap-5">
+      <div className="mt-6 grid grid-cols-1 gap-6">
         {data.blocks.map((b) => (
           <Block key={b.id} block={b} ctx={ctx} />
         ))}
@@ -835,12 +832,32 @@ export function ListingView({
             />
           </div>
         ) : null}
+        {/* Короткое фактическое резюме для поисковиков и нейросетей (раздел 8 ТЗ). Внизу: наверху оно повторяло шапку. */}
+          <p className="rounded-2xl bg-white/60 p-4 text-sm leading-relaxed text-muted">
+            {header.title} — {(header.profession ?? categoryName).toLowerCase()} в районе {districts.join(", ")}, Хайфа.
+            {contacts.phone ? ` Телефон: ${formatPhone(contacts.phone)}.` : ""}
+            {data.blocks.some((b) => b.type === "languages")
+              ? ` Языки: ${(data.blocks.find((b) => b.type === "languages") as Extract<ListingBlock, { type: "languages" }>).data.items.join(", ").toLowerCase()}.`
+              : ""}
+          </p>
         {!preview ? <ListingTracker listingId={listingId} /> : null}
         {data.confirmedAt ? (
           <p className="flex items-center gap-1 text-sm text-muted">
             <ClockIcon className="size-4" /> {t.listing.updated} {formatDateRu(data.confirmedAt)}
           </p>
         ) : null}
+      </div>
+      </div>
+      {wide ? (
+        <ContactAside
+          listingId={listingId}
+          contacts={contacts}
+          waText={waText}
+          openNow={hours?.type === "hours" ? <OpenNowBadge week={hours.data.week} /> : null}
+          address={address?.type === "address" ? address.data : undefined}
+          requestEnabled={Boolean(requestEnabled)}
+        />
+      ) : null}
       </div>
 
       {/* Закреплённая панель действий на телефоне (раздел 4 и 10 ТЗ). */}
@@ -872,6 +889,72 @@ export function ListingView({
         </div>
       </div>
     </div>
+  );
+}
+
+// Панель «Связаться» справа на компьютере: всегда на виду при прокрутке длинной карточки.
+function ContactAside({
+  listingId,
+  contacts,
+  waText,
+  openNow,
+  address,
+  requestEnabled,
+}: {
+  listingId: string;
+  contacts: ListingData["contacts"];
+  waText: string;
+  openNow: React.ReactNode;
+  address?: { address: string; lat?: number; lng?: number };
+  requestEnabled: boolean;
+}) {
+  const btn = "flex h-12 w-full items-center justify-center gap-2 rounded-2xl px-4 font-bold";
+  return (
+    <aside className="hidden lg:sticky lg:top-24 lg:block" aria-label="Связаться">
+      <div className="grid gap-3 rounded-[var(--radius-card)] border border-line bg-white p-5 shadow-sm">
+        <p className="flex items-center justify-between gap-2 text-lg font-extrabold">
+          Связаться {openNow}
+        </p>
+        {contacts.phone ? (
+          <a href={telHref(contacts.phone)} className={`${btn} bg-primary text-white hover:bg-primary-hover`}>
+            <PhoneIcon className="size-5" /> {formatPhone(contacts.phone)}
+          </a>
+        ) : null}
+        {contacts.whatsapp ? (
+          <a href={whatsappHref(contacts.whatsapp, waText)} className={`${btn} bg-[#1fa855] text-white hover:brightness-95`}>
+            <ChatIcon className="size-5" /> {t.listing.whatsapp}
+          </a>
+        ) : null}
+        {contacts.telegram ? (
+          <a href={telegramHref(contacts.telegram)} className={`${btn} bg-[#29A9EB] text-white hover:brightness-95`}>
+            <SendIcon className="size-5" /> {t.listing.telegram}
+          </a>
+        ) : null}
+        {requestEnabled ? (
+          <a href="#request" className={`${btn} bg-accent text-white hover:bg-accent-hover`}>
+            ✍️ {t.listing.request}
+          </a>
+        ) : null}
+        {address?.address ? (
+          <div className="mt-1 grid gap-2 border-t border-line pt-4 text-sm">
+            <p className="flex gap-2">
+              <MapPinIcon className="mt-0.5 size-4 shrink-0 text-primary" /> {address.address}
+            </p>
+            {address.lat && address.lng ? (
+              <a href={wazeHref(address.lat, address.lng)} className="font-bold text-primary hover:underline">
+                {t.listing.route} ↗
+              </a>
+            ) : null}
+          </div>
+        ) : null}
+        <div className="mt-1 flex gap-2 border-t border-line pt-4">
+          <FavoriteButton listingId={listingId} withLabel className="flex-1 justify-center" />
+          <a href="#share" data-track="share" className="inline-flex h-12 items-center gap-2 rounded-2xl border border-line px-4 font-bold hover:border-primary" aria-label={t.listing.share}>
+            <ShareIcon className="size-5" />
+          </a>
+        </div>
+      </div>
+    </aside>
   );
 }
 

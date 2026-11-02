@@ -107,7 +107,7 @@ export async function Results({
   }
 
   return (
-    <div className="grid gap-4">
+    <div className="grid grid-cols-1 gap-4">
       <ViewSwitch view={filters.view} basePath={basePath} rawParams={rawParams} />
       <p className="text-sm text-muted">
         Найдено: <b className="text-ink">{total}</b> {pluralRu(total, "карточка", "карточки", "карточек")}
@@ -125,7 +125,7 @@ export async function Results({
       {isMap ? (
         <CatalogMap items={mapItems} missing={items.length - mapItems.length} />
       ) : (
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {items.map((l) => (
             <ListingListItem
               key={l.id}
@@ -159,7 +159,7 @@ export async function Results({
 
 export function ResultsSkeleton() {
   return (
-    <div className="grid gap-3 md:grid-cols-2" aria-busy="true" aria-label="Загрузка">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2" aria-busy="true" aria-label="Загрузка">
       {Array.from({ length: 4 }, (_, i) => (
         <div key={i} className="flex gap-4 rounded-[var(--radius-card)] border border-line bg-white p-4">
           <div className="size-24 animate-pulse rounded-2xl bg-primary-soft" />

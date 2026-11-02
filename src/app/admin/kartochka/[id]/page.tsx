@@ -29,7 +29,7 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
   ]);
   const ownerLabel = owner ? [owner.display_name, owner.google_email, owner.telegram_username ? `@${owner.telegram_username}` : null].filter(Boolean).join(" · ") : "нет";
   return (
-    <div className="grid gap-5">
+    <div className="grid grid-cols-1 gap-5">
       <Link href="/admin?tab=listings" className="text-sm font-bold text-primary">← К карточкам</Link>
       <h1 className="text-2xl font-extrabold">{listing.title}</h1>
       <div className="flex flex-wrap gap-2">

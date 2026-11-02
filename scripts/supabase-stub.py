@@ -60,10 +60,25 @@ class H(BaseHTTPRequestHandler):
         self.send_response(code); self.send_header("Content-Type", "application/json"); self.end_headers(); self.wfile.write(body)
     do_HEAD = do_GET
     def do_POST(self):
-        # RPC (например, search_listings) — пустой результат
+        # RPC: search_listings отдаёт примерные карточки (чтобы видеть списки), остальные — пустой результат
         length = int(self.headers.get("Content-Length") or 0)
-        if length: self.rfile.read(length)
+        raw = self.rfile.read(length) if length else b""
         body = b"[]"
+        if self.path.endswith("/rpc/search_listings") and listings:
+            try:
+                args = json.loads(raw or b"{}")
+            except ValueError:
+                args = {}
+            out = []
+            for l in listings:
+                if args.get("p_section") and l["section"] != args["p_section"]:
+                    continue
+                h = versions[l["published_version_id"]]["data"]["header"]
+                ids = [d["id"] for d in districts if d["slug"] in h.get("districtSlugs", [])]
+                out.append({**l, "title": h["title"], "summary": h.get("profession") or h.get("slogan"), "cover_url": h.get("coverUrl"),
+                            "district_ids": ids, "languages": ["Русский", "Иврит"], "formats": [], "has_offer": True, "hours": None,
+                            "distance_m": None, "rank": 1, "detected_category": None, "detected_district": None, "total_count": len(listings)})
+            body = json.dumps(out[: int(args.get("p_limit") or 24)]).encode()
         self.send_response(200); self.send_header("Content-Type", "application/json"); self.end_headers(); self.wfile.write(body)
 print(len(data["categories"]), "categories,", len(data["districts"]), "districts,", len(listings), "demo listings", flush=True)
 ThreadingHTTPServer(("127.0.0.1", 54321), H).serve_forever()

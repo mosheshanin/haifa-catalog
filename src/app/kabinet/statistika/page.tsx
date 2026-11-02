@@ -43,7 +43,7 @@ async function Content({ searchParams }: { searchParams: Promise<Record<string, 
         ))}
       </div>
       {listings?.length ? (
-        <div className="grid gap-4">
+        <div className="grid grid-cols-1 gap-4">
           {listings.map((l) => (
             <div key={l.id} className="rounded-2xl border border-line p-4">
               <h3 className="mb-3 font-extrabold">{l.title}</h3>

@@ -66,7 +66,7 @@ async function Explorer({ section, base, fixed, searchParams }: { section: Secti
   const filters = parseFilters(sp, fixed);
   const avail = await getFilterAvailability({ section, categorySlug: fixed.category }, filters);
   return (
-    <div className="grid gap-4">
+    <div className="grid grid-cols-1 gap-5">
       <FiltersForm action={base} filters={filters} districts={districts} showDistrict={!fixed.district} resetHref={base} avail={avail} />
       <Results filters={filters} section={section} basePath={base} rawParams={sp} />
     </div>
@@ -85,7 +85,7 @@ export default async function SubPage({ params, searchParams }: PageProps<"/[sec
   const url = siteUrl();
 
   return (
-    <div className="grid gap-6">
+    <div className="grid grid-cols-1 gap-8">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={jsonLdScript(
@@ -98,7 +98,7 @@ export default async function SubPage({ params, searchParams }: PageProps<"/[sec
         )}
       />
       <div>
-        <nav aria-label="Хлебные крошки" className="mb-2 text-sm text-muted">
+        <nav aria-label="Хлебные крошки" className="mb-3 text-sm text-muted">
           <Link href="/" className="hover:text-primary">Главная</Link> ›{" "}
           <Link href={`/${section}`} className="hover:text-primary">{t.sections[section].title}</Link> ›{" "}
           <Link href={`/${section}/${parent.slug}`} className="hover:text-primary">{parent.name}</Link> ›{" "}
@@ -109,7 +109,7 @@ export default async function SubPage({ params, searchParams }: PageProps<"/[sec
           {title}
         </h1>
         {r.kind === "district" ? (
-          <p className="mt-2 text-muted">
+          <p className="mt-3 leading-relaxed text-muted">
             Русскоязычные {section === "biznes" ? "заведения и компании" : "специалисты"} в районе {r.district.name} и рядом.
           </p>
         ) : r.category.seo_text ? (

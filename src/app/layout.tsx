@@ -39,7 +39,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </a>
         <FavoritesProvider>
           <SiteHeader />
-          <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
+          <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-10">
             {children}
           </main>
           <SiteFooter />

@@ -72,7 +72,7 @@ export function NearMe({
   }
 
   return (
-    <div className="grid gap-5">
+    <div className="grid grid-cols-1 gap-5">
       {state === "idle" || state === "locating" || state === "loading" ? (
         <div className="rounded-[var(--radius-card)] border border-line bg-white p-6 text-center">
           <p className="text-4xl" aria-hidden>📍</p>
@@ -110,7 +110,7 @@ export function NearMe({
 
       {state === "done" ? (
         rows.length ? (
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {rows.map((l) => (
               <ListingListItem
                 key={l.id}

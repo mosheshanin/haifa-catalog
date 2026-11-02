@@ -66,8 +66,8 @@ export function ListingListItem({
   const href = `/${listing.section}/${listing.slug}`;
   const langs = listing.languages.map((l) => LANG_SHORT[l] ?? l);
   return (
-    <article className="group relative flex gap-3 rounded-[var(--radius-card)] border border-line bg-white p-3 shadow-sm transition hover:border-primary hover:shadow-md sm:gap-4 sm:p-4">
-      <div className="relative grid size-20 shrink-0 place-items-center overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-[#4338ca] text-2xl font-extrabold text-white sm:size-28">
+    <article className="group relative flex min-w-0 gap-4 rounded-[var(--radius-card)] border border-line bg-white p-4 shadow-sm transition hover:border-primary hover:shadow-md sm:gap-5 sm:p-5">
+      <div className="relative grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-[#4338ca] text-2xl font-extrabold text-white sm:size-28">
         {listing.cover_url ? (
           <Photo src={listing.cover_url} alt="" className="absolute inset-0 size-full" sizes="112px" />
         ) : (
@@ -81,14 +81,14 @@ export function ListingListItem({
       </div>
       <div className="min-w-0 flex-1">
         {/* «В избранное» — в углу карточки, чтобы название получило всю ширину */}
-        <FavoriteButton listingId={listing.id} className="absolute right-1.5 top-1.5 z-10" />
+        <FavoriteButton listingId={listing.id} className="absolute right-2 top-2 z-10" />
         <h3 className="min-w-0 pr-8 text-lg font-extrabold leading-snug text-balance">
           <Link href={href} className="after:absolute after:inset-0 focus:outline-none">
             {listing.title}
           </Link>
         </h3>
-        <p className="mt-0.5 truncate text-sm text-muted">{subtitle}</p>
-        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
+        <p className="mt-1 truncate text-sm text-muted">{subtitle}</p>
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
           {/* Рейтинг показываем только при наличии отзывов — без «нулей» (анализ аналогов). */}
           {listing.rating_count > 0 && listing.rating_avg ? (
             <span className="inline-flex items-center gap-1 whitespace-nowrap font-bold">
@@ -115,7 +115,7 @@ export function ListingListItem({
           {langs.length ? <span className="whitespace-nowrap text-muted" title="Языки общения">🗣️ {langs.join(" · ")}</span> : null}
         </div>
         {reasons.length ? (
-          <ul className="mt-2 flex flex-wrap gap-1.5" aria-label="Почему в результатах">
+          <ul className="mt-3 flex flex-wrap gap-1.5" aria-label="Почему в результатах">
             {reasons.map((r) => (
               <li key={r} className="whitespace-nowrap rounded-full bg-[#e5f4e4] px-2 py-0.5 text-xs font-bold text-success">
                 {r}

@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: t.nav.favorites, robots: { index: fal
 export default async function FavoritesPage() {
   const [districts, categories] = await Promise.all([getDistricts(), getCategories()]);
   return (
-    <div className="grid gap-5">
+    <div className="grid grid-cols-1 gap-5">
       <h1 className="text-2xl font-extrabold leading-tight sm:text-3xl">❤️ {t.nav.favorites}</h1>
       <FavoritesList
         districts={districts.map((d) => ({ id: d.id, name: d.name }))}

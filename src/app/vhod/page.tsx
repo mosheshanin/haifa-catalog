@@ -17,7 +17,7 @@ async function SignInOptions({ searchParams }: { searchParams: PageProps<"/vhod"
   if (user) redirect(next);
 
   return (
-    <div className="grid gap-4">
+    <div className="grid grid-cols-1 gap-4">
       {error ? (
         <p role="alert" className="rounded-2xl bg-[#fbebeb] p-3 text-sm font-semibold text-danger">
           {t.auth.error}

@@ -58,7 +58,7 @@ async function Queue() {
   const empty = !versions?.length && !reviews?.length && !complaints?.length && !claims?.length;
   type L = { title: string; section: string; slug: string; status?: string } | null;
   return (
-    <div className="grid gap-5">
+    <div className="grid grid-cols-1 gap-5">
       {empty ? <Panel title="🎉 Очередь пуста">Новых правок, отзывов, жалоб и заявок на права нет.</Panel> : null}
       {versions?.length ? (
         <Panel title={`🗂️ Карточки и правки (${versions.length})`}>
@@ -91,7 +91,7 @@ async function Queue() {
       ) : null}
       {reviews?.length ? (
         <Panel title={`⭐ Отзывы (${reviews.length})`}>
-          <ul className="grid gap-4">
+          <ul className="grid grid-cols-1 gap-4">
             {reviews.map((r) => {
               const l = r.listings as unknown as L;
               return (
@@ -112,7 +112,7 @@ async function Queue() {
       ) : null}
       {complaints?.length ? (
         <Panel title={`🚩 Жалобы и запросы (${complaints.length})`}>
-          <ul className="grid gap-4">
+          <ul className="grid grid-cols-1 gap-4">
             {complaints.map((c) => {
               const l = c.listings as unknown as L;
               const rv = c.reviews as unknown as { text: string; author_name: string } | null;
@@ -135,7 +135,7 @@ async function Queue() {
       ) : null}
       {claims?.length ? (
         <Panel title={`🔑 Права владельца (${claims.length})`}>
-          <ul className="grid gap-4">
+          <ul className="grid grid-cols-1 gap-4">
             {claims.map((c) => {
               const l = c.listings as unknown as L;
               const p = c.profiles as unknown as { display_name: string | null; google_email: string | null; telegram_username: string | null } | null;
@@ -177,7 +177,7 @@ async function Instant({ districtNames }: { districtNames: Record<string, string
   return (
     <Panel title="⚡ Правки, опубликованные без проверки">
       {data?.length ? (
-        <ul className="grid gap-5">
+        <ul className="grid grid-cols-1 gap-5">
           {data.map((c) => {
             const l = c.listings as unknown as { title: string; section: string; slug: string } | null;
             return (
@@ -189,7 +189,7 @@ async function Instant({ districtNames }: { districtNames: Record<string, string
                   </span>
                   <span className="ml-auto text-xs text-muted">{dt(c.created_at)}</span>
                 </div>
-                <div className="grid gap-3 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <div className="min-w-0 rounded-xl bg-[#fdecea]/50 p-2">
                     <p className="mb-1 text-xs font-extrabold text-danger">БЫЛО</p>
                     {render(c.block_type, c.before)}
@@ -275,7 +275,7 @@ async function Users({ q, selfId }: { q?: string; selfId: string }) {
         <input name="q" defaultValue={q} placeholder="Имя, почта или ник Telegram" className="h-11 min-w-0 flex-1 rounded-xl border border-line px-3" />
         <button className="min-h-11 rounded-xl bg-primary px-4 font-bold text-white">Найти</button>
       </form>
-      <ul className="grid gap-3">
+      <ul className="grid grid-cols-1 gap-3">
         {(data ?? []).map((u) => (
           <li key={u.id} className="grid gap-2 rounded-2xl border border-line p-3">
             <p className="font-bold">
@@ -305,7 +305,7 @@ async function Dictionaries() {
   ]);
   const top = (cats ?? []).filter((c) => !c.parent_id);
   return (
-    <div className="grid gap-5">
+    <div className="grid grid-cols-1 gap-5">
       <Panel title="⚙️ Настройки">
         <SettingsForm rules={settings.reviewRules} amenities={settings.amenities} languages={settings.languages} />
       </Panel>
@@ -316,7 +316,7 @@ async function Dictionaries() {
             <CategoryForm parents={top.map((c) => ({ id: c.id, name: c.name, section: c.section }))} />
           </div>
         </details>
-        <div className="grid gap-2">
+        <div className="grid grid-cols-1 gap-2">
           {top.map((c) => (
             <details key={c.id} className="rounded-2xl border border-line p-3">
               <summary className="min-h-11 cursor-pointer font-bold">
@@ -348,7 +348,7 @@ async function Dictionaries() {
             <DistrictForm />
           </div>
         </details>
-        <div className="grid gap-2">
+        <div className="grid grid-cols-1 gap-2">
           {(dists ?? []).map((d) => (
             <details key={d.id} className="rounded-2xl border border-line p-3">
               <summary className="min-h-11 cursor-pointer font-bold">
@@ -362,7 +362,7 @@ async function Dictionaries() {
         </div>
       </Panel>
       <Panel title={`🔎 Синонимы поиска (${syns?.length ?? 0})`}>
-        <div className="grid gap-3">
+        <div className="grid grid-cols-1 gap-3">
           <SynonymForm />
           {(syns ?? []).map((s) => (
             <SynonymForm key={s.term} term={s.term} expands={s.expands_to} />
@@ -415,7 +415,7 @@ async function TelegramTab({ adminTelegramId }: { adminTelegramId: number | null
   const hookOk = Boolean(hook && hook.url === expectedUrl);
   const ok = (b: boolean) => (b ? "✅" : "⚠️");
   return (
-    <div className="grid gap-5">
+    <div className="grid grid-cols-1 gap-5">
       <Panel title="🤖 Бот">
         {!api ? (
           <p className="text-sm text-danger">В Vercel не задан TELEGRAM_BOT_TOKEN — бот не работает.</p>
@@ -528,7 +528,7 @@ async function AdminContent({ searchParams }: { searchParams: Promise<Record<str
   const districtNames = Object.fromEntries((dists.data ?? []).map((d) => [d.slug, d.name]));
 
   return (
-    <div className="grid gap-5">
+    <div className="grid grid-cols-1 gap-5">
       <h1 className="text-2xl font-extrabold leading-tight sm:text-3xl">🛠 {t.admin.title}</h1>
       {one("done") ? <p className="rounded-2xl bg-[#e5f4e4] p-3 text-sm font-bold text-success">✅ Решение сохранено, владелец получит уведомление.</p> : null}
       <nav aria-label="Разделы админки" className="flex flex-wrap gap-2">

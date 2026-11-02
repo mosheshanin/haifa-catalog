@@ -74,7 +74,7 @@ export function FavoritesList({
   const categoryName = (id: number | null) => categories.find((c) => c.id === id)?.name ?? "";
 
   return (
-    <div className="grid gap-3 md:grid-cols-2">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       {rows.map((l) => (
         <ListingListItem
           key={l.id}

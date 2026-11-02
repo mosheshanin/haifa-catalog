@@ -25,7 +25,7 @@ async function CabinetContent() {
   const { data: claims } = await sb.from("ownership_claims").select("id, status, created_at, listings(title)").eq("user_id", user.id).eq("status", "pending");
 
   return (
-    <div className="grid gap-5">
+    <div className="grid grid-cols-1 gap-5">
       <h1 className="text-2xl font-extrabold leading-tight sm:text-3xl">🗂️ {t.cabinet.title}</h1>
       <Panel
         title="Ваши карточки"

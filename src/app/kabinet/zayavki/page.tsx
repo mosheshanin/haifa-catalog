@@ -36,7 +36,7 @@ async function Content({ searchParams }: { searchParams: Promise<Record<string, 
         ))}
       </div>
       {requests?.length ? (
-        <ul className="grid gap-4">
+        <ul className="grid grid-cols-1 gap-4">
           {requests.map((r) => {
             const phone = r.contact.replace(/[^\d+]/g, "");
             const isPhone = phone.replace(/\D/g, "").length >= 9;

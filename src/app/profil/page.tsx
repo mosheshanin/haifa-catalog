@@ -28,7 +28,7 @@ async function ProfileContent({ searchParams }: { searchParams: PageProps<"/prof
   const error = typeof sp.error === "string";
 
   return (
-    <div className="grid gap-5">
+    <div className="grid grid-cols-1 gap-5">
       {linked ? (
         <p role="status" className="rounded-2xl bg-[#e5f4e4] p-3 font-semibold text-success">
           {linked === "google" ? "Google привязан к профилю." : "Telegram привязан к профилю."}
@@ -60,7 +60,7 @@ async function ProfileContent({ searchParams }: { searchParams: PageProps<"/prof
 
       <section className="rounded-[var(--radius-card)] border border-line bg-white p-5 shadow-sm">
         <h2 className="mb-4 text-xl font-extrabold">{t.profile.accounts}</h2>
-        <div className="grid gap-5">
+        <div className="grid grid-cols-1 gap-5">
           <div className="flex flex-wrap items-start gap-3">
             <GoogleLogo className="mt-1 size-6" />
             <div className="flex-1">

@@ -13,8 +13,8 @@ export function LoginRequired({ next, text = "Чтобы управлять ка
 
 export function Panel({ title, children, actions }: { title: string; children: React.ReactNode; actions?: React.ReactNode }) {
   return (
-    <section className="min-w-0 rounded-[var(--radius-card)] border border-line bg-white p-5 shadow-sm">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+    <section className="min-w-0 rounded-[var(--radius-card)] border border-line bg-white p-5 shadow-sm sm:p-6">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-xl font-extrabold">{title}</h2>
         {actions}
       </div>

@@ -28,7 +28,7 @@ async function Content() {
         {pendingCount ? ` На проверке ещё ${pendingCount}.` : ""}
       </p>
       {reviews?.length ? (
-        <ul className="grid gap-4">
+        <ul className="grid grid-cols-1 gap-4">
           {reviews.map((r) => (
             <li key={r.id} className="grid min-w-0 gap-2 rounded-2xl border border-line p-4">
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">

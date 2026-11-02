@@ -61,7 +61,7 @@ async function CategoryExplorer({ section, category, searchParams }: { section: 
   const base = `/${section}/${category.slug}`;
   const avail = await getFilterAvailability({ section, category }, filters);
   return (
-    <div className="grid gap-4">
+    <div className="grid grid-cols-1 gap-5">
       <FiltersForm action={base} filters={filters} districts={districts} resetHref={base} avail={avail} />
       <Results filters={filters} section={section} basePath={base} rawParams={sp} />
     </div>
@@ -76,7 +76,7 @@ async function CategoryPage({ section, category, searchParams }: { section: Sect
   const withCards = districts.filter((d) => perDistrict.has(d.id)).sort((a, b) => (perDistrict.get(b.id) ?? 0) - (perDistrict.get(a.id) ?? 0) || a.sort - b.sort);
   const url = siteUrl();
   return (
-    <div className="grid gap-6">
+    <div className="grid grid-cols-1 gap-8">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={jsonLdScript(
@@ -88,7 +88,7 @@ async function CategoryPage({ section, category, searchParams }: { section: Sect
         )}
       />
       <div>
-        <nav aria-label="Хлебные крошки" className="mb-2 text-sm text-muted">
+        <nav aria-label="Хлебные крошки" className="mb-3 text-sm text-muted">
           <Link href="/" className="hover:text-primary">Главная</Link> ›{" "}
           <Link href={`/${section}`} className="hover:text-primary">{t.sections[section].title}</Link> › {category.name}
         </nav>
@@ -96,14 +96,14 @@ async function CategoryPage({ section, category, searchParams }: { section: Sect
           {category.icon ? <span aria-hidden>{category.icon} </span> : null}
           {category.name} в Хайфе
         </h1>
-        {category.seo_text ? <p className="mt-2 max-w-3xl text-muted">{category.seo_text}</p> : null}
+        {category.seo_text ? <p className="mt-3 max-w-3xl leading-relaxed text-muted">{category.seo_text}</p> : null}
       </div>
 
       {subcategories.length ? (
         <ul className="flex flex-wrap gap-2">
           {subcategories.map((c) => (
             <li key={c.id}>
-              <Link href={`/${section}/${category.slug}/${c.slug}`} className="block rounded-2xl border border-line bg-white px-3.5 py-2 text-sm font-bold leading-snug hover:border-primary hover:bg-primary-soft">
+              <Link href={`/${section}/${category.slug}/${c.slug}`} className="flex min-h-11 items-center rounded-2xl border border-line bg-white px-4 py-2 text-sm font-bold leading-snug hover:border-primary hover:bg-primary-soft">
                 {c.icon ? `${c.icon} ` : ""}
                 {c.name}
               </Link>
@@ -178,13 +178,13 @@ export default async function SlugPage({ params, searchParams }: PageProps<"/[se
     type: "svg",
     errorCorrectionLevel: "M",
     margin: 1,
-    color: { dark: "#0a3d45", light: "#ffffff" },
+    color: { dark: "#1e1b4b", light: "#ffffff" }, // цвет логотипа
   });
   const vimeoIds = listing.data.blocks.flatMap((b) => (b.type === "video" && !b.hidden ? b.data.items.filter((v) => v.provider === "vimeo").map((v) => v.videoId) : []));
   const [vimeoThumbs, reviews] = await Promise.all([vimeoIds.length ? getVimeoThumbs(vimeoIds) : Promise.resolve({}), getListingReviews(listing.id)]);
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-3xl lg:max-w-none">
       {!listing.isDemo ? (
         <script
           type="application/ld+json"
@@ -224,6 +224,7 @@ export default async function SlugPage({ params, searchParams }: PageProps<"/[se
         vimeoThumbs={vimeoThumbs}
         reviews={reviews}
         hasOwner={listing.hasOwner}
+        wide
         share={{
           url,
           shortUrl,
@@ -233,9 +234,9 @@ export default async function SlugPage({ params, searchParams }: PageProps<"/[se
         }}
       />
       {similar.length ? (
-        <section className="mt-8" aria-labelledby="similar">
-          <h2 id="similar" className="mb-3 text-xl font-extrabold">🔁 {t.listing.similar}</h2>
-          <div className="grid gap-3">
+        <section className="mt-12" aria-labelledby="similar">
+          <h2 id="similar" className="mb-5 text-2xl font-extrabold">🔁 {t.listing.similar}</h2>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {similar.map((l) => (
               <ListingListItem
                 key={l.id}

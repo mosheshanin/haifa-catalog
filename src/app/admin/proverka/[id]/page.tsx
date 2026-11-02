@@ -99,7 +99,7 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
       });
 
   return (
-    <div className="grid gap-5">
+    <div className="grid grid-cols-1 gap-5">
       <Link href="/admin?tab=queue" className="text-sm font-bold text-primary">← К очереди</Link>
       <h1 className="text-2xl font-extrabold">🛡 {whole ? "Новая карточка" : "Правка карточки"}: {v.data.header.title}</h1>
       <p className="text-sm text-muted">
@@ -133,7 +133,7 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
                 names={names}
               />
             ) : (
-              <div className="grid gap-3 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 <div className="min-w-0 rounded-xl bg-[#fdecea]/50 p-2">
                   <p className="mb-1 text-xs font-extrabold text-danger">БЫЛО</p>
                   {it.before ? <BlockPreview block={it.before as ListingBlock} districtNames={names.dist} /> : <p className="text-sm text-muted">Блока не было</p>}
