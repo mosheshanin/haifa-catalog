@@ -44,7 +44,7 @@ async function Content({ searchParams }: { searchParams: Promise<Record<string, 
               <li key={r.id} className="grid min-w-0 gap-2 rounded-2xl border border-line p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-extrabold">{r.name}</span>
-                  <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${STATUS_STYLE[r.status]}`}>{LABEL[r.status]}</span>
+                  <span className={`whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-bold ${STATUS_STYLE[r.status]}`}>{LABEL[r.status]}</span>
                   <span className="ml-auto text-xs text-muted">{new Date(r.created_at).toLocaleString("ru-RU", { timeZone: "Asia/Jerusalem", dateStyle: "short", timeStyle: "short" })}</span>
                 </div>
                 <p className="text-sm text-muted">{titleOf.get(r.listing_id)}</p>

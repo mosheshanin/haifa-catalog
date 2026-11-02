@@ -25,7 +25,7 @@ export function ZoomImage({
         aria-label={`Открыть крупно: ${alt}`}
       >
         <Photo src={src} alt={alt} className={className} sizes={sizes} />
-        <span className="absolute right-2 bottom-2 rounded-full bg-black/55 px-2 py-0.5 text-xs font-bold text-white opacity-90" aria-hidden>
+        <span className="absolute right-2 bottom-2 whitespace-nowrap rounded-full bg-black/55 px-2 py-0.5 text-xs font-bold text-white opacity-90" aria-hidden>
           🔍
         </span>
       </button>

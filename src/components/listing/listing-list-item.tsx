@@ -66,33 +66,32 @@ export function ListingListItem({
   const href = `/${listing.section}/${listing.slug}`;
   const langs = listing.languages.map((l) => LANG_SHORT[l] ?? l);
   return (
-    <article className="group relative flex gap-4 rounded-[var(--radius-card)] border border-line bg-white p-3 shadow-sm transition hover:border-primary hover:shadow-md sm:p-4">
-      <div className="relative grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-[#138a99] text-2xl font-extrabold text-white sm:size-28">
+    <article className="group relative flex gap-3 rounded-[var(--radius-card)] border border-line bg-white p-3 shadow-sm transition hover:border-primary hover:shadow-md sm:gap-4 sm:p-4">
+      <div className="relative grid size-20 shrink-0 place-items-center overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-[#138a99] text-2xl font-extrabold text-white sm:size-28">
         {listing.cover_url ? (
           <Photo src={listing.cover_url} alt="" className="absolute inset-0 size-full" sizes="112px" />
         ) : (
           initials(listing.title)
         )}
         {listing.has_offer ? (
-          <span className="absolute left-1.5 top-1.5 z-10 inline-flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[11px] font-bold">
+          <span className="absolute left-1 top-1 z-10 inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-accent px-2 py-0.5 text-xs font-bold">
             <TagIcon className="size-3" /> Акция
           </span>
         ) : null}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="flex items-start gap-2">
-          <h3 className="min-w-0 flex-1 text-lg font-extrabold leading-tight">
-            <Link href={href} className="after:absolute after:inset-0 focus:outline-none">
-              {listing.title}
-            </Link>
-          </h3>
-          <FavoriteButton listingId={listing.id} className="relative z-10" />
-        </div>
-        <p className="mt-0.5 text-sm text-muted">{subtitle}</p>
+        {/* «В избранное» — в углу карточки, чтобы название получило всю ширину */}
+        <FavoriteButton listingId={listing.id} className="absolute right-1.5 top-1.5 z-10" />
+        <h3 className="min-w-0 pr-8 text-lg font-extrabold leading-snug text-balance">
+          <Link href={href} className="after:absolute after:inset-0 focus:outline-none">
+            {listing.title}
+          </Link>
+        </h3>
+        <p className="mt-0.5 truncate text-sm text-muted">{subtitle}</p>
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm">
           {/* Рейтинг показываем только при наличии отзывов — без «нулей» (анализ аналогов). */}
           {listing.rating_count > 0 && listing.rating_avg ? (
-            <span className="inline-flex items-center gap-1 font-bold">
+            <span className="inline-flex items-center gap-1 whitespace-nowrap font-bold">
               <StarIcon className="size-4 fill-highlight text-highlight" />
               {Number(listing.rating_avg).toFixed(1)}
               <span className="font-normal text-muted">
@@ -101,24 +100,24 @@ export function ListingListItem({
             </span>
           ) : null}
           {districtLabel ? (
-            <span className="inline-flex items-center gap-1 text-muted">
-              <MapPinIcon className="size-4" />
-              {districtLabel}
+            <span className="inline-flex min-w-0 max-w-full items-center gap-1 text-muted">
+              <MapPinIcon className="size-4 shrink-0" />
+              <span className="truncate">{districtLabel}</span>
             </span>
           ) : null}
-          {listing.distance_m != null ? <span className="font-semibold text-primary">📍 {formatDistance(listing.distance_m)}</span> : null}
+          {listing.distance_m != null ? <span className="whitespace-nowrap font-semibold text-primary">📍 {formatDistance(listing.distance_m)}</span> : null}
           {listing.hours ? <OpenNowBadge week={listing.hours} /> : null}
           {listing.is_verified ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-highlight/40 px-2 py-0.5 text-xs font-bold">
+            <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-highlight/40 px-2 py-0.5 text-xs font-bold">
               <CheckBadgeIcon className="size-3.5" /> {t.listing.verified}
             </span>
           ) : null}
-          {langs.length ? <span className="text-muted" title="Языки общения">🗣️ {langs.join(" · ")}</span> : null}
+          {langs.length ? <span className="whitespace-nowrap text-muted" title="Языки общения">🗣️ {langs.join(" · ")}</span> : null}
         </div>
         {reasons.length ? (
           <ul className="mt-2 flex flex-wrap gap-1.5" aria-label="Почему в результатах">
             {reasons.map((r) => (
-              <li key={r} className="rounded-full bg-[#e5f4e4] px-2 py-0.5 text-xs font-bold text-success">
+              <li key={r} className="whitespace-nowrap rounded-full bg-[#e5f4e4] px-2 py-0.5 text-xs font-bold text-success">
                 {r}
               </li>
             ))}

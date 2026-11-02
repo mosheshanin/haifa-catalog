@@ -45,14 +45,14 @@ export default async function SectionPage({ params, searchParams }: PageProps<"/
         <nav aria-label="Хлебные крошки" className="mb-2 text-sm text-muted">
           <Link href="/" className="hover:text-primary">Главная</Link> › {t.sections[section].title}
         </nav>
-        <h1 className="text-3xl font-extrabold">{section === "biznes" ? "🏢" : "👷"} {t.sections[section].title} Хайфы</h1>
+        <h1 className="text-2xl font-extrabold leading-tight sm:text-3xl">{section === "biznes" ? "🏢" : "👷"} {t.sections[section].title} Хайфы</h1>
         <p className="mt-1 text-muted">{t.sections[section].lead}</p>
       </div>
 
       <ul className="flex flex-wrap gap-2">
         {categories.map((c) => (
           <li key={c.id}>
-            <Link href={`/${section}/${c.slug}`} className="flex items-center gap-1.5 rounded-full border border-line bg-white px-3.5 py-2 text-sm font-bold hover:border-primary hover:bg-primary-soft">
+            <Link href={`/${section}/${c.slug}`} className="flex items-center gap-1.5 rounded-2xl border border-line bg-white px-3.5 py-2 text-sm font-bold leading-snug hover:border-primary hover:bg-primary-soft">
               {c.icon ? <span aria-hidden>{c.icon}</span> : null}
               {c.name}
             </Link>

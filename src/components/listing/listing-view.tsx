@@ -103,10 +103,10 @@ const FEATURE_ICONS: Record<string, string> = {
 
 function Section({ id, title, icon, children }: { id?: string; title: string; icon?: string; children: React.ReactNode }) {
   return (
-    <section id={id} className="scroll-mt-32 rounded-[var(--radius-card)] border border-line bg-white p-5 shadow-sm">
-      <h2 className="mb-3 flex items-center gap-2 text-xl font-extrabold">
+    <section id={id} className="scroll-mt-32 rounded-[var(--radius-card)] border border-line bg-white p-4 shadow-sm sm:p-5">
+      <h2 className="mb-3 flex items-center gap-2 text-lg font-extrabold leading-snug sm:text-xl">
         {icon ? (
-          <span className="grid size-9 place-items-center rounded-xl bg-primary-soft text-lg" aria-hidden>
+          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary-soft text-lg" aria-hidden>
             {icon}
           </span>
         ) : null}
@@ -372,9 +372,10 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
                     <a
                       href={whatsappHref(ctx.whatsapp, `Здравствуйте! Хочу записаться. Мастер: ${m.name}. Нашёл(а) вас в каталоге HBC.`)}
                       aria-label={`Записаться в WhatsApp: ${m.name}`}
-                      className="mt-2 inline-flex min-h-11 items-center justify-center rounded-xl bg-[#1fa855] px-3 py-2 text-sm font-bold text-white"
+                      className="mt-2 inline-flex min-h-11 w-full max-w-36 items-center justify-center whitespace-nowrap rounded-xl bg-[#1fa855] px-2 py-2 text-sm font-bold text-white"
                     >
-                      💬 Записаться
+                      <span className="max-[359px]:hidden" aria-hidden>💬&nbsp;</span>
+                      Записаться
                     </a>
                   ) : null
                 ) : null}
@@ -479,7 +480,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
                           {c.start}–{c.end}
                         </span>
                         <span className="min-w-0 flex-1 font-bold">{c.title}</span>
-                        {c.age ? <span className="rounded-full bg-white px-2 py-0.5 text-xs font-bold">👶 {c.age}</span> : null}
+                        {c.age ? <span className="whitespace-nowrap rounded-full bg-white px-2 py-0.5 text-xs font-bold">👶 {c.age}</span> : null}
                         {c.teacher ? <span className="text-sm text-muted">🎓 {c.teacher}</span> : null}
                         {c.price !== undefined ? (
                           <span className="text-sm font-extrabold">
@@ -687,15 +688,15 @@ export function ListingView({
           )}
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {header.badges.includes("verified") ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-highlight px-2.5 py-1 text-xs font-extrabold">
+              <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-highlight px-2.5 py-1 text-xs font-extrabold">
                 <CheckBadgeIcon className="size-3.5" /> {t.listing.verified}
               </span>
             ) : null}
             {header.badges.includes("russian_speaking") ? (
-              <span className="rounded-full bg-primary-soft px-2.5 py-1 text-xs font-bold text-primary">{t.listing.russianSpeaking}</span>
+              <span className="whitespace-nowrap rounded-full bg-primary-soft px-2.5 py-1 text-xs font-bold text-primary">{t.listing.russianSpeaking}</span>
             ) : null}
             {header.badges.includes("documents_checked") ? (
-              <span className="rounded-full bg-[#e5f4e4] px-2.5 py-1 text-xs font-bold text-success">Документы проверены</span>
+              <span className="whitespace-nowrap rounded-full bg-[#e5f4e4] px-2.5 py-1 text-xs font-bold text-success">Документы проверены</span>
             ) : null}
             {hours?.type === "hours" ? <OpenNowBadge week={hours.data.week} /> : null}
           </div>

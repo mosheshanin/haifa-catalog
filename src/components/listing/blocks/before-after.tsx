@@ -20,8 +20,8 @@ export function BeforeAfterSlider({ beforeUrl, afterUrl, caption }: { beforeUrl?
             ⇆
           </span>
         </div>
-        <span className="absolute top-2 left-2 rounded-full bg-black/60 px-2.5 py-1 text-xs font-bold text-white">До</span>
-        <span className="absolute top-2 right-2 rounded-full bg-black/60 px-2.5 py-1 text-xs font-bold text-white">После</span>
+        <span className="absolute top-2 left-2 whitespace-nowrap rounded-full bg-black/60 px-2.5 py-1 text-xs font-bold text-white">До</span>
+        <span className="absolute top-2 right-2 whitespace-nowrap rounded-full bg-black/60 px-2.5 py-1 text-xs font-bold text-white">После</span>
         <input
           type="range"
           min={0}

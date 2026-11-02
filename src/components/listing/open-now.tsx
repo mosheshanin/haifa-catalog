@@ -61,7 +61,7 @@ export function OpenNowBadge({ week, exceptions }: { week: Week; exceptions?: Ho
   if (open === null) return null;
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ${
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-bold ${
         open ? "bg-[#e5f4e4] text-success" : "bg-[#f3f4f6] text-muted"
       }`}
     >

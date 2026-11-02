@@ -168,7 +168,7 @@ async function MyActivity({ userId }: { userId: string }) {
 export default function ProfilePage(props: PageProps<"/profil">) {
   return (
     <div className="mx-auto grid max-w-2xl gap-5">
-      <h1 className="text-3xl font-extrabold">{t.profile.title}</h1>
+      <h1 className="text-2xl font-extrabold leading-tight sm:text-3xl">{t.profile.title}</h1>
       <Suspense fallback={<p className="text-muted">{t.common.loading}</p>}>
         <ProfileContent searchParams={props.searchParams} />
       </Suspense>

@@ -10,18 +10,18 @@ import type { Section } from "@/lib/blocks/types";
 async function CategoryGrid({ section }: { section: Section }) {
   const categories = await getSectionCategories(section);
   return (
-    <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+    <ul className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
       {categories.map((c) => (
         <li key={c.id} className="min-w-0">
           <Link
             href={`/${section}/${c.slug}`}
-            className="flex h-full min-h-16 items-center gap-2.5 rounded-2xl border border-line bg-white px-2.5 py-3 text-sm font-bold leading-snug hover:border-primary hover:bg-primary-soft"
+            className="flex h-full min-h-14 items-center gap-2.5 rounded-2xl border border-line bg-white px-2.5 py-2 text-sm font-bold leading-snug hover:border-primary hover:bg-primary-soft"
           >
-            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary-soft text-xl" aria-hidden>
+            <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary-soft text-lg" aria-hidden>
               {c.icon ?? "📌"}
             </span>
-            {/* Длинные слова («Недвижимость») переносятся по слогам, а не раздвигают сетку на узком экране */}
-            <span className="min-w-0 hyphens-auto break-words">{c.name}</span>
+            {/* На телефоне — одна колонка: название помещается в строку, а не ломается по слогам */}
+            <span className="min-w-0 text-balance break-words">{c.name}</span>
           </Link>
         </li>
       ))}
@@ -81,7 +81,7 @@ export default async function HomePage() {
         <section key={section} aria-labelledby={`h-${section}`}>
           <div className="mb-3 flex items-end justify-between gap-4">
             <div>
-              <h2 id={`h-${section}`} className="text-2xl font-extrabold">{section === "biznes" ? "🏢" : "👷"} {t.sections[section].title}</h2>
+              <h2 id={`h-${section}`} className="text-xl font-extrabold sm:text-2xl">{section === "biznes" ? "🏢" : "👷"} {t.sections[section].title}</h2>
               <p className="text-muted">{t.sections[section].lead}</p>
             </div>
             <Link href={`/${section}`} className="hidden shrink-0 items-center gap-1 font-bold text-primary sm:inline-flex">
@@ -95,7 +95,7 @@ export default async function HomePage() {
       {withOffers.length ? (
         <section aria-labelledby="h-offers">
           <div className="mb-3 flex items-end justify-between gap-4">
-            <h2 id="h-offers" className="text-2xl font-extrabold">🎁 {t.home.offers}</h2>
+            <h2 id="h-offers" className="text-xl font-extrabold sm:text-2xl">🎁 {t.home.offers}</h2>
             <Link href="/poisk?offer=1" className="inline-flex shrink-0 items-center gap-1 font-bold text-primary">
               Все <ArrowRightIcon className="size-4" />
             </Link>
@@ -106,16 +106,16 @@ export default async function HomePage() {
 
       {newest.length ? (
         <section aria-labelledby="h-new">
-          <h2 id="h-new" className="mb-3 text-2xl font-extrabold">✨ {t.home.newListings}</h2>
+          <h2 id="h-new" className="mb-3 text-xl font-extrabold sm:text-2xl">✨ {t.home.newListings}</h2>
           <ListingGrid items={newest} districtName={districtName} categoryName={categoryName} />
         </section>
       ) : null}
 
-      <section className="rounded-[2rem] border-2 border-dashed border-primary/30 bg-white p-6 sm:p-10">
-        <h2 className="text-2xl font-extrabold">🙋 {t.home.ownerCta}</h2>
+      <section className="rounded-[2rem] border-2 border-dashed border-primary/30 bg-white p-5 sm:p-10">
+        <h2 className="text-xl font-extrabold text-balance sm:text-2xl">🙋 {t.home.ownerCta}</h2>
         <p className="mt-2 max-w-2xl text-muted">{t.home.ownerCtaLead}</p>
-        <Link href="/kabinet/novaya" className="mt-5 inline-flex h-12 items-center gap-2 rounded-2xl bg-accent px-6 font-bold text-white hover:bg-accent-hover">
-          {t.nav.addListing} <ArrowRightIcon className="size-5" />
+        <Link href="/kabinet/novaya" className="mt-5 inline-flex h-12 items-center gap-2 whitespace-nowrap rounded-2xl bg-accent px-6 font-bold text-white hover:bg-accent-hover">
+          {t.home.ownerCtaButton} <ArrowRightIcon className="size-5" />
         </Link>
       </section>
     </div>

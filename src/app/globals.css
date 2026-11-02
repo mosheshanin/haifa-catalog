@@ -39,6 +39,21 @@
   --font-sans: "Nunito Variable", ui-rounded, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
+/*
+  Шкала размеров текста (2 ноября 2026, раздел 10 ТЗ): на телефоне и в Mini App прежние 12–14 px читались мелко.
+  Самый мелкий текст — 13 px, второстепенный — 15 px, основной — 17 px. Классы text-xs/sm/base/lg остаются прежними.
+*/
+@theme {
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.125rem;
+  --text-sm: 0.9375rem;
+  --text-sm--line-height: 1.375rem;
+  --text-base: 1.0625rem;
+  --text-base--line-height: 1.625rem;
+  --text-lg: 1.1875rem;
+  --text-lg--line-height: 1.625rem;
+}
+
 html {
   -webkit-text-size-adjust: 100%;
 }
@@ -52,7 +67,8 @@ body {
 body {
   background: var(--color-surface-alt);
   color: var(--color-ink);
-  font-size: 16px;
+  font-size: 17px;
+  line-height: 1.55;
 }
 
 /* Видимый фокус при навигации с клавиатуры (раздел 10 ТЗ). */

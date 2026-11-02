@@ -9,7 +9,7 @@ export default async function FavoritesPage() {
   const [districts, categories] = await Promise.all([getDistricts(), getCategories()]);
   return (
     <div className="grid gap-5">
-      <h1 className="text-3xl font-extrabold">❤️ {t.nav.favorites}</h1>
+      <h1 className="text-2xl font-extrabold leading-tight sm:text-3xl">❤️ {t.nav.favorites}</h1>
       <FavoritesList
         districts={districts.map((d) => ({ id: d.id, name: d.name }))}
         categories={categories.map((c) => ({ id: c.id, name: c.name }))}

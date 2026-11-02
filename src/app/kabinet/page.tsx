@@ -26,12 +26,12 @@ async function CabinetContent() {
 
   return (
     <div className="grid gap-5">
-      <h1 className="text-3xl font-extrabold">🗂️ {t.cabinet.title}</h1>
+      <h1 className="text-2xl font-extrabold leading-tight sm:text-3xl">🗂️ {t.cabinet.title}</h1>
       <Panel
         title="Ваши карточки"
         actions={
           <Link href="/kabinet/novaya" className="inline-flex min-h-11 items-center rounded-2xl bg-accent px-4 font-bold text-white hover:bg-accent-hover">
-            + {t.nav.addListing}
+            + {t.nav.addListingShort}
           </Link>
         }
       >

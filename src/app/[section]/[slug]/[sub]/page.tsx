@@ -102,7 +102,7 @@ export default async function SubPage({ params, searchParams }: PageProps<"/[sec
           <Link href={`/${section}/${parent.slug}`} className="hover:text-primary">{parent.name}</Link> ›{" "}
           {r.kind === "subcategory" ? r.category.name : r.district.name}
         </nav>
-        <h1 className="text-3xl font-extrabold">
+        <h1 className="text-2xl font-extrabold leading-tight sm:text-3xl">
           {(r.kind === "subcategory" ? r.category.icon : parent.icon) ? <span aria-hidden>{r.kind === "subcategory" ? r.category.icon : parent.icon} </span> : null}
           {title}
         </h1>

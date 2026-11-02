@@ -87,7 +87,7 @@ async function CategoryPage({ section, category, searchParams }: { section: Sect
           <Link href="/" className="hover:text-primary">Главная</Link> ›{" "}
           <Link href={`/${section}`} className="hover:text-primary">{t.sections[section].title}</Link> › {category.name}
         </nav>
-        <h1 className="text-3xl font-extrabold">
+        <h1 className="text-2xl font-extrabold leading-tight sm:text-3xl">
           {category.icon ? <span aria-hidden>{category.icon} </span> : null}
           {category.name} в Хайфе
         </h1>
@@ -98,7 +98,7 @@ async function CategoryPage({ section, category, searchParams }: { section: Sect
         <ul className="flex flex-wrap gap-2">
           {subcategories.map((c) => (
             <li key={c.id}>
-              <Link href={`/${section}/${category.slug}/${c.slug}`} className="block rounded-full border border-line bg-white px-3.5 py-2 text-sm font-bold hover:border-primary hover:bg-primary-soft">
+              <Link href={`/${section}/${category.slug}/${c.slug}`} className="block rounded-2xl border border-line bg-white px-3.5 py-2 text-sm font-bold leading-snug hover:border-primary hover:bg-primary-soft">
                 {c.icon ? `${c.icon} ` : ""}
                 {c.name}
               </Link>

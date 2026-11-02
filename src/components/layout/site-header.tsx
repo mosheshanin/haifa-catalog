@@ -3,17 +3,13 @@ import { UserMenu } from "@/components/auth/user-menu";
 import { SearchForm } from "@/components/search/search-form";
 import { t } from "@/i18n/ru";
 
+// Логотип заказчика (public/brand/hbc-logo.svg); в шапке — горизонтальная плашка из того же рисунка.
 export function Logo() {
   return (
-    <Link href="/" className="flex items-center gap-2 font-extrabold text-primary" aria-label={`${t.site.name} — ${t.nav.home}`}>
-      <span className="grid size-9 place-items-center rounded-2xl bg-primary text-white shadow-sm">
-        <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth={2.4} aria-hidden>
-          <path d="M3 21h18M5 21V10l7-6 7 6v11" strokeLinejoin="round" />
-          <path d="M10 21v-5h4v5" />
-        </svg>
-      </span>
-      <span className="text-xl tracking-tight">{t.site.name}</span>
-      <span className="hidden rounded-full bg-highlight px-2 py-0.5 text-[11px] font-bold text-ink sm:inline">{t.site.city}</span>
+    <Link href="/" className="flex shrink-0 items-center gap-2" aria-label={`${t.site.name} — ${t.nav.home}`}>
+      {/* eslint-disable-next-line @next/next/no-img-element -- векторный логотип, оптимизация не нужна */}
+      <img src="/brand/hbc-lockup.svg" alt="" width={85} height={36} className="h-9 w-auto rounded-xl" />
+      <span className="hidden whitespace-nowrap rounded-full bg-highlight px-2 py-0.5 text-xs font-bold text-ink sm:inline">{t.site.city}</span>
     </Link>
   );
 }
@@ -35,6 +31,10 @@ export function SiteHeader() {
           <SearchForm compact />
         </div>
         <div className="ml-auto flex items-center gap-1 lg:ml-0">
+          {/* Поиск — значком в верхней строке: три пункта в нижней строке на телефоне не помещались в одну линию */}
+          <Link href="/poisk" className="grid size-10 place-items-center rounded-full text-xl hover:bg-primary-soft lg:hidden" aria-label="Поиск" title="Поиск">
+            🔎
+          </Link>
           <Link href="/izbrannoe" className="grid size-10 place-items-center rounded-full text-xl hover:bg-primary-soft" aria-label={t.nav.favorites} title={t.nav.favorites}>
             ❤️
           </Link>
@@ -42,14 +42,11 @@ export function SiteHeader() {
         </div>
       </div>
       <nav className="flex flex-wrap gap-1.5 px-4 pb-2 md:hidden" aria-label="Разделы">
-        <Link href="/biznes" className="rounded-full bg-primary-soft px-3 py-1.5 text-sm font-semibold text-primary">
+        <Link href="/biznes" className="whitespace-nowrap rounded-full bg-primary-soft px-3 py-1.5 text-sm font-semibold text-primary">
           🏢 {t.nav.biznes}
         </Link>
-        <Link href="/specialisty" className="rounded-full bg-primary-soft px-3 py-1.5 text-sm font-semibold text-primary">
+        <Link href="/specialisty" className="whitespace-nowrap rounded-full bg-primary-soft px-3 py-1.5 text-sm font-semibold text-primary">
           👷 {t.nav.specialisty}
-        </Link>
-        <Link href="/poisk" className="rounded-full bg-primary-soft px-3 py-1.5 text-sm font-semibold text-primary">
-          🔎 Поиск
         </Link>
       </nav>
     </header>

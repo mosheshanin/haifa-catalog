@@ -184,7 +184,7 @@ async function Instant({ districtNames }: { districtNames: Record<string, string
               <li key={c.id} className={`grid gap-3 rounded-2xl border p-4 ${c.reverted_at ? "border-line opacity-60" : "border-primary/30"}`}>
                 <div className="flex flex-wrap items-center gap-2">
                   <Link href={`/${l?.section}/${l?.slug}`} className="font-bold text-primary">{l?.title}</Link>
-                  <span className="rounded-full bg-primary-soft px-2.5 py-1 text-xs font-bold text-primary">
+                  <span className="whitespace-nowrap rounded-full bg-primary-soft px-2.5 py-1 text-xs font-bold text-primary">
                     {c.block_type === "review_reply" ? "Ответ на отзыв" : changeTitle({ type: c.block_type }, BLOCK_TITLES)}
                   </span>
                   <span className="ml-auto text-xs text-muted">{dt(c.created_at)}</span>
@@ -529,7 +529,7 @@ async function AdminContent({ searchParams }: { searchParams: Promise<Record<str
 
   return (
     <div className="grid gap-5">
-      <h1 className="text-3xl font-extrabold">🛠 {t.admin.title}</h1>
+      <h1 className="text-2xl font-extrabold leading-tight sm:text-3xl">🛠 {t.admin.title}</h1>
       {one("done") ? <p className="rounded-2xl bg-[#e5f4e4] p-3 text-sm font-bold text-success">✅ Решение сохранено, владелец получит уведомление.</p> : null}
       <nav aria-label="Разделы админки" className="flex flex-wrap gap-2">
         {TABS.map((x) => (

@@ -36,7 +36,7 @@ async function SearchContent({ searchParams }: { searchParams: PageProps<"/poisk
 export default function SearchPage(props: PageProps<"/poisk">) {
   return (
     <div className="grid gap-5">
-      <h1 className="text-3xl font-extrabold">🔎 Поиск</h1>
+      <h1 className="text-2xl font-extrabold leading-tight sm:text-3xl">🔎 Поиск</h1>
       <Suspense fallback={<ResultsSkeleton />}>
         <SearchContent searchParams={props.searchParams} />
       </Suspense>
