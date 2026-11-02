@@ -34,7 +34,7 @@ export function FiltersForm({
     filters.hasOffer,
     filters.kupa,
     filters.category && categories,
-  ].filter(Boolean).length;
+  ].filter(Boolean).length + filters.amenities.length;
 
   const select = "h-11 w-full rounded-xl border border-line bg-white px-3 text-sm font-semibold focus:border-primary focus:outline-none";
   const check = "flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-line bg-white px-3 text-sm font-semibold has-[:checked]:border-primary has-[:checked]:bg-primary-soft has-[:checked]:text-primary";
@@ -137,6 +137,18 @@ export function FiltersForm({
             </label>
           ) : null}
         </div>
+        {avail.amenities.length ? (
+          <fieldset className="grid gap-2">
+            <legend className="mb-2 text-sm font-bold">✨ Особенности</legend>
+            <div className="flex flex-wrap gap-2">
+              {avail.amenities.map((a) => (
+                <label key={a} className={check}>
+                  <input type="checkbox" name="f" value={a} defaultChecked={filters.amenities.includes(a)} className="size-4 accent-[var(--color-primary)]" /> {a}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        ) : null}
         <div className="flex flex-wrap items-center gap-3">
           <button type="submit" className="h-11 rounded-2xl bg-primary px-6 font-bold text-white hover:bg-primary-hover">
             Показать

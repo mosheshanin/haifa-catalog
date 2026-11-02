@@ -49,9 +49,9 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
             }
           : null
       }
-      categories={categories.filter((c) => c.section === listing.section).map((c) => ({ id: c.id, name: c.name, slug: c.slug, icon: c.icon, parentId: c.parent_id }))}
+      categories={categories.filter((c) => c.section === listing.section).map((c) => ({ id: c.id, name: c.name, slug: c.slug, icon: c.icon, parentId: c.parent_id, amenities: c.amenities ?? [] }))}
       districts={districts.map((d) => ({ value: d.slug, label: d.name }))}
-      amenities={settings.amenities}
+      amenities={listing.section === "specialisty" ? settings.amenitiesSpecialisty : settings.amenities}
       languages={settings.languages}
       limits={limitsOf(listing)}
       isAdmin={user.role === "admin"}

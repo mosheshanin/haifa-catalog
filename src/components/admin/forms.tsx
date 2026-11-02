@@ -255,7 +255,7 @@ export function UserAccessForm({ id, role, blocked, self }: { id: string; role: 
   );
 }
 
-type Cat = { id: number; section: string; parent_id: number | null; slug: string; name: string; icon: string | null; aliases: string[]; sort: number; is_active: boolean; seo_title: string | null; seo_description: string | null; seo_text: string | null };
+type Cat = { id: number; section: string; parent_id: number | null; slug: string; name: string; icon: string | null; aliases: string[]; sort: number; is_active: boolean; seo_title: string | null; seo_description: string | null; seo_text: string | null; amenities?: string[] };
 
 export function CategoryForm({ c, parents }: { c?: Cat; parents: Array<{ id: number; name: string; section: string }> }) {
   return (
@@ -301,6 +301,13 @@ export function CategoryForm({ c, parents }: { c?: Cat; parents: Array<{ id: num
         Слова для поиска (через запятую)
         <input name="aliases" defaultValue={(c?.aliases ?? []).join(", ")} className={inputCls} />
       </label>
+      {!c?.parent_id ? (
+        <label className={labelCls}>
+          Особенности этой категории (каждая с новой строки)
+          <textarea name="amenities" defaultValue={(c?.amenities ?? []).join("\n")} rows={5} className={textareaCls} />
+          <span className="text-xs font-normal text-muted">Владелец отмечает их в карточке, посетитель ищет по ним в фильтре. Подкатегории берут этот же список; общие отметки раздела — в «Настройках».</span>
+        </label>
+      ) : null}
       <label className={labelCls}>
         SEO-заголовок
         <input name="seo_title" defaultValue={c?.seo_title ?? ""} maxLength={120} className={inputCls} />
@@ -311,7 +318,7 @@ export function CategoryForm({ c, parents }: { c?: Cat; parents: Array<{ id: num
       </label>
       <label className={labelCls}>
         Текст на странице категории
-        <textarea name="seo_text" defaultValue={c?.seo_text ?? ""} rows={3} maxLength={3000} className={textareaCls} />
+        <textarea name="seo_text" defaultValue={c?.seo_text ?? ""} rows={8} maxLength={3000} className={textareaCls} />
       </label>
       <div className="flex flex-wrap items-center gap-3">
         <label className={`${labelCls} w-28`}>
@@ -403,7 +410,19 @@ export function SynonymForm({ term, expands }: { term?: string; expands?: string
   );
 }
 
-export function SettingsForm({ rules, amenities, languages }: { rules: { minLength: number; forbidLinks: boolean; forbidPhones: boolean }; amenities: string[]; languages: string[] }) {
+export function SettingsForm({
+  rules,
+  amenities,
+  amenitiesSpecialisty,
+  languages,
+  legal,
+}: {
+  rules: { minLength: number; forbidLinks: boolean; forbidPhones: boolean };
+  amenities: string[];
+  amenitiesSpecialisty: string[];
+  languages: string[];
+  legal: { owner: string; email: string };
+}) {
   return (
     <Mini action={saveSettings}>
       <h3 className="font-extrabold">Правила отзывов</h3>
@@ -418,12 +437,27 @@ export function SettingsForm({ rules, amenities, languages }: { rules: { minLeng
         <input type="checkbox" name="forbidPhones" defaultChecked={rules.forbidPhones} className="size-5 accent-primary" /> Запрещать телефоны
       </label>
       <label className={labelCls}>
-        Особенности (каждая с новой строки)
-        <textarea name="amenities" rows={8} defaultValue={amenities.join("\n")} className={textareaCls} />
+        Общие особенности бизнесов (каждая с новой строки)
+        <textarea name="amenities" rows={6} defaultValue={amenities.join("\n")} className={textareaCls} />
+      </label>
+      <label className={labelCls}>
+        Общие особенности специалистов (каждая с новой строки)
+        <textarea name="amenities_specialisty" rows={4} defaultValue={amenitiesSpecialisty.join("\n")} className={textareaCls} />
+        <span className="text-xs font-normal text-muted">Свои особенности у каждой категории — в разделе «Категории» ниже.</span>
       </label>
       <label className={labelCls}>
         Языки (каждый с новой строки)
         <textarea name="languages" rows={5} defaultValue={languages.join("\n")} className={textareaCls} />
+      </label>
+      <h3 className="mt-2 font-extrabold">Документы сайта</h3>
+      <label className={labelCls}>
+        Кто публикует сайт (имя для политики и условий)
+        <input name="legal_owner" defaultValue={legal.owner} maxLength={120} className={inputCls} placeholder="Например: Моше Шанин" />
+      </label>
+      <label className={labelCls}>
+        Email для запросов о данных и доступности
+        <input name="legal_email" type="email" defaultValue={legal.email} maxLength={120} className={inputCls} />
+        <span className="text-xs font-normal text-muted">Показывается в политике конфиденциальности, условиях и заявлении о доступности.</span>
       </label>
       <SubmitButton className="w-fit">Сохранить настройки</SubmitButton>
     </Mini>

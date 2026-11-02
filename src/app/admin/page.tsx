@@ -307,7 +307,7 @@ async function Dictionaries() {
   return (
     <div className="grid grid-cols-1 gap-5">
       <Panel title="⚙️ Настройки">
-        <SettingsForm rules={settings.reviewRules} amenities={settings.amenities} languages={settings.languages} />
+        <SettingsForm rules={settings.reviewRules} amenities={settings.amenities} amenitiesSpecialisty={settings.amenitiesSpecialisty} languages={settings.languages} legal={settings.legal} />
       </Panel>
       <Panel title={`🏷️ Категории (${cats?.length ?? 0})`}>
         <details className="mb-4 rounded-2xl border-2 border-dashed border-line p-3">

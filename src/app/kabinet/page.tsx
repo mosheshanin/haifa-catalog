@@ -7,6 +7,8 @@ import { LoginRequired, Panel, STATUS_STYLE, Skeleton } from "@/components/cabin
 import { NotifyPrefsForm } from "@/components/cabinet/forms";
 import { TelegramStatus } from "@/components/cabinet/telegram-status";
 import { t } from "@/i18n/ru";
+import { formatDateRu } from "@/lib/format";
+import { confirmListingFromCabinet } from "@/app/actions/cabinet";
 
 export const metadata: Metadata = { title: t.cabinet.title, robots: { index: false } };
 
@@ -15,7 +17,7 @@ async function CabinetContent() {
   if (!user) return <LoginRequired next="/kabinet" />;
   const sb = createAdminClient();
   const [{ data: listings }, { data: profile }] = await Promise.all([
-    sb.from("listings").select("id, section, slug, title, status, is_demo, updated_at").eq("owner_id", user.id).order("updated_at", { ascending: false }),
+    sb.from("listings").select("id, section, slug, title, status, is_demo, updated_at, data_confirmed_at, published_at").eq("owner_id", user.id).order("updated_at", { ascending: false }),
     sb.from("profiles").select("telegram_id, notify_prefs").eq("id", user.id).single(),
   ]);
   const ids = (listings ?? []).map((l) => l.id);
@@ -53,6 +55,7 @@ async function CabinetContent() {
                     {draft ? <span className="rounded-full bg-[#f0efec] px-3 py-1 text-xs font-bold text-muted">Есть черновик</span> : null}
                   </div>
                   {rejected?.review_comment && !pending ? <p className="text-sm text-danger">Комментарий модератора: {rejected.review_comment}</p> : null}
+                  {l.status === "published" ? <Freshness id={l.id} confirmedAt={l.data_confirmed_at ?? l.published_at} /> : null}
                   <div className="flex flex-wrap gap-2">
                     <Link href={`/kabinet/kartochka/${l.id}`} className="inline-flex min-h-11 items-center rounded-xl bg-primary px-4 text-sm font-bold text-white hover:bg-primary-hover">
                       ✏️ Редактировать
@@ -97,5 +100,24 @@ export default function CabinetPage() {
     <Suspense fallback={<Skeleton />}>
       <CabinetContent />
     </Suspense>
+  );
+}
+
+// Свежесть данных (этап 5): дата подтверждения; через 150 дней — кнопка «Всё верно» (напоминание в Telegram — через 180).
+function Freshness({ id, confirmedAt }: { id: string; confirmedAt: string | null }) {
+  // eslint-disable-next-line react-hooks/purity -- страница кабинета динамическая, время запроса
+  const stale = !confirmedAt || Date.now() - new Date(confirmedAt).getTime() > 150 * 86400_000;
+  return (
+    <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
+      <span>🗓 Данные подтверждены: {confirmedAt ? formatDateRu(confirmedAt) : "ещё нет"}</span>
+      {stale ? (
+        <form action={confirmListingFromCabinet}>
+          <input type="hidden" name="listingId" value={id} />
+          <button type="submit" className="inline-flex min-h-11 items-center rounded-xl border border-line px-3 font-bold text-ink hover:border-primary">
+            ✅ Всё верно
+          </button>
+        </form>
+      ) : null}
+    </div>
   );
 }

@@ -8,6 +8,7 @@ import type { Section } from "@/lib/blocks/types";
 import { clip, escapeHtml } from "@/lib/telegram/api";
 import { cardLine, cardMeta, cardMiniAppLink, cardSummary, cardWebUrl, describe, getCards, type CardInfo } from "@/lib/telegram/cards";
 import { decideRequest, requestKeyboard, requestText, type RequestStatus } from "@/lib/telegram/requests";
+import { confirmListingData } from "@/lib/telegram/freshness";
 import { getChannel, setBotSetting, type ChannelCandidate, type ChannelConfig } from "@/lib/telegram/channel";
 
 // Бот каталога на grammY (раздел 7 ТЗ): /start, /search, /favorites, /leads, поиск в любом чате (@бот маникюр),
@@ -179,6 +180,17 @@ export function createBot(token: string): Bot {
     }
     await decideRequest(id, status);
     await ctx.answerCallbackQuery({ text: status === "accepted" ? "✅ Заявка принята. Свяжитесь с клиентом." : "Заявка отклонена." });
+  });
+  // «Всё верно» из напоминания о свежести данных (этап 5): обновляет дату подтверждения на карточке.
+  bot.callbackQuery(/^fresh:([0-9a-f-]{36})$/, async (ctx) => {
+    const profile = await profileByTelegram(ctx.from.id);
+    const title = profile ? await confirmListingData(ctx.match[1], profile) : null;
+    if (title === null) {
+      await ctx.answerCallbackQuery({ text: "Нет доступа к этой карточке.", show_alert: true });
+      return;
+    }
+    await ctx.answerCallbackQuery({ text: "✅ Спасибо! Дата подтверждения обновлена." });
+    await ctx.editMessageReplyMarkup({ reply_markup: { inline_keyboard: [] } }).catch(() => undefined);
   });
   bot.on("callback_query:data", (ctx) => ctx.answerCallbackQuery());
 

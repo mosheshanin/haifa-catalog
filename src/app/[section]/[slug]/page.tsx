@@ -11,7 +11,8 @@ import { MockNotice } from "@/components/ui/mock-notice";
 import { getCategories, getCategory, getDistricts, isSection, type Category } from "@/lib/data/dictionaries";
 import { getCategoryDistrictCounts, getListingBySlug, getPublishedSlugs, getSimilar } from "@/lib/data/listings";
 import { parseFilters } from "@/lib/catalog/params";
-import { breadcrumbsJsonLd, jsonLdScript, listingEventsJsonLd, listingJsonLd } from "@/lib/seo/jsonld";
+import { breadcrumbsJsonLd, jsonLdScript, listingEventsJsonLd, listingFaqJsonLd, listingJsonLd } from "@/lib/seo/jsonld";
+import { isListingComplete } from "@/lib/seo/indexable";
 import { miniAppLink, siteUrl, SITE_INDEXABLE } from "@/lib/env";
 import QRCode from "qrcode";
 import { getVimeoThumbs } from "@/lib/data/video";
@@ -45,13 +46,25 @@ export async function generateMetadata({ params }: PageProps<"/[section]/[slug]"
   const listing = await getListingBySlug(section, slug);
   if (!listing || "redirect" in listing) return {};
   const { header } = listing.data;
+  const [categories, districts] = await Promise.all([getCategories(), getDistricts()]);
+  const cat = categories.find((c) => c.id === listing.categoryId);
+  const district = districts.find((d) => d.slug === header.districtSlugs[0])?.name;
+  // Шаблон описания (раздел 8 ТЗ): «Название — категория в районе X, Хайфа. Профессия или слоган. Контакты, часы, отзывы».
+  const where = district ? `в районе ${district}, Хайфа` : "в Хайфе";
+  const description = [
+    `${header.title} — ${(cat?.name ?? (section === "biznes" ? "бизнес" : "специалист")).toLowerCase()} ${where}.`,
+    header.profession ?? header.slogan,
+    "Телефон, цены, часы работы и отзывы.",
+  ]
+    .filter((x): x is string => Boolean(x))
+    .map((x) => (/[.!?…]$/.test(x.trim()) ? x.trim() : `${x.trim()}.`))
+    .join(" ");
   return {
-    title: header.title,
-    description: [header.profession, header.slogan].filter(Boolean).join(". ") || undefined,
+    title: district ? `${header.title} — ${district}, Хайфа` : `${header.title}, Хайфа`,
+    description: description.slice(0, 300),
     alternates: { canonical: `/${section}/${slug}` },
-    openGraph: header.coverUrl ? { images: [{ url: `${header.coverUrl}?w=1200&q=70&auto=format&fit=crop` }] } : undefined,
-    // Примерные карточки не индексируются.
-    robots: listing.isDemo ? { index: false, follow: false } : undefined,
+    // Примерные и незаполненные карточки не индексируются (раздел 8 ТЗ); ссылки с них поисковик проходит.
+    robots: listing.isDemo ? { index: false, follow: false } : isListingComplete(listing.data) ? undefined : { index: false, follow: true },
   };
 }
 
@@ -75,6 +88,7 @@ async function CategoryPage({ section, category, searchParams }: { section: Sect
   // не нужны ни посетителю, ни поиску. Список свёрнут, ссылки остаются в разметке для поисковиков.
   const withCards = districts.filter((d) => perDistrict.has(d.id)).sort((a, b) => (perDistrict.get(b.id) ?? 0) - (perDistrict.get(a.id) ?? 0) || a.sort - b.sort);
   const url = siteUrl();
+  const { intro, guide } = splitCategoryText(category.seo_text);
   return (
     <div className="grid grid-cols-1 gap-8">
       <script
@@ -96,7 +110,7 @@ async function CategoryPage({ section, category, searchParams }: { section: Sect
           {category.icon ? <span aria-hidden>{category.icon} </span> : null}
           {category.name} в Хайфе
         </h1>
-        {category.seo_text ? <p className="mt-3 max-w-3xl leading-relaxed text-muted">{category.seo_text}</p> : null}
+        {intro ? <p className="mt-3 max-w-3xl leading-relaxed text-muted">{intro}</p> : null}
       </div>
 
       {subcategories.length ? (
@@ -137,8 +151,42 @@ async function CategoryPage({ section, category, searchParams }: { section: Sect
       <Suspense fallback={<ResultsSkeleton />}>
         <CategoryExplorer section={section} category={category} searchParams={searchParams} />
       </Suspense>
+
+      {guide.length ? (
+        <section aria-label="Как выбрать" className="max-w-3xl rounded-[var(--radius-card)] border border-line bg-white p-5 sm:p-8">
+          {guide.map((g, i) =>
+            g.kind === "h" ? (
+              <h2 key={i} className={`text-xl font-extrabold leading-snug ${i ? "mt-6" : ""}`}>{g.text}</h2>
+            ) : g.kind === "li" ? (
+              <ul key={i} className="mt-3 grid gap-1.5 pl-5 leading-relaxed [list-style:disc]">
+                {g.items.map((it, j) => <li key={j}>{it}</li>)}
+              </ul>
+            ) : (
+              <p key={i} className="mt-3 leading-relaxed">{g.text}</p>
+            ),
+          )}
+        </section>
+      ) : null}
     </div>
   );
+}
+
+// Текст страницы категории (раздел 8 ТЗ, правится в админке): первый абзац — под заголовком,
+// остальное — блок «Как выбрать» под списком. Абзацы разделяются пустой строкой, «## » — подзаголовок, «- » — пункт списка.
+type GuidePart = { kind: "h" | "p"; text: string } | { kind: "li"; items: string[] };
+function splitCategoryText(text: string | null): { intro: string | null; guide: GuidePart[] } {
+  const parts = (text ?? "").split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+  const [first, ...rest] = parts;
+  if (!first || first.startsWith("## ")) return { intro: null, guide: parse(parts) };
+  return { intro: first, guide: parse(rest) };
+  function parse(list: string[]): GuidePart[] {
+    return list.map((p) => {
+      if (p.startsWith("## ")) return { kind: "h", text: p.slice(3).trim() };
+      const lines = p.split("\n").map((l) => l.trim());
+      if (lines.every((l) => l.startsWith("- "))) return { kind: "li", items: lines.map((l) => l.slice(2)) };
+      return { kind: "p", text: p };
+    });
+  }
 }
 
 export default async function SlugPage({ params, searchParams }: PageProps<"/[section]/[slug]">) {
@@ -205,6 +253,7 @@ export default async function SlugPage({ params, searchParams }: PageProps<"/[se
               { name: listing.data.header.title, url },
             ]),
             ...listingEventsJsonLd({ url, data: listing.data }),
+            ...listingFaqJsonLd(listing.data),
           ])}
         />
       ) : (

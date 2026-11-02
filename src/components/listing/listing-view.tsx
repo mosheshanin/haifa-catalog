@@ -386,7 +386,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
                     <a
                       href={whatsappHref(ctx.whatsapp, `Здравствуйте! Хочу записаться. Мастер: ${m.name}. Нашёл(а) вас в каталоге HBC.`)}
                       aria-label={`Записаться в WhatsApp: ${m.name}`}
-                      className="mt-2 inline-flex min-h-11 w-full max-w-36 items-center justify-center whitespace-nowrap rounded-xl bg-[#1fa855] px-2 py-2 text-sm font-bold text-white"
+                      className="mt-2 inline-flex min-h-11 w-full max-w-36 items-center justify-center whitespace-nowrap rounded-xl bg-[#15803d] px-2 py-2 text-sm font-bold text-white"
                     >
                       <span className="max-[359px]:hidden" aria-hidden>💬&nbsp;</span>
                       Записаться
@@ -682,9 +682,11 @@ export function ListingView({
           <li>
             <Link href={`/${data.section}`} className="hover:text-primary">{sectionTitle}</Link> ›
           </li>
-          <li>
-            <Link href={categoryHref} className="hover:text-primary">{categoryName}</Link>
-          </li>
+          {categoryName ? (
+            <li>
+              <Link href={categoryHref} className="hover:text-primary">{categoryName}</Link>
+            </li>
+          ) : null}
         </ol>
       </nav>
 
@@ -740,7 +742,7 @@ export function ListingView({
               </a>
             ) : null}
             {contacts.whatsapp ? (
-              <a href={whatsappHref(contacts.whatsapp, waText)} className="inline-flex h-12 items-center gap-2 rounded-2xl bg-[#1fa855] px-5 font-bold text-white hover:brightness-95">
+              <a href={whatsappHref(contacts.whatsapp, waText)} className="inline-flex h-12 items-center gap-2 rounded-2xl bg-[#15803d] px-5 font-bold text-white hover:brightness-95">
                 <ChatIcon className="size-5" /> {t.listing.whatsapp}
               </a>
             ) : null}
@@ -866,7 +868,7 @@ export function ListingView({
             </a>
           ) : null}
           {contacts.whatsapp ? (
-            <a href={whatsappHref(contacts.whatsapp, waText)} className="flex h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-2xl bg-[#1fa855] px-1 font-bold text-white">
+            <a href={whatsappHref(contacts.whatsapp, waText)} className="flex h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-2xl bg-[#15803d] px-1 font-bold text-white">
               <ChatIcon className="size-5 shrink-0 max-[359px]:hidden" /> WhatsApp
             </a>
           ) : null}
@@ -918,7 +920,7 @@ function ContactAside({
           </a>
         ) : null}
         {contacts.whatsapp ? (
-          <a href={whatsappHref(contacts.whatsapp, waText)} className={`${btn} bg-[#1fa855] text-white hover:brightness-95`}>
+          <a href={whatsappHref(contacts.whatsapp, waText)} className={`${btn} bg-[#15803d] text-white hover:brightness-95`}>
             <ChatIcon className="size-5" /> {t.listing.whatsapp}
           </a>
         ) : null}

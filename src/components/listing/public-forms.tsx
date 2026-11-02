@@ -9,6 +9,7 @@ import { FormMessage, Modal, SubmitButton, inputCls, labelCls, textareaCls } fro
 import { haptic } from "@/components/telegram/webapp";
 import { useFavorites } from "@/components/listing/favorites-provider";
 import { FlagIcon } from "@/components/icons";
+import { gaEvent } from "@/components/legal/consent";
 
 function LoginHint({ text }: { text: string }) {
   const path = usePathname();
@@ -218,7 +219,8 @@ export function RequestForm({
   }, []);
   useEffect(() => {
     if (state) haptic(state.ok ? "success" : "error");
-  }, [state]);
+    if (state?.ok) gaEvent("generate_lead", { listing_id: listingId });
+  }, [state, listingId]);
   if (state?.ok) return <FormMessage state={state} />;
   return (
     <form action={action} className="relative grid gap-3">
@@ -272,6 +274,14 @@ export function RequestForm({
       <label className={labelCls}>
         Комментарий
         <textarea name="comment" rows={3} maxLength={1000} className={textareaCls} />
+      </label>
+      {/* Согласие — галочка без предзаполнения (раздел 9 ТЗ) */}
+      <label className="flex items-start gap-2 text-sm">
+        <input type="checkbox" name="consent" required className="mt-0.5 size-5 shrink-0 accent-primary" />
+        <span>
+          Согласен(на) передать имя и контакт владельцу карточки для ответа на заявку. Подробнее —{" "}
+          <Link href="/politika" className="font-semibold text-primary underline" target="_blank">политика конфиденциальности</Link>.
+        </span>
       </label>
       <Captcha />
       <FormMessage state={state} />

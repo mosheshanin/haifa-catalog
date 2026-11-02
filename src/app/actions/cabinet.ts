@@ -83,7 +83,7 @@ export async function saveDraft(listingId: string, raw: unknown): Promise<Action
 type SubmitResult = { published: string[]; moderated: string[]; isNew: boolean };
 
 // ---------- Отправка: часть правок публикуется сразу, часть ждёт проверки (раздел 2 ТЗ) ----------
-export async function submitListing(listingId: string, raw: unknown): Promise<ActionResult<SubmitResult>> {
+export async function submitListing(listingId: string, raw: unknown, consent?: boolean): Promise<ActionResult<SubmitResult>> {
   return runAction(async () => {
     const user = await requireUser();
     await rateLimit(`submit:${user.id}`, 60, 3600);
@@ -91,6 +91,10 @@ export async function submitListing(listingId: string, raw: unknown): Promise<Ac
     assertCanEdit(listing, user);
     const state = await getEditState(listing);
     const publishedData = state.published?.data ?? null;
+    // Первая отправка карточки владельцем — с согласием на условия и политику (раздел 9 ТЗ).
+    if (user.role !== "admin" && !publishedData && consent !== true) {
+      throw new ActionError("Отметьте согласие с условиями, чтобы отправить карточку на проверку.");
+    }
     const { data, errors } = await cleanListingData(listing, raw, user, publishedData);
     if (errors.length) throw new ActionError(errors.join(" "));
     data.confirmedAt = israelToday();
@@ -265,4 +269,19 @@ export async function geocodeAddress(address: string): Promise<ActionResult<{ la
     if (!found.length) throw new ActionError("Адрес не найден. Попробуйте написать улицу и номер дома по-английски или на иврите.");
     return { lat: Number(Number(found[0].lat).toFixed(6)), lng: Number(Number(found[0].lon).toFixed(6)), label: found[0].display_name.split(",").slice(0, 3).join(",") };
   });
+}
+
+// «Данные актуальны» в кабинете (свежесть данных, этап 5): дата подтверждения на карточке — сегодня.
+export async function confirmListingFromCabinet(form: FormData): Promise<void> {
+  const user = await requireUser();
+  const id = String(form.get("listingId") ?? "");
+  if (!/^[0-9a-f-]{36}$/.test(id)) return;
+  await rateLimit(`confirm:${user.id}`, 30, 3600);
+  const sb = createAdminClient();
+  const { data: l } = await sb.from("listings").select("owner_id, status").eq("id", id).maybeSingle();
+  if (!l || l.status !== "published" || (l.owner_id !== user.id && user.role !== "admin")) return;
+  const { error } = await sb.rpc("confirm_listing_data", { p_listing: id });
+  if (error) throw error;
+  updateTag("listings");
+  refresh();
 }

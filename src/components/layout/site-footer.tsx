@@ -2,6 +2,8 @@ import Link from "next/link";
 import { t } from "@/i18n/ru";
 import { AddToHomeScreenButton } from "@/components/telegram/mini-app-chrome";
 import { TelegramPromo } from "@/components/layout/telegram-promo";
+import { LEGAL_PAGES } from "@/lib/legal";
+import { CookieSettingsLink } from "@/components/legal/consent";
 
 export function SiteFooter() {
   return (
@@ -21,6 +23,18 @@ export function SiteFooter() {
           <Link href="/biznes" className="hover:text-primary">{t.nav.biznes}</Link>
           <Link href="/specialisty" className="hover:text-primary">{t.nav.specialisty}</Link>
           <Link href="/kabinet/novaya" className="hover:text-primary">{t.nav.addListing}</Link>
+        </nav>
+      </div>
+      {/* Документы — отдельной строкой внизу подвала (решение 2 ноября 2026, этап 5) */}
+      <div className="border-t border-line">
+        <nav aria-label="Документы" className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-5 gap-y-2 px-4 py-4 text-xs text-muted sm:px-6">
+          {LEGAL_PAGES.map((p) => (
+            <Link key={p.href} href={p.href} className="hover:text-primary hover:underline">
+              {p.title}
+            </Link>
+          ))}
+          <CookieSettingsLink label="Настройки cookie" className="text-left hover:text-primary hover:underline" />
+          <span className="sm:ml-auto">© 2026 {t.site.brand}</span>
         </nav>
       </div>
     </footer>

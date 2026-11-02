@@ -6,6 +6,8 @@ import { ArrowRightIcon, MapPinIcon } from "@/components/icons";
 import { getCategories, getDistricts, getSectionCategories } from "@/lib/data/dictionaries";
 import { searchListings, type ListingSummary } from "@/lib/data/listings";
 import { t } from "@/i18n/ru";
+import { jsonLdScript, siteJsonLd } from "@/lib/seo/jsonld";
+import { miniAppLink, siteUrl } from "@/lib/env";
 import type { Section } from "@/lib/blocks/types";
 
 // Заголовок блока на главной: заголовок, подзаголовок с воздухом между ними, ссылка «Все» справа.
@@ -78,8 +80,22 @@ export default async function HomePage() {
   const districtName = (id: number) => districts.find((d) => d.id === id)?.name ?? "";
   const categoryName = (id: number | null) => categories.find((c) => c.id === id)?.name ?? "";
 
+  const url = siteUrl();
   return (
     <div className="grid grid-cols-1 gap-12 sm:gap-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={jsonLdScript(
+          siteJsonLd({
+            url,
+            name: t.site.brand,
+            alternateName: t.site.name,
+            description: t.site.description,
+            logo: `${url}/brand/hbc-logo-512.png`,
+            sameAs: [miniAppLink().replace(/\?startapp$/, "")],
+          }),
+        )}
+      />
       <section className="relative overflow-hidden rounded-[2rem] bg-primary px-6 py-10 text-white sm:px-12 sm:py-16">
         {/* Светлый отсвет того же синего: жёлтый на тёмно-синем давал грязное коричневое пятно */}
         <div className="absolute -right-16 -top-16 size-64 rounded-full bg-[#6366f1]/35 blur-2xl" aria-hidden />

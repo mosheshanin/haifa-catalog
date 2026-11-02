@@ -14,6 +14,21 @@ for i, m in enumerate(re.finditer(r"\('([a-z0-9-]+)', '([^']+)', '(haifa|suburb)
 for i, m in enumerate(re.finditer(r"\('(biznes|specialisty)', '([a-z0-9-]+)', '([^']+)', (\d+), '(\w+)'\)", seed), 1):
     categories.append({"id": i, "section": m[1], "parent_id": None, "slug": m[2], "name": m[3], "sort": int(m[4]),
                        "schema_type": m[5], "seo_title": None, "seo_description": None, "seo_text": None})
+# Этап 5: свои «Особенности» категорий и тексты страниц категорий — из соседних миграций, если они есть.
+import glob, os
+mig = os.path.dirname(os.path.abspath(sys.argv[1]))
+for c in categories:
+    c["amenities"] = []
+for f in glob.glob(os.path.join(mig, "*_amenities_by_category.sql")):
+    for m in re.finditer(r"\('(biznes|specialisty)', '([a-z0-9-]+)', array\[(.*?)\]\)", open(f, encoding="utf-8").read()):
+        for c in categories:
+            if c["section"] == m[1] and c["slug"] == m[2]:
+                c["amenities"] = re.findall(r"'([^']+)'", m[3])
+for f in glob.glob(os.path.join(mig, "*_category_texts.sql")):
+    for m in re.finditer(r"\('(biznes|specialisty)', '([a-z0-9-]+)', \$t\$(.*?)\$t\$\)", open(f, encoding="utf-8").read(), re.S):
+        for c in categories:
+            if c["section"] == m[1] and c["slug"] == m[2]:
+                c["seo_text"] = m[3]
 data = {"categories": sorted(categories, key=lambda c: c["sort"]), "districts": sorted(districts, key=lambda d: d["sort"])}
 
 # Примерные карточки из миграции: jsonb_array_elements('[...]'::jsonb)
@@ -79,6 +94,17 @@ class H(BaseHTTPRequestHandler):
                             "district_ids": ids, "languages": ["Русский", "Иврит"], "formats": [], "has_offer": True, "hours": None,
                             "distance_m": None, "rank": 1, "detected_category": None, "detected_district": None, "total_count": len(listings)})
             body = json.dumps(out[: int(args.get("p_limit") or 24)]).encode()
+        if self.path.endswith("/rpc/category_amenity_counts") and listings:
+            args = json.loads(raw or b"{}")
+            counts = {}
+            for l in listings:
+                if l["section"] != args.get("p_section") or (args.get("p_category_id") and l["category_id"] != args["p_category_id"]):
+                    continue
+                for b in versions[l["published_version_id"]]["data"]["blocks"]:
+                    if b.get("type") == "features" and not b.get("hidden"):
+                        for a in b["data"].get("items", []):
+                            counts[a] = counts.get(a, 0) + 1
+            body = json.dumps([{"amenity": a, "n": n} for a, n in counts.items()]).encode()
         self.send_response(200); self.send_header("Content-Type", "application/json"); self.end_headers(); self.wfile.write(body)
 print(len(data["categories"]), "categories,", len(data["districts"]), "districts,", len(listings), "demo listings", flush=True)
 ThreadingHTTPServer(("127.0.0.1", 54321), H).serve_forever()

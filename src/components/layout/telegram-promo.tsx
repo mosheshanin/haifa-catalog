@@ -70,10 +70,10 @@ function PhoneIllustration() {
     <div className="relative w-[15.5rem] shrink-0 xl:absolute xl:inset-x-0 xl:top-0 xl:aspect-[9/19.5] xl:w-auto">
       {/* Всплывающие сообщения бота */}
       <div className="absolute -left-6 top-44 z-10 w-40 rotate-[-4deg] rounded-2xl bg-white p-3 text-ink shadow-xl sm:-left-24 sm:w-48 xl:-left-14 xl:top-[54%]">
-        <p className="text-xs font-bold text-[#229ed9]">🔔 Новая заявка</p>
+        <p className="text-xs font-bold text-[#1677a8]">🔔 Новая заявка</p>
         <p className="mt-1 text-xs leading-snug">Маникюр, завтра в 11:00</p>
         <div className="mt-2 flex gap-1.5">
-          <span className="flex-1 rounded-lg bg-[#229ed9] py-1 text-center text-[0.8125rem] font-bold text-white">Принять</span>
+          <span className="flex-1 rounded-lg bg-[#1677a8] py-1 text-center text-[0.8125rem] font-bold text-white">Принять</span>
           <span className="flex-1 rounded-lg bg-surface-alt py-1 text-center text-[0.8125rem] font-bold text-muted">Позже</span>
         </div>
       </div>
@@ -89,7 +89,7 @@ function PhoneIllustration() {
           {/* Шапка Telegram */}
           <div className="bg-white px-4 pb-3 pt-9">
             <div className="flex items-center justify-between text-[0.8125rem]">
-              <span className="font-bold text-[#229ed9]">✕ Закрыть</span>
+              <span className="font-bold text-[#1677a8]">✕ Закрыть</span>
               <span className="font-display font-extrabold text-primary">HBC</span>
               <span className="font-bold text-muted">•••</span>
             </div>
@@ -143,7 +143,7 @@ function PhoneIllustration() {
           </div>
           {/* Нижняя кнопка Mini App */}
           <div className="px-3 pb-5 pt-1 xl:pb-14">
-            <div className="rounded-xl bg-[#229ed9] py-2.5 text-center text-sm font-bold text-white">Оставить заявку</div>
+            <div className="rounded-xl bg-[#1677a8] py-2.5 text-center text-sm font-bold text-white">Оставить заявку</div>
           </div>
         </div>
       </div>

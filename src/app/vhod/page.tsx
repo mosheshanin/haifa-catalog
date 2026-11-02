@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
@@ -42,7 +43,12 @@ export default function SignInPage(props: PageProps<"/vhod">) {
           <SignInOptions searchParams={props.searchParams} />
         </Suspense>
       </div>
-      <p className="mt-6 text-xs text-muted">{t.auth.consent}</p>
+      {/* Согласие при входе — строкой со ссылками, без галочки (решение 2 ноября 2026, раздел 9 ТЗ) */}
+      <p className="mt-6 text-xs text-muted">
+        Входя, вы соглашаетесь с{" "}
+        <Link href="/usloviya" className="font-semibold underline">условиями использования</Link> и{" "}
+        <Link href="/politika" className="font-semibold underline">политикой конфиденциальности</Link>.
+      </p>
     </div>
   );
 }

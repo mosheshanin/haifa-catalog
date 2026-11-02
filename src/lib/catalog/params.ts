@@ -1,8 +1,10 @@
 import type { SearchParams } from "@/lib/data/listings";
 import type { Section } from "@/lib/blocks/types";
 import { KUPOT_LIST } from "@/lib/catalog/filter-config";
+import { parseAmenities } from "@/lib/catalog/amenities";
 
-// Фильтры живут в адресе страницы (раздел 5 ТЗ): ?q=…&district=…&lang=…&open=1&home=1&site=1&online=1&offer=1&kupa=…&sort=…&page=2&view=map
+// Фильтры живут в адресе страницы (раздел 5 ТЗ): ?q=…&district=…&lang=…&open=1&home=1&site=1&online=1&offer=1&kupa=…&f=…&f=…&sort=…&page=2&view=map
+// f — отметки «Особенностей» (можно несколько, ищутся карточки со всеми сразу).
 export type RawParams = Record<string, string | string[] | undefined>;
 
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)?.trim() || undefined;
@@ -26,6 +28,7 @@ export type CatalogFilters = {
   online: boolean;
   hasOffer: boolean;
   kupa?: string;
+  amenities: string[];
   sort: "relevance" | "rating" | "new";
   page: number;
   view: "list" | "map";
@@ -47,6 +50,7 @@ export function parseFilters(sp: RawParams, fixed: { category?: string; district
     online: one(sp.online) === "1",
     hasOffer: one(sp.offer) === "1",
     kupa: KUPOT.includes(kupa as (typeof KUPOT)[number]) ? kupa : undefined,
+    amenities: parseAmenities(sp.f),
     sort: sort === "rating" || sort === "new" ? sort : "relevance",
     page: Number.isInteger(page) && page > 0 && page < 100 ? page : 1,
     view: one(sp.view) === "map" ? "map" : "list",
@@ -64,6 +68,7 @@ export function toSearch(f: CatalogFilters, section: Section | undefined, pageSi
     formats,
     hasOffer: f.hasOffer,
     kupa: f.kupa,
+    amenities: f.amenities,
     openNow: f.openNow,
     sort: f.sort,
     limit: pageSize,
@@ -83,6 +88,7 @@ export function hasActiveFilters(f: CatalogFilters, fixed: { category?: string; 
       f.online ||
       f.hasOffer ||
       f.kupa ||
+      f.amenities.length > 0 ||
       f.sort !== "relevance",
   );
 }
@@ -91,8 +97,8 @@ export function hasActiveFilters(f: CatalogFilters, fixed: { category?: string; 
 export function withParams(base: string, sp: RawParams, patch: Record<string, string | undefined>) {
   const u = new URLSearchParams();
   for (const [k, v] of Object.entries(sp)) {
-    const val = one(v);
-    if (val) u.set(k, val);
+    // Отметки «Особенностей» (f) бывают несколько — сохраняем все.
+    for (const val of Array.isArray(v) ? v : [v]) if (val?.trim()) u.append(k, val.trim());
   }
   for (const [k, v] of Object.entries(patch)) {
     if (v) u.set(k, v);

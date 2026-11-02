@@ -2,9 +2,10 @@ import { connection } from "next/server";
 import { israelToday } from "@/lib/blocks/expire";
 import { sendDigest } from "@/lib/telegram/channel";
 import { sendReminders } from "@/lib/telegram/requests";
+import { sendFreshnessReminders } from "@/lib/telegram/freshness";
 
 // Ежедневная задача Vercel Cron (vercel.json, около 9:00 по Израилю): напоминания о принятых заявках на завтра,
-// по воскресеньям — недельный дайджест канала. Обе части повторно ничего не отправляют, поэтому лишний вызов безвреден.
+// по воскресеньям — недельный дайджест канала; напоминания владельцам подтвердить данные (180 дней, этап 5). Обе части повторно ничего не отправляют, поэтому лишний вызов безвреден.
 // Если в Vercel задан CRON_SECRET, Vercel присылает его в заголовке Authorization — тогда проверяем.
 export const maxDuration = 60;
 
@@ -17,5 +18,6 @@ export async function GET(request: Request) {
   const reminders = await sendReminders();
   const isSunday = new Date(`${israelToday()}T12:00:00Z`).getUTCDay() === 0;
   const digest = isSunday ? await sendDigest() : 0;
-  return Response.json({ reminders, digest });
+  const freshness = await sendFreshnessReminders();
+  return Response.json({ reminders, digest, freshness });
 }

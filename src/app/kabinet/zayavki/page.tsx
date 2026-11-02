@@ -58,7 +58,7 @@ async function Content({ searchParams }: { searchParams: Promise<Record<string, 
                 {isPhone ? (
                   <div className="flex flex-wrap gap-2">
                     <a href={telHref(phone)} className="inline-flex min-h-11 items-center rounded-xl bg-primary px-4 text-sm font-bold text-white">📞 Позвонить</a>
-                    <a href={whatsappHref(phone, `Здравствуйте, ${r.name}! Это по вашей заявке в каталоге HBC.`)} className="inline-flex min-h-11 items-center rounded-xl bg-[#1fa855] px-4 text-sm font-bold text-white">💬 WhatsApp</a>
+                    <a href={whatsappHref(phone, `Здравствуйте, ${r.name}! Это по вашей заявке в каталоге HBC.`)} className="inline-flex min-h-11 items-center rounded-xl bg-[#15803d] px-4 text-sm font-bold text-white">💬 WhatsApp</a>
                   </div>
                 ) : null}
                 <RequestStatusForm id={r.id} status={r.status} note={r.owner_note} />

@@ -18,6 +18,11 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  // Картинки предпросмотра (opengraph-image) читают шрифты и логотип с диска — включаем их в серверные функции.
+  outputFileTracingIncludes: {
+    "/**/opengraph-image": ["./assets/fonts/*.woff", "./public/brand/hbc-lockup.svg"],
+    "/opengraph-image": ["./assets/fonts/*.woff", "./public/brand/hbc-lockup.svg"],
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [

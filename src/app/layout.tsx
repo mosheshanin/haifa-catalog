@@ -5,7 +5,8 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { MiniAppBridge } from "@/components/telegram/mini-app-bridge";
 import { TelegramBackButton } from "@/components/telegram/mini-app-chrome";
 import { FavoritesProvider } from "@/components/listing/favorites-provider";
-import { SITE_INDEXABLE, siteUrl } from "@/lib/env";
+import { ConsentBanner } from "@/components/legal/consent";
+import { BING_SITE_VERIFICATION, GOOGLE_SITE_VERIFICATION, SITE_INDEXABLE, siteUrl } from "@/lib/env";
 import { t } from "@/i18n/ru";
 // Шрифты Onest (текст) и Manrope (заголовки) лежат в проекте и раздаются с нашего домена: без запросов к Google в браузере.
 // Браузер скачивает только нужные части (кириллица, латиница) по unicode-range.
@@ -21,6 +22,10 @@ export const metadata: Metadata = {
   openGraph: { type: "website", locale: "ru_RU", siteName: t.site.name },
   // Пока сайт на временном адресе, поисковики его не индексируют.
   robots: SITE_INDEXABLE ? { index: true, follow: true } : { index: false, follow: false },
+  verification: {
+    google: GOOGLE_SITE_VERIFICATION || undefined,
+    other: BING_SITE_VERIFICATION ? { "msvalidate.01": BING_SITE_VERIFICATION } : undefined,
+  },
 };
 
 export const viewport: Viewport = {
@@ -44,6 +49,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           </main>
           <SiteFooter />
         </FavoritesProvider>
+        <ConsentBanner />
         <MiniAppBridge />
         <Suspense fallback={null}>
           <TelegramBackButton />

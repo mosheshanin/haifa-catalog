@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { createClient } from "@/lib/supabase/server";
 import { LinkGoogleButton, OpenInTelegramButton } from "@/components/auth/link-accounts";
+import { DeleteAccount } from "@/components/auth/delete-account";
 import { GoogleLogo, TelegramLogo, UserIcon } from "@/components/icons";
 import { t } from "@/i18n/ru";
 
@@ -108,8 +109,16 @@ async function ProfileContent({ searchParams }: { searchParams: PageProps<"/prof
           </button>
         </form>
       </div>
+
+      {user.role !== "admin" ? <DeleteAccountSection userId={user.id} /> : null}
     </div>
   );
+}
+
+async function DeleteAccountSection({ userId }: { userId: string }) {
+  const supabase = await createClient();
+  const { count } = await supabase.from("listings").select("id", { count: "exact", head: true }).eq("owner_id", userId);
+  return <DeleteAccount hasListings={(count ?? 0) > 0} />;
 }
 
 const REQ_STATUS: Record<string, string> = { new: "🕓 Отправлена", accepted: "✅ Принята", rejected: "✖ Отклонена" };

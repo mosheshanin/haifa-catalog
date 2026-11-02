@@ -101,6 +101,25 @@ export function listingJsonLd(opts: {
     };
   }
 
+  // Спецпредложения — Offer с ценой и сроком (раздел 8 ТЗ). Истёкшие уже убраны при загрузке карточки.
+  const offers = block("offers");
+  if (offers?.data.items.length) {
+    json.makesOffer = offers.data.items.map((o) => ({
+      "@type": "Offer",
+      name: o.title,
+      description: o.description,
+      url: opts.url,
+      ...(o.price !== undefined ? { price: o.price, priceCurrency: "ILS" } : {}),
+      ...(o.validUntil ? { validThrough: o.validUntil } : {}),
+    }));
+  }
+
+  // Особенности заведения — amenityFeature (у бизнесов).
+  const features = block("features");
+  if (!isPerson && features?.data.items.length) {
+    json.amenityFeature = features.data.items.map((name) => ({ "@type": "LocationFeatureSpecification", name, value: true }));
+  }
+
   if (opts.rating && opts.rating.count > 0) {
     json.aggregateRating = { "@type": "AggregateRating", ratingValue: opts.rating.value, reviewCount: opts.rating.count };
   }
@@ -152,4 +171,50 @@ export function listingEventsJsonLd(opts: { url: string; data: ListingData }) {
       ? { offers: { "@type": "Offer", price: e.price, priceCurrency: "ILS", url: e.registerUrl ?? opts.url, availability: "https://schema.org/InStock" } }
       : {}),
   }));
+}
+
+// Вопросы и ответы карточки — FAQPage (раздел 8 ТЗ: полезно для ИИ-поиска; расширенный сниппет Google показывает редко).
+export function listingFaqJsonLd(data: ListingData) {
+  const faq = data.blocks.find((b) => b.type === "faq" && !b.hidden) as Extract<ListingBlock, { type: "faq" }> | undefined;
+  const items = (faq?.data.items ?? []).filter((i) => i.q && i.a);
+  if (!items.length) return [];
+  return [
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: items.map((i) => ({ "@type": "Question", name: i.q, acceptedAnswer: { "@type": "Answer", text: i.a } })),
+    },
+  ];
+}
+
+// Главная: сайт с поиском и организация (раздел 8 ТЗ).
+export function siteJsonLd(o: { url: string; name: string; alternateName: string; description: string; logo: string; sameAs: string[] }) {
+  return [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "@id": `${o.url}/#website`,
+      url: o.url,
+      name: o.name,
+      alternateName: o.alternateName,
+      inLanguage: "ru",
+      potentialAction: {
+        "@type": "SearchAction",
+        target: { "@type": "EntryPoint", urlTemplate: `${o.url}/poisk?q={search_term_string}` },
+        "query-input": "required name=search_term_string",
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "@id": `${o.url}/#organization`,
+      url: o.url,
+      name: o.name,
+      alternateName: o.alternateName,
+      description: o.description,
+      logo: o.logo,
+      areaServed: { "@type": "City", name: "Хайфа" },
+      sameAs: o.sameAs,
+    },
+  ];
 }

@@ -308,6 +308,7 @@ export async function saveCategory(_: unknown, form: FormData): Promise<ActionRe
       seo_title: str(form, "seo_title", 120) || null,
       seo_description: str(form, "seo_description", 300) || null,
       seo_text: str(form, "seo_text", 3000) || null,
+      ...(form.has("amenities") ? { amenities: listOf(str(form, "amenities", 2000)) } : {}),
       sort: Number(form.get("sort")) || 0,
       is_active: form.get("is_active") === "on",
     };
@@ -386,6 +387,11 @@ export async function saveSynonym(_: unknown, form: FormData): Promise<ActionRes
   }, "Сохранено.");
 }
 
+const legalEmail = (s: string) => {
+  if (s && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)) throw new ActionError("Проверьте email для запросов о данных.");
+  return s;
+};
+
 export async function saveSettings(_: unknown, form: FormData): Promise<ActionResult> {
   return runAction(async () => {
     const admin = await requireAdmin();
@@ -400,7 +406,9 @@ export async function saveSettings(_: unknown, form: FormData): Promise<ActionRe
         },
       },
       { key: "amenities", value: listOf(str(form, "amenities", 3000)) },
+      { key: "amenities_specialisty", value: listOf(str(form, "amenities_specialisty", 3000)) },
       { key: "languages", value: listOf(str(form, "languages", 1000)) },
+      { key: "legal", value: { owner: str(form, "legal_owner", 120), email: legalEmail(str(form, "legal_email", 120)) } },
     ].map((r) => ({ ...r, updated_by: admin.id, updated_at: new Date().toISOString() }));
     const { error } = await sb.from("site_settings").upsert(rows);
     if (error) throw error;

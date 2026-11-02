@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { gaEvent } from "@/components/legal/consent";
 
 type Kind = "view" | "phone" | "whatsapp" | "telegram" | "route" | "website" | "share";
 
@@ -39,7 +40,11 @@ export function ListingTracker({ listingId }: { listingId: string }) {
               : href.includes("waze.com") || href.includes("google.com/maps/dir")
                 ? "route"
                 : undefined);
-      if (kind) track(listingId, kind);
+      if (kind) {
+        track(listingId, kind);
+        // Google Analytics (только с согласия): нажатие на контакт карточки.
+        if (kind !== "share") gaEvent("contact_click", { method: kind, listing_id: listingId });
+      }
     };
     document.addEventListener("click", onClick, { capture: true });
     return () => document.removeEventListener("click", onClick, { capture: true });

@@ -5,9 +5,12 @@ import { getCategories, type Category } from "@/lib/data/dictionaries";
 import { filterConfig, mergeConfigs, type FilterConfig } from "@/lib/catalog/filter-config";
 import type { CatalogFilters } from "@/lib/catalog/params";
 import type { Section } from "@/lib/blocks/types";
+import { getSiteSettings } from "@/lib/data/settings";
+import { amenityList } from "@/lib/catalog/amenities";
 
 // Что показать в форме фильтров: подпись фильтра или null, если его в этой категории нет или он ничего не найдёт.
-export type FilterAvailability = { open: boolean; home: string | null; site: string | null; online: string | null; kupa: boolean; offer: boolean };
+// amenities — отметки «Особенностей», которые что-то найдут (список категории + общий список раздела, этап 5).
+export type FilterAvailability = { open: boolean; home: string | null; site: string | null; online: string | null; kupa: boolean; offer: boolean; amenities: string[] };
 
 type Stats = { at_home: number; on_site: number; online: number; kupa: number; with_hours: number; with_offer: number };
 const ZERO: Stats = { at_home: 0, on_site: 0, online: 0, kupa: 0, with_hours: 0, with_offer: 0 };
@@ -22,6 +25,18 @@ async function stats(section: Section, categoryId: number | null): Promise<Stats
     return ZERO;
   }
   return ((data as Stats[] | null)?.[0] ?? ZERO) as Stats;
+}
+
+async function amenityCounts(section: Section, categoryId: number | null): Promise<Record<string, number>> {
+  "use cache";
+  cacheTag("listings");
+  cacheLife("minutes");
+  const { data, error } = await createPublicClient().rpc("category_amenity_counts", { p_section: section, p_category_id: categoryId });
+  if (error) {
+    console.warn("category_amenity_counts:", error.message);
+    return {};
+  }
+  return Object.fromEntries(((data as Array<{ amenity: string; n: number }> | null) ?? []).map((r) => [r.amenity, r.n]));
 }
 
 const add = (a: Stats, b: Stats): Stats => ({
@@ -54,6 +69,22 @@ export async function getFilterAvailability(
   );
   const cfg = mergeConfigs(configs);
   const st = (await Promise.all(targets.map((t) => stats(t.section, t.category?.id ?? null)))).reduce(add, ZERO);
+
+  // «Особенности»: список категории + общий список раздела; показываем отметки, у которых есть карточки, и выбранные.
+  const settings = await getSiteSettings();
+  const cats = all.map((c) => ({ id: c.id, parentId: c.parent_id, amenities: c.amenities ?? [] }));
+  const counts = await Promise.all(targets.map((t) => amenityCounts(t.section, t.category?.id ?? null)));
+  const candidates = [
+    ...new Set(
+      targets.flatMap((t) =>
+        amenityList(t.category?.id ?? null, cats, t.section === "specialisty" ? settings.amenitiesSpecialisty : settings.amenities),
+      ),
+    ),
+  ];
+  const amenities = [
+    ...candidates.filter((a) => counts.some((c) => (c[a] ?? 0) > 0) || active.amenities.includes(a)),
+    ...active.amenities.filter((a) => !candidates.includes(a)),
+  ];
   return {
     open: (cfg.open && st.with_hours > 0) || active.openNow,
     home: (st.at_home > 0 || active.atHome ? cfg.home : null) ?? (active.atHome ? "🚗 Выезд" : null),
@@ -61,5 +92,6 @@ export async function getFilterAvailability(
     online: (st.online > 0 || active.online ? cfg.online : null) ?? (active.online ? "💻 Онлайн" : null),
     kupa: (cfg.kupa && st.kupa > 0) || Boolean(active.kupa),
     offer: st.with_offer > 0 || active.hasOffer,
+    amenities,
   };
 }

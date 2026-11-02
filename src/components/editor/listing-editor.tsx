@@ -7,13 +7,14 @@ import { BLOCK_ICONS, BLOCK_TITLES } from "@/lib/blocks/types";
 import { MODERATED_TYPES } from "@/lib/blocks/moderation";
 import { ADDABLE_ORDER, BLOCK_SCHEMAS, defaultBlockData, type Field, type Option } from "@/lib/editor/schemas";
 import { EditorContext, Fields, PhotoInput } from "@/components/editor/fields";
+import { amenityList } from "@/lib/catalog/amenities";
 import { filterConfig } from "@/lib/catalog/filter-config";
 import { inputCls, labelCls } from "@/components/forms/ui";
 import { ListingView } from "@/components/listing/listing-view";
 import { saveDraft, submitListing } from "@/app/actions/cabinet";
 
 type Obj = Record<string, unknown>;
-type Category = { id: number; name: string; slug: string; icon: string | null; parentId: number | null };
+type Category = { id: number; name: string; slug: string; icon: string | null; parentId: number | null; amenities: string[] };
 
 const CONTACT_FIELDS: Field[] = [
   { k: "phone", label: "Телефон", type: "tel", placeholder: "050-000-0000" },
@@ -75,7 +76,7 @@ export function ListingEditor(props: {
   lastDecision: { comment: string | null; reasons: Array<{ title: string; reason: string }>; at: string | null; rejected: boolean } | null;
   categories: Category[];
   districts: Option[];
-  amenities: string[];
+  amenities: string[]; // общие отметки раздела; свои отметки категории добавляются по выбранной категории
   languages: string[];
   limits: Limits;
   isAdmin: boolean;
@@ -88,6 +89,9 @@ export function ListingEditor(props: {
   const [pendingSave, startSave] = useTransition();
   const [pendingSubmit, startSubmit] = useTransition();
   const [dragId, setDragId] = useState<string | null>(null);
+  // Согласие при первой отправке карточки (раздел 9 ТЗ): владелец подтверждает права на данные и фото.
+  const needsConsent = !isAdmin && !props.hasPublished;
+  const [agree, setAgree] = useState(false);
 
   useEffect(() => {
     const onBefore = (e: BeforeUnloadEvent) => {
@@ -133,6 +137,9 @@ export function ListingEditor(props: {
     return filterConfig(listing.section, cat ? { slug: cat.slug, parentSlug: parent?.slug ?? null } : null);
   }, [props.categories, data.header.categoryId, listing.section]);
 
+  // «Особенности»: свой список категории (этап 5, вариант В) + общий список раздела.
+  const amenities = useMemo(() => amenityList(data.header.categoryId, props.categories, props.amenities), [data.header.categoryId, props.categories, props.amenities]);
+
   const doSave = () =>
     startSave(async () => {
       const r = await saveDraft(listing.id, data);
@@ -141,7 +148,11 @@ export function ListingEditor(props: {
     });
   const doSubmit = () =>
     startSubmit(async () => {
-      const r = await submitListing(listing.id, data);
+      if (needsConsent && !agree) {
+        setMsg({ ok: false, text: "Отметьте согласие с условиями внизу страницы, чтобы отправить карточку на проверку." });
+        return;
+      }
+      const r = await submitListing(listing.id, data, needsConsent ? agree : undefined);
       if (!r.ok) {
         setMsg({ ok: false, text: r.error });
         return;
@@ -163,7 +174,7 @@ export function ListingEditor(props: {
       : "✅ Карточка опубликована.";
 
   return (
-    <EditorContext.Provider value={{ districts: props.districts, amenities: props.amenities, languages: props.languages, limits: props.limits, section: listing.section, filter }}>
+    <EditorContext.Provider value={{ districts: props.districts, amenities, languages: props.languages, limits: props.limits, section: listing.section, filter }}>
       <div className="grid gap-4 pb-28">
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <Link href={isAdmin ? "/admin?tab=listings" : "/kabinet"} className="font-bold text-primary">
@@ -357,6 +368,16 @@ export function ListingEditor(props: {
         {/* Закреплённая панель действий */}
         <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white/95 px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur">
           <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-2">
+            {needsConsent ? (
+              <label className="flex w-full items-start gap-2 text-xs leading-snug">
+                <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-0.5 size-5 shrink-0 accent-primary" />
+                <span>
+                  Подтверждаю, что вправе публиковать эти данные и фото, и принимаю{" "}
+                  <Link href="/usloviya#kartochki" target="_blank" className="font-semibold text-primary underline">условия</Link> и{" "}
+                  <Link href="/politika" target="_blank" className="font-semibold text-primary underline">политику конфиденциальности</Link>.
+                </span>
+              </label>
+            ) : null}
             <span className="hidden min-w-0 flex-1 text-xs text-muted sm:block">{dirty ? "Есть несохранённые изменения" : "Всё сохранено"}</span>
             {!isAdmin ? (
               <button type="button" onClick={doSave} disabled={pendingSave || pendingSubmit} className="min-h-12 flex-1 rounded-2xl border border-line bg-white px-3 font-bold hover:border-primary disabled:opacity-60 sm:flex-none">

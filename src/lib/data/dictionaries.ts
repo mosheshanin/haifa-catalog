@@ -15,6 +15,7 @@ export type Category = {
   seo_title: string | null;
   seo_description: string | null;
   seo_text: string | null;
+  amenities: string[]; // свои отметки «Особенностей» (у категорий верхнего уровня), этап 5
 };
 
 export type District = { id: number; slug: string; name: string; kind: "haifa" | "suburb"; sort: number };
@@ -26,7 +27,7 @@ export async function getCategories(): Promise<Category[]> {
   cacheLife("hours");
   const { data, error } = await createPublicClient()
     .from("categories")
-    .select("id, section, parent_id, slug, name, icon, sort, schema_type, seo_title, seo_description, seo_text")
+    .select("id, section, parent_id, slug, name, icon, sort, schema_type, seo_title, seo_description, seo_text, amenities")
     .eq("is_active", true)
     .order("sort");
   if (error) throw error;

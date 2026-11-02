@@ -107,6 +107,7 @@ export async function submitRequest(_: unknown, form: FormData): Promise<ActionR
     const listing = await publishedListing(text(form, "listingId", 40));
     const name = text(form, "name", 80);
     const contact = text(form, "contact", 120);
+    if (form.get("consent") !== "on") throw new ActionError("Отметьте согласие на передачу контакта владельцу карточки.");
     if (!name) throw new ActionError("Укажите имя.");
     if (contact.replace(/\D/g, "").length < 7 && !/^@?[A-Za-z0-9_]{4,32}$/.test(contact) && !/@.+\./.test(contact)) {
       throw new ActionError("Укажите телефон, ник в Telegram или email.");
