@@ -1,5 +1,5 @@
 import { t } from "@/i18n/ru";
-import { miniAppLink, TELEGRAM_BOT_USERNAME } from "@/lib/env";
+import { miniAppLink } from "@/lib/env";
 
 // Промо-блок мини-приложения в подвале (решение 2 ноября 2026, раздел 10 ТЗ). Телефон-иллюстрация «заезжает»
 // вверх на фон страницы над подвалом. Внутри самого Mini App блок не нужен — скрыт CSS (html[data-telegram="1"]).
@@ -8,7 +8,7 @@ const p = t.telegramPromo;
 export function TelegramPromo() {
   return (
     <section aria-labelledby="tg-promo-title" className="tg-promo mx-auto max-w-6xl px-4 pt-10 sm:px-6">
-      <div className="relative isolate flow-root rounded-[2rem] bg-[linear-gradient(135deg,#2aabee_0%,#3a63e0_48%,#1e1b4b_100%)] text-white shadow-[0_24px_60px_-24px_rgba(30,27,75,0.55)]">
+      <div className="relative isolate flow-root rounded-[2rem] xl:min-h-[34rem] bg-[linear-gradient(135deg,#2aabee_0%,#3a63e0_48%,#1e1b4b_100%)] text-white shadow-[0_24px_60px_-24px_rgba(30,27,75,0.55)]">
         {/* Мягкие световые пятна — внутри карточки */}
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden rounded-[2rem]">
           <div className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-white/20 blur-3xl" />
@@ -16,10 +16,11 @@ export function TelegramPromo() {
         </div>
 
         {/* Телефон: на телефоне и планшете — над текстом и выше карточки (низ растворяется); на широком экране (от 1280 px) — справа,
-            выше верхнего края, низ уходит за нижний край карточки (высота телефона = высота карточки + выступ) */}
+            выше верхнего края на 7rem, пропорции настоящего телефона (9:19,5 при ширине 21rem = 45,5rem); карточка не ниже
+            34rem (сейчас ~36rem), поэтому низ телефона (~2,5rem) уходит за нижний край карточки */}
         <div
           aria-hidden
-          className="pointer-events-none relative z-10 -mt-28 flex h-[22rem] justify-center [mask-image:linear-gradient(to_bottom,#000_78%,transparent)] xl:absolute xl:-top-36 xl:right-12 xl:bottom-0 xl:mt-0 xl:block xl:h-auto xl:w-[21rem] xl:[clip-path:inset(-20rem_-20rem_0_-20rem)] xl:[mask-image:none]"
+          className="pointer-events-none relative z-10 -mt-28 flex h-[22rem] justify-center [mask-image:linear-gradient(to_bottom,#000_78%,transparent)] xl:absolute xl:-top-28 xl:right-12 xl:bottom-0 xl:mt-0 xl:block xl:h-auto xl:w-[21rem] xl:[clip-path:inset(-20rem_-20rem_0_-20rem)] xl:[mask-image:none]"
         >
           <PhoneIllustration />
         </div>
@@ -33,9 +34,9 @@ export function TelegramPromo() {
           </h2>
           <p className="mt-3 max-w-xl text-white/85">{p.lead}</p>
 
-          <ul className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <ul className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:gap-x-8 xl:gap-y-6">
             {p.benefits.map((b) => (
-              <li key={b.title} className="flex gap-3 rounded-2xl bg-white/10 p-4 ring-1 ring-white/15 backdrop-blur-sm">
+              <li key={b.title} className="flex gap-3 rounded-2xl bg-white/10 p-4 ring-1 ring-white/15 backdrop-blur-sm xl:bg-transparent xl:p-0 xl:ring-0 xl:backdrop-blur-none">
                 <span aria-hidden className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-xl">
                   {b.icon}
                 </span>
@@ -47,7 +48,7 @@ export function TelegramPromo() {
             ))}
           </ul>
 
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-8 flex flex-col sm:flex-row">
             <a
               href={miniAppLink()}
               target="_blank"
@@ -55,14 +56,6 @@ export function TelegramPromo() {
               className="inline-flex min-h-13 items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-highlight px-6 font-display text-lg font-extrabold text-primary shadow-lg shadow-black/15 transition hover:-translate-y-0.5 hover:bg-[#ffd54f]"
             >
               <span aria-hidden>✈️</span> {p.open}
-            </a>
-            <a
-              href={`https://t.me/${TELEGRAM_BOT_USERNAME}`}
-              target="_blank"
-              rel="noopener"
-              className="inline-flex min-h-13 items-center justify-center whitespace-nowrap rounded-2xl bg-white/10 px-6 font-bold text-white ring-1 ring-white/40 transition hover:bg-white/20"
-            >
-              {p.bot} @{TELEGRAM_BOT_USERNAME}
             </a>
           </div>
         </div>
@@ -74,7 +67,7 @@ export function TelegramPromo() {
 // Рисованный экран мини-приложения (свой, без чужих логотипов).
 function PhoneIllustration() {
   return (
-    <div className="relative w-[15.5rem] shrink-0 xl:absolute xl:inset-x-0 xl:top-0 xl:-bottom-10 xl:w-auto">
+    <div className="relative w-[15.5rem] shrink-0 xl:absolute xl:inset-x-0 xl:top-0 xl:aspect-[9/19.5] xl:w-auto">
       {/* Всплывающие сообщения бота */}
       <div className="absolute -left-6 top-44 z-10 w-40 rotate-[-4deg] rounded-2xl bg-white p-3 text-ink shadow-xl sm:-left-24 sm:w-48 xl:-left-14 xl:top-[54%]">
         <p className="text-xs font-bold text-[#229ed9]">🔔 Новая заявка</p>
