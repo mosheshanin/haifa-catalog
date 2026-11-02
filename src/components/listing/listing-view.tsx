@@ -94,7 +94,7 @@ const FEATURE_ICONS: Record<string, string> = {
 
 function Section({ id, title, icon, children }: { id?: string; title: string; icon?: string; children: React.ReactNode }) {
   return (
-    <section id={id} className="rounded-[var(--radius-card)] border border-line bg-white p-5 shadow-sm">
+    <section id={id} className="scroll-mt-32 rounded-[var(--radius-card)] border border-line bg-white p-5 shadow-sm">
       <h2 className="mb-3 flex items-center gap-2 text-xl font-extrabold">
         {icon ? (
           <span className="grid size-9 place-items-center rounded-xl bg-primary-soft text-lg" aria-hidden>
