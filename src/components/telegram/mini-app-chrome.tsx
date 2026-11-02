@@ -49,6 +49,7 @@ export function TelegramRequestButton({ targetId = "request" }: { targetId?: str
     mb.setText("✍️ Оставить заявку");
     mb.setParams?.({ color: "#c2410c", text_color: "#ffffff" }); // --color-accent
     mb.onClick(go);
+    mb.show(); // наблюдатель ниже спрячет кнопку, если форма уже на экране
     const io = new IntersectionObserver(([e]) => (e.isIntersecting ? mb.hide() : mb.show()), { threshold: 0.15 });
     io.observe(target);
     return () => {
