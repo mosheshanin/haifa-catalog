@@ -148,10 +148,12 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
           <ul className="grid gap-3">
             {block.data.items.map((o, i) => (
               <li key={i} className="rounded-2xl border-2 border-accent/30 bg-[#fff4ee] p-4">
-                <p className="flex items-center gap-2 font-extrabold text-accent">
-                  <TagIcon className="size-5" />
-                  {o.discountPercent ? `−${o.discountPercent}% · ` : ""}
-                  {o.title}
+                <p className="flex items-start gap-2 font-extrabold leading-snug text-accent">
+                  <TagIcon className="mt-0.5 size-5 shrink-0" />
+                  <span className="min-w-0">
+                    {o.discountPercent ? <span className="whitespace-nowrap">−{o.discountPercent}% · </span> : null}
+                    {o.title}
+                  </span>
                 </p>
                 {o.promoCode ? (
                   <p className="mt-1 text-sm">

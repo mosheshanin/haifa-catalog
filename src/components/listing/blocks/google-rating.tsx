@@ -44,8 +44,8 @@ export function GoogleRating({ url, placeId, cid }: { url: string; placeId?: str
       {/* На узкой карте Google прячет карточку с рейтингом, поэтому отзывы всегда доступны по кнопке
           (на телефоне откроется приложение Google Карт). */}
       {href ? (
-        <a href={href} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center justify-center gap-2 justify-self-start rounded-2xl border border-line bg-white px-4 text-sm font-bold hover:border-primary">
-          ⭐ Читать отзывы в Google Картах ↗
+        <a href={href} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center justify-center gap-2 justify-self-start whitespace-nowrap rounded-2xl border border-line bg-white px-4 text-sm font-bold hover:border-primary">
+          ⭐ Отзывы в Google Картах ↗
         </a>
       ) : null}
     </div>
