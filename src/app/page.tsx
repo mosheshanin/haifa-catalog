@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SearchForm } from "@/components/search/search-form";
+import { ShowMore } from "@/components/catalog/show-more";
 import { ListingListItem } from "@/components/listing/listing-list-item";
 import { ArrowRightIcon, MapPinIcon } from "@/components/icons";
 import { getCategories, getDistricts, getSectionCategories } from "@/lib/data/dictionaries";
@@ -24,13 +25,17 @@ function SectionHeading({ id, title, lead, href }: { id: string; title: string; 
   );
 }
 
+const MOBILE_TILES = 6;
+
 async function CategoryGrid({ section }: { section: Section }) {
   const categories = await getSectionCategories(section);
   return (
-    // Три колонки на компьютере, две на планшете, одна на телефоне: названия помещаются, плитки не теснятся (2 ноября 2026)
+    // Три колонки на компьютере, две на планшете, одна на телефоне: названия помещаются, плитки не теснятся (2 ноября 2026).
+    // На телефоне — первые 6 плиток и «Показать ещё».
+    <ShowMore hiddenCount={Math.max(0, categories.length - MOBILE_TILES)}>
     <ul className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
-      {categories.map((c) => (
-        <li key={c.id} className="min-w-0">
+      {categories.map((c, i) => (
+        <li key={c.id} className={`min-w-0 ${i >= MOBILE_TILES ? "max-sm:group-data-[open=false]:hidden" : ""}`}>
           <Link
             href={`/${section}/${c.slug}`}
             className="group flex h-full min-h-[4.5rem] items-center gap-4 rounded-2xl border border-line bg-white px-4 py-3 font-bold leading-snug transition hover:border-primary hover:bg-primary-soft"
@@ -44,6 +49,7 @@ async function CategoryGrid({ section }: { section: Section }) {
         </li>
       ))}
     </ul>
+    </ShowMore>
   );
 }
 
