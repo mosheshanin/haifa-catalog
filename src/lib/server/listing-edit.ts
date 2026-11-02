@@ -111,7 +111,7 @@ export async function cleanListingData(
   const dict = await dictionaries(listing.section);
   const rawObj = (raw ?? {}) as { header?: { badges?: unknown } };
   const adminBadges = Array.isArray(rawObj.header?.badges)
-    ? (rawObj.header!.badges as unknown[]).filter((b): b is ListingData["header"]["badges"][number] => b === "verified" || b === "russian_speaking" || b === "documents_checked")
+    ? (rawObj.header!.badges as unknown[]).filter((b): b is ListingData["header"]["badges"][number] => b === "verified" || b === "documents_checked")
     : [];
   const result = sanitizeListingData(raw, {
     section: listing.section,

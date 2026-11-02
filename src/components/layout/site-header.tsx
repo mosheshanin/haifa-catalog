@@ -9,7 +9,6 @@ export function Logo() {
     <Link href="/" className="flex shrink-0 items-center gap-2" aria-label={`${t.site.name} — ${t.nav.home}`}>
       {/* eslint-disable-next-line @next/next/no-img-element -- векторный логотип, оптимизация не нужна */}
       <img src="/brand/hbc-lockup.svg" alt="" width={85} height={36} className="h-9 w-auto rounded-xl" />
-      <span className="hidden whitespace-nowrap rounded-full bg-highlight px-2 py-0.5 text-xs font-bold text-ink sm:inline">{t.site.city}</span>
     </Link>
   );
 }

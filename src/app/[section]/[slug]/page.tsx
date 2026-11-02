@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: PageProps<"/[section]/[slug]"
       title: category.seo_title ?? `${category.name} в Хайфе`,
       description:
         category.seo_description ??
-        `${category.name} в Хайфе: русскоязычные ${section === "biznes" ? "бизнесы" : "специалисты"}, контакты, цены, часы работы и отзывы.`,
+        `${category.name} в Хайфе: проверенные ${section === "biznes" ? "бизнесы" : "специалисты"}, контакты, цены, часы работы и отзывы.`,
       alternates: { canonical: `/${section}/${slug}` },
     };
   }

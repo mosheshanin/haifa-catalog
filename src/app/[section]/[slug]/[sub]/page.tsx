@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: PageProps<"/[section]/[slug]/
   if (r.kind === "subcategory") {
     return {
       title: r.category.seo_title ?? `${r.category.name} в Хайфе`,
-      description: r.category.seo_description ?? `${r.category.name} в Хайфе: русскоязычные специалисты и заведения, цены и отзывы.`,
+      description: r.category.seo_description ?? `${r.category.name} в Хайфе: проверенные специалисты и заведения, цены и отзывы.`,
       alternates: { canonical: `/${section}/${slug}/${sub}` },
     };
   }
@@ -55,7 +55,7 @@ export async function generateMetadata({ params }: PageProps<"/[section]/[slug]/
   const count = found[0]?.total_count ?? 0;
   return {
     title: `${r.category.name} — ${r.district.name}, Хайфа`,
-    description: `${r.category.name} в районе ${r.district.name}: русскоязычные ${section === "biznes" ? "бизнесы" : "специалисты"}, контакты и цены.`,
+    description: `${r.category.name} в районе ${r.district.name}: проверенные ${section === "biznes" ? "бизнесы" : "специалисты"}, контакты и цены.`,
     alternates: { canonical: `/${section}/${slug}/${sub}` },
     robots: count >= MIN_INDEXABLE ? undefined : { index: false, follow: true },
   };

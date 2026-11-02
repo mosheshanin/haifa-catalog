@@ -19,7 +19,6 @@ function reasonsFor(l: ListingSummary, f: CatalogFilters, districtName: (id: num
     }
   }
   if (f.language && l.languages.includes(f.language)) r.push(`🗣️ ${f.language}`);
-  else if ((f.q || district) && l.languages.includes("Русский")) r.push("🗣️ Говорят по-русски");
   if (f.atHome && l.formats.includes("at_home")) r.push(l.section === "biznes" ? "🚗 Выезд или доставка" : "🚗 Выезд к клиенту");
   if (f.onSite && l.formats.includes("on_site")) r.push("🏠 Приём у себя");
   if (f.online && l.formats.includes("online")) r.push("💻 Онлайн");

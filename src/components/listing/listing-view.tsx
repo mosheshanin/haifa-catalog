@@ -712,9 +712,6 @@ export function ListingView({
                 <CheckBadgeIcon className="size-3.5" /> {t.listing.verified}
               </span>
             ) : null}
-            {header.badges.includes("russian_speaking") ? (
-              <span className="whitespace-nowrap rounded-full bg-primary-soft px-2.5 py-1 text-xs font-bold text-primary">{t.listing.russianSpeaking}</span>
-            ) : null}
             {header.badges.includes("documents_checked") ? (
               <span className="whitespace-nowrap rounded-full bg-[#e5f4e4] px-2.5 py-1 text-xs font-bold text-success">Документы проверены</span>
             ) : null}

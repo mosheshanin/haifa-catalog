@@ -84,7 +84,8 @@ export default async function HomePage() {
         {/* Светлый отсвет того же синего: жёлтый на тёмно-синем давал грязное коричневое пятно */}
         <div className="absolute -right-16 -top-16 size-64 rounded-full bg-[#6366f1]/35 blur-2xl" aria-hidden />
         <div className="relative max-w-2xl">
-          <h1 className="text-3xl font-extrabold leading-tight text-balance sm:text-5xl sm:leading-[1.1]">{t.home.title}</h1>
+          <p className="font-bold text-highlight">{t.site.brand}</p>
+          <h1 className="mt-3 text-3xl font-extrabold leading-tight text-balance sm:text-5xl sm:leading-[1.1]">{t.home.title}</h1>
           <p className="mt-4 text-lg leading-relaxed text-white/90">{t.home.lead}</p>
           <div className="mt-8">
             <SearchForm />

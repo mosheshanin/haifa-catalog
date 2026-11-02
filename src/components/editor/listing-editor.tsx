@@ -29,7 +29,6 @@ const CONTACT_FIELDS: Field[] = [
 
 const BADGES: Option[] = [
   { value: "verified", label: "✅ Проверено" },
-  { value: "russian_speaking", label: "🗣️ Говорят по-русски" },
   { value: "documents_checked", label: "📜 Документы проверены" },
 ];
 
