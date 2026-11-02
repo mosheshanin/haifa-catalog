@@ -99,3 +99,12 @@ html[data-telegram="1"] .tg-promo {
 html[data-telegram="1"] .site-footer {
   margin-top: 4rem;
 }
+
+/* Карточка: соседние блоки разного цвета (решение 2 ноября 2026) — пять мягких оттенков по кругу.
+   Счёт идёт по видимым блокам (скрытые не рисуются), поэтому соседние цвета всегда разные.
+   --block-accent — подложка значка блока; текст на всех оттенках проходит контраст AA. */
+.card-blocks > .card-block:nth-of-type(5n + 1) { --block-bg: #ffffff; --block-accent: #ecebfa; }
+.card-blocks > .card-block:nth-of-type(5n + 2) { --block-bg: #f4f3fe; --block-accent: #e0def8; }
+.card-blocks > .card-block:nth-of-type(5n + 3) { --block-bg: #eff8f2; --block-accent: #d3eedc; }
+.card-blocks > .card-block:nth-of-type(5n + 4) { --block-bg: #fff5ec; --block-accent: #fbe0c8; }
+.card-blocks > .card-block:nth-of-type(5n + 5) { --block-bg: #eef5fc; --block-accent: #d6e7f8; }

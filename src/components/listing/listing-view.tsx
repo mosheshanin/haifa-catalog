@@ -110,10 +110,11 @@ function filterFromHref(section: "biznes" | "specialisty", href: string): Filter
 
 function Section({ id, title, icon, children }: { id?: string; title: string; icon?: string; children: React.ReactNode }) {
   return (
-    <section id={id} className="scroll-mt-32 rounded-[var(--radius-card)] border border-line bg-white p-5 shadow-sm sm:p-7">
+    // Фон блока задаёт подложка .card-blocks (globals.css): соседние блоки разного цвета (решение 2 ноября 2026).
+    <section id={id} className="card-block scroll-mt-32 rounded-[var(--radius-card)] border border-line bg-[var(--block-bg,#fff)] p-5 shadow-sm sm:p-7">
       <h2 className="mb-4 flex items-center gap-2.5 text-lg font-extrabold leading-snug sm:mb-5 sm:text-xl">
         {icon ? (
-          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary-soft text-lg" aria-hidden>
+          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[var(--block-accent,var(--color-primary-soft))] text-lg" aria-hidden>
             {icon}
           </span>
         ) : null}
@@ -269,10 +270,24 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
     case "gallery":
       return (
         <Section title={t.listing.gallery} icon="📷">
+          {/* Фото открываются крупно целиком, с листанием по всей галерее */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {block.data.photos.map((p, i) => (
-              <PhotoPlaceholder key={i} label={p.caption} url={p.url} />
-            ))}
+            {(() => {
+              const group = block.data.photos
+                .filter((p) => p.url)
+                .map((p, i) => ({ src: p.url!, alt: p.caption || `${ctx.title} — фото ${i + 1}` }));
+              return block.data.photos.map((p, i) => {
+                const at = group.findIndex((g) => g.src === p.url);
+                return p.url ? (
+                  <figure key={i} className="overflow-hidden rounded-2xl border border-line">
+                    <ZoomImage src={p.url} alt={group[at].alt} group={group} index={at} />
+                    {p.caption ? <figcaption className="px-3 py-2 text-sm text-muted">{p.caption}</figcaption> : null}
+                  </figure>
+                ) : (
+                  <PhotoPlaceholder key={i} label={p.caption} />
+                );
+              });
+            })()}
           </div>
         </Section>
       );
@@ -704,7 +719,8 @@ export function ListingView({
               <Photo src={header.logoUrl} alt={`Логотип: ${header.title}`} className="size-full" sizes="80px" priority />
             </div>
           ) : (
-            <div className="-mt-10 grid size-20 place-items-center rounded-3xl border-4 border-white bg-highlight text-2xl font-extrabold shadow-md">
+            // relative — иначе обложка (картинка рисуется позже фона блока) перекрывает заглушку логотипа
+            <div className="relative -mt-10 grid size-20 place-items-center rounded-3xl border-4 border-white bg-highlight text-2xl font-extrabold shadow-md">
               {header.title.replace(/[«»"()]/g, "").trim()[0]}
             </div>
           )}
@@ -759,7 +775,7 @@ export function ListingView({
         </div>
       </header>
 
-      <div className="mt-6 grid grid-cols-1 gap-6">
+      <div className="card-blocks mt-6 grid grid-cols-1 gap-6">
         {data.blocks.map((b) => (
           <Block key={b.id} block={b} ctx={ctx} />
         ))}

@@ -1,40 +1,38 @@
 import { t } from "@/i18n/ru";
 import { miniAppLink } from "@/lib/env";
 
-// Промо-блок мини-приложения в подвале (решение 2 ноября 2026, раздел 10 ТЗ). Телефон-иллюстрация «заезжает»
+// Промо-блок мини-приложения в подвале (решения 2 ноября 2026, раздел 10 ТЗ). Телефон-иллюстрация «заезжает»
 // вверх на фон страницы над подвалом. Внутри самого Mini App блок не нужен — скрыт CSS (html[data-telegram="1"]).
+// На экране телефона — главная страница каталога в том виде, как она открывается в Telegram.
 const p = t.telegramPromo;
 
 export function TelegramPromo() {
   return (
     <section aria-labelledby="tg-promo-title" className="tg-promo mx-auto max-w-6xl px-4 pt-10 sm:px-6">
-      <div className="relative isolate flow-root rounded-[2rem] xl:min-h-[34rem] bg-[linear-gradient(135deg,#2aabee_0%,#3a63e0_48%,#1e1b4b_100%)] text-white shadow-[0_24px_60px_-24px_rgba(30,27,75,0.55)]">
+      <div className="relative isolate flow-root rounded-[2rem] bg-[linear-gradient(135deg,#2aabee_0%,#3a63e0_48%,#1e1b4b_100%)] text-white shadow-[0_24px_60px_-24px_rgba(30,27,75,0.55)] xl:min-h-[31rem]">
         {/* Мягкие световые пятна — внутри карточки */}
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden rounded-[2rem]">
           <div className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-white/20 blur-3xl" />
           <div className="absolute -bottom-32 right-1/3 h-80 w-80 rounded-full bg-[#ffc933]/25 blur-3xl" />
         </div>
 
-        {/* Телефон: на телефоне и планшете — над текстом и выше карточки (низ растворяется); на широком экране (от 1280 px) — справа,
-            выше верхнего края на 7rem, пропорции настоящего телефона (9:19,5 при ширине 21rem = 45,5rem); карточка не ниже
-            34rem (сейчас ~36rem), поэтому низ телефона (~2,5rem) уходит за нижний край карточки */}
+        {/* Телефон. До 1280 px — над текстом, видна верхняя часть экрана (18rem), низ растворяется.
+            От 1280 px — справа целиком, в настоящих пропорциях (9:19,5): ширина 15rem = высота 32,5rem,
+            выступает над карточкой на 4rem; карточка не ниже 31rem, поэтому телефон помещается полностью. */}
         <div
           aria-hidden
-          className="pointer-events-none relative z-10 -mt-28 flex h-[22rem] justify-center [mask-image:linear-gradient(to_bottom,#000_78%,transparent)] xl:absolute xl:-top-28 xl:right-12 xl:bottom-0 xl:mt-0 xl:block xl:h-auto xl:w-[21rem] xl:[clip-path:inset(-20rem_-20rem_0_-20rem)] xl:[mask-image:none]"
+          className="pointer-events-none relative z-10 -mt-24 flex h-[18rem] justify-center overflow-hidden [mask-image:linear-gradient(to_bottom,#000_72%,transparent)] xl:absolute xl:-top-16 xl:right-16 xl:mt-0 xl:block xl:h-auto xl:w-[15rem] xl:overflow-visible xl:[mask-image:none]"
         >
           <PhoneIllustration />
         </div>
 
-        <div className="relative px-5 pb-8 sm:px-10 sm:pb-10 xl:max-w-[calc(100%-26rem)] xl:py-12 xl:pl-12">
-          <p className="inline-flex whitespace-nowrap rounded-full bg-white/15 px-3 py-1 text-xs font-bold ring-1 ring-white/25">
-            {p.eyebrow}
-          </p>
-          <h2 id="tg-promo-title" className="mt-4 text-[1.75rem] font-extrabold leading-tight sm:text-4xl">
+        <div className="relative px-5 pb-8 pt-2 sm:px-10 sm:pb-10 xl:max-w-[calc(100%-22rem)] xl:py-14 xl:pl-12">
+          <h2 id="tg-promo-title" className="text-[1.75rem] font-extrabold leading-tight sm:text-4xl">
             {p.title}
           </h2>
           <p className="mt-3 max-w-xl text-white/85">{p.lead}</p>
 
-          <ul className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:gap-x-8 xl:gap-y-6">
+          <ul className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:gap-x-8">
             {p.benefits.map((b) => (
               <li key={b.title} className="flex gap-3 rounded-2xl bg-white/10 p-4 ring-1 ring-white/15 backdrop-blur-sm xl:bg-transparent xl:p-0 xl:ring-0 xl:backdrop-blur-none">
                 <span aria-hidden className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-xl">
@@ -64,86 +62,79 @@ export function TelegramPromo() {
   );
 }
 
-// Рисованный экран мини-приложения (свой, без чужих логотипов).
+// Рисованный экран мини-приложения (свой, без чужих логотипов): шапка Telegram, шапка сайта,
+// тёмный блок с поиском и список категорий — как на главной странице.
 function PhoneIllustration() {
   return (
-    <div className="relative w-[15.5rem] shrink-0 xl:absolute xl:inset-x-0 xl:top-0 xl:aspect-[9/19.5] xl:w-auto">
-      {/* Всплывающие сообщения бота */}
-      <div className="absolute -left-6 top-44 z-10 w-40 rotate-[-4deg] rounded-2xl bg-white p-3 text-ink shadow-xl sm:-left-24 sm:w-48 xl:-left-14 xl:top-[54%]">
-        <p className="text-xs font-bold text-[#1677a8]">🔔 Новая заявка</p>
-        <p className="mt-1 text-xs leading-snug">Маникюр, завтра в 11:00</p>
-        <div className="mt-2 flex gap-1.5">
-          <span className="flex-1 rounded-lg bg-[#1677a8] py-1 text-center text-[0.8125rem] font-bold text-white">Принять</span>
-          <span className="flex-1 rounded-lg bg-surface-alt py-1 text-center text-[0.8125rem] font-bold text-muted">Позже</span>
-        </div>
-      </div>
-      <div className="absolute -right-4 top-16 z-10 rotate-[5deg] whitespace-nowrap rounded-full bg-highlight px-3 py-1.5 text-xs font-extrabold text-primary shadow-lg sm:-right-12 xl:-right-8 xl:top-24">
+    <div className="relative w-[15rem] shrink-0 xl:aspect-[9/19.5] xl:w-full">
+      <div className="absolute -right-5 top-28 z-10 rotate-[5deg] whitespace-nowrap rounded-full bg-highlight px-3 py-1.5 text-xs font-extrabold text-primary shadow-lg sm:-right-14 xl:-right-10 xl:top-[58%]">
         🎁 −20% в избранном
       </div>
 
       {/* Корпус */}
-      <div className="rounded-[2.6rem] bg-[#14122e] p-2.5 xl:h-full shadow-[0_30px_60px_-20px_rgba(0,0,0,0.6)] ring-1 ring-white/20">
-        <div className="relative flex flex-col overflow-hidden rounded-[2.1rem] bg-surface-alt text-ink xl:h-full">
-          {/* Вырез */}
-          <div className="absolute left-1/2 top-2 h-5 w-20 -translate-x-1/2 rounded-full bg-[#14122e]" />
+      <div className="rounded-[2.4rem] bg-[#14122e] p-2 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.6)] ring-1 ring-white/20 xl:h-full">
+        <div className="relative flex h-[33rem] flex-col overflow-hidden rounded-[2rem] bg-surface-alt text-ink xl:h-full">
+          {/* Вырез камеры */}
+          <div className="absolute left-1/2 top-2 z-10 h-4 w-16 -translate-x-1/2 rounded-full bg-[#14122e]" />
+
           {/* Шапка Telegram */}
-          <div className="bg-white px-4 pb-3 pt-9">
-            <div className="flex items-center justify-between text-[0.8125rem]">
-              <span className="font-bold text-[#1677a8]">✕ Закрыть</span>
-              <span className="font-display font-extrabold text-primary">HBC</span>
-              <span className="font-bold text-muted">•••</span>
+          <div className="flex items-center justify-between bg-white px-3 pb-2 pt-8 text-[0.6875rem]">
+            <span className="font-bold text-[#1677a8]">✕ Закрыть</span>
+            <span className="font-bold">HBC</span>
+            <span className="font-bold text-muted">•••</span>
+          </div>
+
+          {/* Шапка сайта */}
+          <div className="border-b border-line bg-white px-3 pb-2 pt-1.5">
+            <div className="flex items-center gap-1.5">
+              <span className="rounded-md bg-primary px-1.5 py-0.5 font-display text-[0.75rem] font-extrabold text-white">HBC</span>
+              <span className="ml-auto text-[0.8125rem]">🔎</span>
+              <span className="text-[0.8125rem]">❤️</span>
+              <span className="grid h-5 w-5 place-items-center rounded-full bg-primary text-[0.5625rem] font-bold text-white">А</span>
             </div>
-            <div className="mt-3 flex h-9 items-center gap-2 rounded-xl bg-surface-alt px-3 text-[0.8125rem] text-muted">
-              <span aria-hidden>🔍</span> Маникюр в Адаре
+            <div className="mt-1.5 flex gap-1">
+              <span className="whitespace-nowrap rounded-full bg-primary-soft px-1.5 py-0.5 text-[0.5625rem] font-bold text-primary">🏢 Бизнесы</span>
+              <span className="whitespace-nowrap rounded-full bg-primary-soft px-1.5 py-0.5 text-[0.5625rem] font-bold text-primary">👷 Специалисты</span>
             </div>
           </div>
-          <div className="min-h-0 flex-1 space-y-3 overflow-hidden p-3">
-            <div className="flex gap-1.5">
-              {["💅 Красота", "🔧 Мастера", "🍕 Еда"].map((c) => (
-                <span key={c} className="whitespace-nowrap rounded-full bg-white px-2 py-1 text-[0.75rem] font-bold shadow-sm">
-                  {c}
-                </span>
-              ))}
-            </div>
-            <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
-              <div className="relative h-24 bg-[linear-gradient(135deg,#f9c5d1,#c7b8f5_60%,#8fb8f7)]">
-                <span className="absolute left-2 top-2 rounded-full bg-white/95 px-2 py-0.5 text-[0.75rem] font-bold text-success">
-                  ✅ Проверено
-                </span>
-                <span className="absolute bottom-2 right-3 text-3xl">💅</span>
+
+          <div className="min-h-0 flex-1 space-y-2.5 overflow-hidden p-2.5">
+            {/* Главный блок с поиском */}
+            <div className="rounded-2xl bg-primary px-3 py-3.5 text-white">
+              <p className="text-[0.5625rem] font-extrabold text-highlight">HaifaBusinessClub</p>
+              <p className="mt-1 font-display text-[0.8125rem] font-extrabold leading-tight">Сообщество проверенных бизнесов и специалистов Хайфы</p>
+              <div className="mt-2.5 flex items-center gap-1 rounded-full bg-white p-0.5 pl-2 text-[0.5625rem] text-muted">
+                <span>🔍 Что ищете?</span>
+                <span className="ml-auto rounded-full bg-accent px-2 py-1 font-bold text-white">Найти</span>
               </div>
-              <div className="p-3">
-                <p className="text-sm font-bold leading-tight">Студия маникюра</p>
-                <p className="mt-1 text-[0.75rem] text-muted">⭐ 4,9 · Адар · Открыто</p>
+              <div className="mt-2 flex flex-wrap gap-1">
+                {["💅 Маникюр", "🦷 Стоматолог", "💡 Электрик"].map((c) => (
+                  <span key={c} className="whitespace-nowrap rounded-full bg-white/15 px-1.5 py-0.5 text-[0.5625rem] font-bold">
+                    {c}
+                  </span>
+                ))}
               </div>
             </div>
-            <div className="flex items-center gap-2 rounded-2xl bg-white p-2.5 shadow-sm">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-soft text-lg">🔧</span>
-              <span className="min-w-0">
-                <span className="block text-[0.8125rem] font-bold leading-tight">Электрик</span>
-                <span className="block text-[0.75rem] text-muted">⭐ 5,0 · выезд</span>
-              </span>
-              <span className="ml-auto text-lg text-highlight">❤️</span>
-            </div>
+
+            {/* Категории */}
+            <p className="px-0.5 font-display text-[0.8125rem] font-extrabold">🏢 Бизнесы</p>
             {[
-              ["☕", "Кафе у моря", "⭐ 4,8 · Бат-Галим · доставка"],
-              ["🩺", "Стоматолог", "⭐ 4,9 · Кармель · касса"],
-              ["📚", "Репетитор по математике", "⭐ 5,0 · онлайн"],
-              ["🚚", "Грузоперевозки", "⭐ 4,7 · по всему городу"],
-              ["🐾", "Ветеринарная клиника", "⭐ 4,9 · Неве-Шаанан"],
-            ].map(([icon, name, meta]) => (
-              <div key={name} className="flex items-center gap-2 rounded-2xl bg-white p-2.5 shadow-sm">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-lg">{icon}</span>
-                <span className="min-w-0">
-                  <span className="block truncate text-[0.8125rem] font-bold leading-tight">{name}</span>
-                  <span className="block truncate text-[0.75rem] text-muted">{meta}</span>
-                </span>
+              ["🍽️", "Еда и напитки"],
+              ["💅", "Красота и уход"],
+              ["🩺", "Здоровье и клиники"],
+              ["🛠️", "Дом и ремонт"],
+              ["🚗", "Авто"],
+            ].map(([icon, name]) => (
+              <div key={name} className="flex items-center gap-2 rounded-xl border border-line bg-white p-1.5">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-[0.8125rem]">{icon}</span>
+                <span className="min-w-0 flex-1 truncate text-[0.6875rem] font-bold">{name}</span>
+                <span className="pr-1 text-[0.6875rem] text-muted">→</span>
               </div>
             ))}
           </div>
-          {/* Нижняя кнопка Mini App */}
-          <div className="px-3 pb-5 pt-1 xl:pb-14">
-            <div className="rounded-xl bg-[#1677a8] py-2.5 text-center text-sm font-bold text-white">Оставить заявку</div>
+          {/* Полоска «домой» */}
+          <div className="flex justify-center bg-surface-alt pb-1.5 pt-1">
+            <span className="h-1 w-20 rounded-full bg-ink/30" />
           </div>
         </div>
       </div>
