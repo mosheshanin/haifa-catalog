@@ -51,7 +51,7 @@ export function PlaceMap({ lat, lng, label }: { lat: number; lng: number; label:
           },
         });
         map.addControl(new lib.NavigationControl({ showCompass: false }), "top-right");
-        new lib.Marker({ color: "#0a5f6b" }).setLngLat([lng, lat]).addTo(map);
+        new lib.Marker({ color: "#1e1b4b" }).setLngLat([lng, lat]).addTo(map);
         map.on("load", () => map && localizeLabels(map));
         map.on("error", (e) => console.warn("[map]", e.error?.message));
       })

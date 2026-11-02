@@ -21,7 +21,7 @@ export const MAP_STYLE = "https://tiles.openfreemap.org/styles/liberty";
 const WORKER_URL = "/maplibre/maplibre-gl-worker.mjs";
 const HAIFA: [number, number] = [34.99, 32.8];
 // Цвета из globals.css (--color-primary, --color-accent)
-const PRIMARY = "#0a5f6b";
+const PRIMARY = "#1e1b4b"; // основной цвет сайта (логотип)
 const ACCENT = "#c2410c";
 
 const LOCALE = {

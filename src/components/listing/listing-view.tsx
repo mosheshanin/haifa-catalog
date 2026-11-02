@@ -123,7 +123,7 @@ function PhotoPlaceholder({ label, url }: { label?: string; url?: string }) {
       {url ? (
         <Photo src={url} alt={label ?? ""} className="aspect-[4/3] w-full" sizes="(max-width: 640px) 50vw, 33vw" />
       ) : (
-        <div className="grid aspect-[4/3] place-items-center bg-gradient-to-br from-primary-soft to-[#d3ebee] text-sm font-semibold text-primary">
+        <div className="grid aspect-[4/3] place-items-center bg-gradient-to-br from-primary-soft to-[#dcdaf3] text-sm font-semibold text-primary">
           📷 Фото
         </div>
       )}
@@ -676,7 +676,7 @@ export function ListingView({
         {header.coverUrl ? (
           <Photo src={header.coverUrl} alt={header.title} className="h-40 w-full sm:h-56" sizes="(max-width: 768px) 100vw, 768px" priority />
         ) : (
-          <div className="h-28 bg-gradient-to-r from-primary via-[#127c8a] to-[#2aa5a0] sm:h-40" aria-hidden />
+          <div className="h-28 bg-gradient-to-r from-primary via-[#312e81] to-[#4f46e5] sm:h-40" aria-hidden />
         )}
         <div className="px-5 pb-5">
           {header.logoUrl ? (

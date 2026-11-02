@@ -7,9 +7,10 @@ import { TelegramBackButton } from "@/components/telegram/mini-app-chrome";
 import { FavoritesProvider } from "@/components/listing/favorites-provider";
 import { SITE_INDEXABLE, siteUrl } from "@/lib/env";
 import { t } from "@/i18n/ru";
-// Шрифт Nunito лежит в проекте и раздаётся с нашего домена: без запросов к Google в браузере.
+// Шрифты Onest (текст) и Manrope (заголовки) лежат в проекте и раздаются с нашего домена: без запросов к Google в браузере.
 // Браузер скачивает только нужные части (кириллица, латиница) по unicode-range.
-import "@fontsource-variable/nunito/wght.css";
+import "@fontsource-variable/onest/wght.css";
+import "@fontsource-variable/manrope/wght.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -23,7 +24,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a5f6b",
+  themeColor: "#1e1b4b",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",

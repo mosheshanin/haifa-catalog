@@ -57,7 +57,8 @@ export default async function HomePage() {
   return (
     <div className="grid gap-10">
       <section className="relative overflow-hidden rounded-[2rem] bg-primary px-5 py-10 text-white sm:px-10 sm:py-14">
-        <div className="absolute -right-16 -top-16 size-64 rounded-full bg-highlight/25 blur-2xl" aria-hidden />
+        {/* Светлый отсвет того же синего: жёлтый на тёмно-синем давал грязное коричневое пятно */}
+        <div className="absolute -right-16 -top-16 size-64 rounded-full bg-[#6366f1]/35 blur-2xl" aria-hidden />
         <div className="relative max-w-2xl">
           <h1 className="text-3xl font-extrabold leading-tight sm:text-5xl">{t.home.title}</h1>
           <p className="mt-3 text-lg text-white/90">{t.home.lead}</p>

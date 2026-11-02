@@ -86,9 +86,8 @@ Vercel не дал заказчику сохранить имена с `NEXT_PUB
   в шапке и подвале), `hbc-mark.svg` = `src/app/icon.svg` (значок вкладки, буквы крупнее), `src/app/apple-icon.png`,
   `favicon.ico`, `hbc-logo-640.png` (для аватара бота в @BotFather `/setuserpic`). Шкала текста 17/15/13 px
   (`@theme` в `globals.css`, классы text-base/sm/xs). Надписи кнопок, меню и бейджей — в одну строку от 320 px.
-  Сравнение пар шрифтов для заказчика — холст https://claude.ai/artifact/BQHweWzKSq5NbfdbG7KJ6r (Nunito, Onest,
-  Manrope+Inter, Unbounded+Golos Text, Rubik); ждём выбор. Логотип тёмно-синий `#1E1B4B`, палитра сайта бирюзовая —
-  заказчик решает, перекрашивать ли сайт.
+  Заказчик выбрал (2 ноября 2026, по холсту сравнения https://claude.ai/artifact/BQHweWzKSq5NbfdbG7KJ6r): заголовки
+  Manrope, текст Onest; сайт перекрашен из бирюзового в тёмно-синий цвет логотипа.
 
 ## Следующие шаги
 
@@ -186,7 +185,11 @@ Vercel не дал заказчику сохранить имена с `NEXT_PUB
   `npx tsx --conditions=react-server`; справочники (`'use cache'`) подменить через paths в отдельном tsconfig.
 - Карта Google в блоке «Рейтинг на Google»: на узкой карте Google не показывает карточку с рейтингом (видна только на
   широкой, ~640 px), поэтому под картой всегда кнопка «Читать отзывы в Google Картах». С ключом Embed API — проверить заново.
-- Шрифт Nunito — пакет `@fontsource-variable/nunito` (с нашего домена). Фото примеров — Unsplash через `src/components/ui/photo.tsx`.
+- Шрифты: текст — Onest (`@fontsource-variable/onest`, `--font-sans`), заголовки h1–h3 — Manrope
+  (`@fontsource-variable/manrope`, `--font-display`, класс `font-display` для прочих крупных надписей); оба с нашего домена.
+  Палитра — под логотип: основной `#1e1b4b`, наведение `#312e81`, мягкий `#ecebfa`, фон `#f6f6fb`, акцент прежний
+  `#c2410c`. Цвет прописан ещё в метках карт (`place-map.tsx`, `catalog-map.tsx`), `themeColor` в layout и фоне Mini App.
+  Фото примеров — Unsplash через `src/components/ui/photo.tsx`.
 - Правила оформления: фото, иконки и эмодзи; **никакой горизонтальной прокрутки** — меню и чипы переносятся (`flex-wrap`).
   **Проверка переносов:** разовый скрипт Playwright на 320/360/375/390/412 px считает строки надписи через
   `Range.getClientRects()` у кнопок, чипов и бейджей (кнопки-картинки «🔍»/«▶» — ложные срабатывания).
