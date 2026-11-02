@@ -86,7 +86,7 @@ export async function Results({
         <p className="mt-2 text-lg font-bold">Ничего не нашлось</p>
         <p className="mt-1 text-muted">Попробуйте убрать часть фильтров, выбрать соседний район или написать запрос по-другому.</p>
         {emptyAction ?? (
-          <Link href="/kabinet" className="mt-4 inline-flex h-11 items-center rounded-2xl bg-accent px-5 font-bold text-white hover:bg-accent-hover">
+          <Link href="/kabinet/novaya" className="mt-4 inline-flex h-11 items-center rounded-2xl bg-accent px-5 font-bold text-white hover:bg-accent-hover">
             {t.nav.addListing}
           </Link>
         )}

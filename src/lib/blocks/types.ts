@@ -113,7 +113,9 @@ export type ListingBlock =
   | { id: string; type: "events"; hidden?: boolean; data: { items: EventItem[] } }
   | { id: string; type: "vacancies"; hidden?: boolean; data: { items: VacancyItem[] } }
   | { id: string; type: "news"; hidden?: boolean; data: { posts: NewsPost[] } }
-  | { id: string; type: "certificates"; hidden?: boolean; data: { items: CertificateItem[] } };
+  | { id: string; type: "certificates"; hidden?: boolean; data: { items: CertificateItem[] } }
+  // Бесплатная карта Google с рейтингом (Maps Embed API). Хранится только ссылка и код места (раздел 4 ТЗ).
+  | { id: string; type: "google"; hidden?: boolean; data: { url: string; placeId?: string; cid?: string } };
 
 export type BlockOf<T extends ListingBlock["type"]> = Extract<ListingBlock, { type: T }>;
 
@@ -150,4 +152,44 @@ export const BLOCK_TITLES: Record<ListingBlock["type"], string> = {
   vacancies: "Вакансии",
   news: "Новости",
   certificates: "Сертификаты и лицензии",
+  google: "Рейтинг на Google",
 };
+
+export const BLOCK_ICONS: Record<ListingBlock["type"], string> = {
+  description: "📝",
+  address: "📍",
+  service_area: "🚗",
+  hours: "🕒",
+  services: "💰",
+  offers: "🎁",
+  gallery: "📷",
+  before_after: "✨",
+  faq: "❓",
+  features: "⭐",
+  languages: "🗣️",
+  request: "✍️",
+  video: "🎬",
+  team: "👥",
+  portfolio: "🗂️",
+  menu: "🍽️",
+  schedule: "🗓️",
+  events: "🎉",
+  vacancies: "💼",
+  news: "📰",
+  certificates: "📜",
+  google: "🌟",
+};
+
+// Лимиты бесплатного тарифа (раздел 4 ТЗ, решение 2 ноября 2026). Для отдельной карточки администратор может
+// переопределить их в listings.features.limits.
+export const FREE_LIMITS = {
+  gallery: 30,
+  before_after: 10,
+  portfolio: 20,
+  portfolioPhotos: 5,
+  team: 20,
+  certificates: 20,
+  menuFiles: 3,
+  listItems: 100,
+} as const;
+export type Limits = { [K in keyof typeof FREE_LIMITS]: number };

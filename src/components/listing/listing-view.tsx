@@ -4,7 +4,6 @@ import {
   ChatIcon,
   CheckBadgeIcon,
   ClockIcon,
-  FlagIcon,
   GlobeIcon,
   MapPinIcon,
   PhoneIcon,
@@ -37,11 +36,20 @@ import { ZoomImage } from "@/components/listing/blocks/zoom-image";
 import { TeamBookButton } from "@/components/listing/blocks/team-book-button";
 import { SharePanel } from "@/components/listing/share-panel";
 import { vacancyUntil } from "@/lib/blocks/expire";
+import { safeHref } from "@/lib/blocks/links";
+import { GoogleRating } from "@/components/listing/blocks/google-rating";
+import { ListingTracker } from "@/components/listing/listing-tracker";
+import { ClaimButton, ComplaintButton, ReportListingButton, RequestForm, ReviewForm } from "@/components/listing/public-forms";
+import type { PublicReview } from "@/lib/data/reviews";
 
 export type ShareInfo = { url: string; shortUrl?: string; miniAppUrl: string; qrSvg?: string; temporaryAddress: boolean };
 
 // Что нужно блокам кроме их собственных данных.
 type BlockContext = {
+  listingId: string;
+  isDemo: boolean;
+  preview: boolean; // предпросмотр в редакторе: формы не отправляются
+  services: string[];
   districtNames: Record<string, string>;
   vimeoThumbs: Record<string, string>;
   requestEnabled: boolean;
@@ -311,33 +319,24 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
       if (!block.data.enabled) return null;
       return (
         <Section id="request" title={t.listing.request} icon="✍️">
-          <form className="grid gap-3" aria-describedby="request-note">
-            <input disabled placeholder="Ваше имя" className="h-12 rounded-xl border border-line bg-surface-alt px-4" />
-            <input disabled placeholder="Телефон или Telegram" className="h-12 rounded-xl border border-line bg-surface-alt px-4" />
-            {ctx.bookableNames.length ? (
-              <label className="grid gap-1 text-sm font-bold">
-                К кому
-                <select id="request-master" disabled defaultValue="" className="h-12 rounded-xl border border-line bg-surface-alt px-4 font-normal">
-                  <option value="">Любой мастер</option>
-                  {ctx.bookableNames.map((n) => (
-                    <option key={n} value={n}>
-                      {n}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ) : null}
-            {block.data.withTime ? (
-              <input disabled placeholder="Желаемые день и время" className="h-12 rounded-xl border border-line bg-surface-alt px-4" />
-            ) : null}
-            <textarea disabled placeholder="Комментарий" rows={3} className="rounded-xl border border-line bg-surface-alt px-4 py-3" />
-            <button type="button" disabled className="h-12 rounded-2xl bg-accent font-bold text-white opacity-70">
-              Отправить заявку
-            </button>
-            <p id="request-note" className="text-sm text-muted">
-              Форма заработает на этапе 4: заявка придёт владельцу в Telegram и сохранится в кабинете.
-            </p>
-          </form>
+          {ctx.preview ? (
+            <p className="rounded-xl bg-surface-alt p-4 text-sm text-muted">Здесь посетители увидят форму заявки{block.data.withTime ? " с выбором дня и времени" : ""}.</p>
+          ) : (
+            <RequestForm
+              listingId={ctx.listingId}
+              withTime={block.data.withTime}
+              services={ctx.services}
+              masters={ctx.bookableNames}
+              isDemo={ctx.isDemo}
+            />
+          )}
+        </Section>
+      );
+
+    case "google":
+      return (
+        <Section id="google" title={t.listing.google} icon="🌟">
+          <GoogleRating url={block.data.url} placeId={block.data.placeId} cid={block.data.cid} />
         </Section>
       );
 
@@ -452,7 +451,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
           {block.data.files?.length ? (
             <div className="mt-4 flex flex-wrap gap-2">
               {block.data.files.map((f) => (
-                <a key={f.url} href={f.url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 rounded-2xl border border-line px-4 py-2 text-sm font-bold hover:border-primary">
+                <a key={f.url} href={safeHref(f.url)} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 rounded-2xl border border-line px-4 py-2 text-sm font-bold hover:border-primary">
                   {f.kind === "pdf" ? "📄" : "🖼️"} {f.title}
                 </a>
               ))}
@@ -513,8 +512,8 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
                     {e.price !== undefined ? (
                       <span className="rounded-full bg-primary-soft px-2.5 py-1 text-sm font-bold text-primary">{e.price === 0 ? "Бесплатно" : formatPrice(e.price)}</span>
                     ) : null}
-                    {e.registerUrl ? (
-                      <a href={e.registerUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center rounded-xl bg-accent px-4 py-2 text-sm font-bold text-white hover:bg-accent-hover">
+                    {safeHref(e.registerUrl) ? (
+                      <a href={safeHref(e.registerUrl)} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center rounded-xl bg-accent px-4 py-2 text-sm font-bold text-white hover:bg-accent-hover">
                         ✍️ Записаться
                       </a>
                     ) : null}
@@ -611,6 +610,9 @@ export function ListingView({
   districtNames,
   share,
   vimeoThumbs = {},
+  reviews = [],
+  hasOwner = true,
+  preview = false,
 }: {
   listingId: string;
   data: ListingData;
@@ -622,6 +624,9 @@ export function ListingView({
   districtNames: Record<string, string>;
   share: ShareInfo;
   vimeoThumbs?: Record<string, string>;
+  reviews?: PublicReview[];
+  hasOwner?: boolean;
+  preview?: boolean;
 }) {
   const { header, contacts } = data;
   const hours = data.blocks.find((b) => b.type === "hours");
@@ -632,7 +637,12 @@ export function ListingView({
   const request = data.blocks.find((b) => b.type === "request" && !b.hidden);
   const requestEnabled = request?.type === "request" && request.data.enabled;
   const team = data.blocks.find((b) => b.type === "team" && !b.hidden);
+  const servicesBlock = data.blocks.find((b) => b.type === "services" && !b.hidden);
   const ctx: BlockContext = {
+    listingId,
+    isDemo,
+    preview,
+    services: servicesBlock?.type === "services" ? servicesBlock.data.groups.flatMap((g) => g.items.map((i) => i.name)).slice(0, 60) : [],
     districtNames,
     vimeoThumbs,
     requestEnabled,
@@ -728,7 +738,7 @@ export function ListingView({
               </a>
             ) : null}
             <FavoriteButton listingId={listingId} withLabel />
-            <a href="#share" className="inline-flex h-12 items-center gap-2 rounded-2xl border border-line px-4 font-bold hover:border-primary">
+            <a href="#share" data-track="share" className="inline-flex h-12 items-center gap-2 rounded-2xl border border-line px-4 font-bold hover:border-primary">
               <ShareIcon className="size-5" /> {t.listing.share}
             </a>
           </div>
@@ -740,8 +750,42 @@ export function ListingView({
           <Block key={b.id} block={b} ctx={ctx} />
         ))}
 
-        <Section title={t.listing.reviews} icon="💬">
-          <p className="text-muted">Отзывы посетителей и отзывы Google появятся на этапе 3.</p>
+        <Section id="reviews" title={t.listing.reviews} icon="💬">
+          {reviews.length ? (
+            <ul className="mb-4 grid gap-4">
+              {reviews.slice(0, 20).map((r) => (
+                <li key={r.id} className="min-w-0 border-b border-line pb-4 last:border-0">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <span className="font-bold">{r.author_name}</span>
+                    <span className="text-highlight" aria-label={`Оценка ${r.rating} из 5`}>
+                      {"★".repeat(r.rating)}
+                      <span className="text-line">{"★".repeat(5 - r.rating)}</span>
+                    </span>
+                    <span className="text-sm text-muted">{formatDateRu(r.created_at)}</span>
+                  </div>
+                  <p className="mt-1 whitespace-pre-line leading-relaxed">{r.text}</p>
+                  {r.owner_reply ? (
+                    <div className="mt-2 rounded-xl bg-surface-alt p-3 text-sm">
+                      <p className="font-bold">💬 Ответ владельца</p>
+                      <p className="mt-1 whitespace-pre-line">{r.owner_reply}</p>
+                    </div>
+                  ) : null}
+                  {!preview ? (
+                    <ComplaintButton
+                      listingId={listingId}
+                      kind="review"
+                      reviewId={r.id}
+                      label="Пожаловаться"
+                      className="mt-1 min-h-11 text-xs font-semibold text-muted hover:text-danger"
+                    />
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mb-3 text-muted">Отзывов пока нет. Будьте первым!</p>
+          )}
+          {!preview ? <ReviewForm listingId={listingId} isDemo={isDemo} /> : null}
         </Section>
 
         <Section id="share" title={t.listing.shareTitle} icon="📲">
@@ -755,17 +799,25 @@ export function ListingView({
           />
         </Section>
 
-        <div className="flex flex-wrap gap-3 text-sm">
-          <button type="button" className="rounded-full border border-line bg-white px-4 py-2 font-bold hover:border-primary">
-            {t.listing.claim}
-          </button>
-          <button type="button" className="inline-flex items-center gap-1 rounded-full border border-line bg-white px-4 py-2 font-semibold text-muted hover:border-danger hover:text-danger">
-            <FlagIcon className="size-4" /> {t.listing.report}
-          </button>
-          <button type="button" className="rounded-full border border-line bg-white px-4 py-2 font-semibold text-muted hover:border-primary">
-            {t.listing.fixData}
-          </button>
-        </div>
+        {!preview ? (
+          <div className="flex flex-wrap gap-3 text-sm">
+            {!hasOwner ? (
+              <ClaimButton
+                listingId={listingId}
+                label={t.listing.claim}
+                className="min-h-11 rounded-full border border-line bg-white px-4 py-2 font-bold hover:border-primary"
+              />
+            ) : null}
+            <ReportListingButton listingId={listingId} label={t.listing.report} />
+            <ComplaintButton
+              listingId={listingId}
+              kind="data_request"
+              label={t.listing.fixData}
+              className="min-h-11 rounded-full border border-line bg-white px-4 py-2 font-semibold text-muted hover:border-primary"
+            />
+          </div>
+        ) : null}
+        {!preview ? <ListingTracker listingId={listingId} /> : null}
         {data.confirmedAt ? (
           <p className="flex items-center gap-1 text-sm text-muted">
             <ClockIcon className="size-4" /> {t.listing.updated} {formatDateRu(data.confirmedAt)}
@@ -803,4 +855,20 @@ export function ListingView({
       </div>
     </div>
   );
+}
+
+// Один блок отдельно — для сравнения «было — стало» в админке.
+export function BlockPreview({ block, districtNames }: { block: ListingBlock; districtNames: Record<string, string> }) {
+  const ctx: BlockContext = {
+    listingId: "preview",
+    isDemo: true,
+    preview: true,
+    services: [],
+    districtNames,
+    vimeoThumbs: {},
+    requestEnabled: false,
+    title: "",
+    bookableNames: [],
+  };
+  return <Block block={{ ...block, hidden: false } as ListingBlock} ctx={ctx} />;
 }

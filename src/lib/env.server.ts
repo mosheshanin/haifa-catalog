@@ -34,3 +34,13 @@ function jwtRole(key: string): string | undefined {
 export function telegramBotToken(): string {
   return required("TELEGRAM_BOT_TOKEN");
 }
+
+// Секретный ключ Cloudflare Turnstile. Не задан — капча не проверяется (режим разработки).
+export function turnstileSecret(): string | undefined {
+  return process.env.TURNSTILE_SECRET_KEY?.trim() || undefined;
+}
+
+// Токен бота без исключения: для необязательных уведомлений.
+export function telegramBotTokenOptional(): string | undefined {
+  return process.env.TELEGRAM_BOT_TOKEN?.trim() || undefined;
+}

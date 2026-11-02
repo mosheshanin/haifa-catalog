@@ -12,7 +12,7 @@ export function SiteFooter() {
         <nav className="flex flex-col gap-2" aria-label="Каталог">
           <Link href="/biznes" className="hover:text-primary">{t.nav.biznes}</Link>
           <Link href="/specialisty" className="hover:text-primary">{t.nav.specialisty}</Link>
-          <Link href="/kabinet" className="hover:text-primary">{t.nav.addListing}</Link>
+          <Link href="/kabinet/novaya" className="hover:text-primary">{t.nav.addListing}</Link>
         </nav>
         <nav className="flex flex-col gap-2" aria-label="Документы">
           <span className="text-muted">Политика конфиденциальности — этап 5</span>

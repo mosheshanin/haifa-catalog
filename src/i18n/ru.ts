@@ -77,6 +77,7 @@ export const ru = {
     vacancies: "Вакансии",
     news: "Новости",
     certificates: "Сертификаты и лицензии",
+    google: "Рейтинг на Google",
     from: "от",
   },
   auth: {

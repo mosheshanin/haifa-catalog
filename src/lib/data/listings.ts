@@ -99,6 +99,7 @@ export type ListingPage = {
   ratingAvg: number | null;
   ratingCount: number;
   shortCode: string | null;
+  hasOwner: boolean;
   publishedAt: string | null;
   updatedAt: string;
   data: ListingData;
@@ -115,7 +116,7 @@ export async function getListingBySlug(
   const sb = createPublicClient();
   const { data: l, error } = await sb
     .from("listings")
-    .select("id, section, slug, category_id, is_verified, is_demo, rating_avg, rating_count, short_code, published_version_id, published_at, updated_at")
+    .select("id, section, slug, category_id, is_verified, is_demo, rating_avg, rating_count, short_code, owner_id, published_version_id, published_at, updated_at")
     .eq("section", section)
     .eq("slug", slug)
     .eq("status", "published")
@@ -152,6 +153,7 @@ export async function getListingBySlug(
     ratingAvg: l.rating_avg,
     ratingCount: l.rating_count,
     shortCode: l.short_code,
+    hasOwner: Boolean(l.owner_id),
     publishedAt: l.published_at,
     updatedAt: l.updated_at,
     // Устаревшие спецпредложения, мероприятия и вакансии скрываются (раздел 4 ТЗ).

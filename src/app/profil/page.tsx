@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { getCurrentUser } from "@/lib/auth/current-user";
+import { createClient } from "@/lib/supabase/server";
 import { LinkGoogleButton, OpenInTelegramButton } from "@/components/auth/link-accounts";
 import { GoogleLogo, TelegramLogo, UserIcon } from "@/components/icons";
 import { t } from "@/i18n/ru";
@@ -87,6 +88,8 @@ async function ProfileContent({ searchParams }: { searchParams: PageProps<"/prof
         </div>
       </section>
 
+      <MyActivity userId={user.id} />
+
       <div className="flex flex-wrap gap-3">
         <Link href="/kabinet" className="inline-flex h-11 items-center rounded-2xl border border-line bg-white px-5 font-bold hover:border-primary">
           {t.nav.cabinet}
@@ -103,6 +106,59 @@ async function ProfileContent({ searchParams }: { searchParams: PageProps<"/prof
         </form>
       </div>
     </div>
+  );
+}
+
+const REQ_STATUS: Record<string, string> = { new: "🕓 Отправлена", accepted: "✅ Принята", rejected: "✖ Отклонена" };
+const REV_STATUS: Record<string, string> = { pending: "🕓 На проверке", approved: "✅ Опубликован", rejected: "✖ Не прошёл проверку" };
+
+// История своих заявок и отзывов (раздел 2 ТЗ: у пользователя — история своих заявок).
+async function MyActivity({ userId }: { userId: string }) {
+  const supabase = await createClient();
+  const [{ data: requests }, { data: reviews }] = await Promise.all([
+    supabase.from("requests").select("id, status, created_at, desired_date, desired_time, listings(title, section, slug)").eq("user_id", userId).order("created_at", { ascending: false }).limit(30),
+    supabase.from("reviews").select("id, status, rating, reject_reason, created_at, listings(title, section, slug)").eq("user_id", userId).order("created_at", { ascending: false }).limit(30),
+  ]);
+  if (!requests?.length && !reviews?.length) return null;
+  type L = { title: string; section: string; slug: string } | null;
+  return (
+    <section className="grid gap-4 rounded-[var(--radius-card)] border border-line bg-white p-5 shadow-sm">
+      {requests?.length ? (
+        <div>
+          <h2 className="mb-2 text-lg font-extrabold">✍️ Мои заявки</h2>
+          <ul className="grid gap-2 text-sm">
+            {requests.map((r) => {
+              const l = r.listings as unknown as L;
+              return (
+                <li key={r.id} className="flex flex-wrap gap-x-2">
+                  <Link href={`/${l?.section}/${l?.slug}`} className="font-bold text-primary">{l?.title}</Link>
+                  <span>{REQ_STATUS[r.status]}</span>
+                  <span className="text-muted">{new Date(r.created_at).toLocaleDateString("ru-RU")}</span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ) : null}
+      {reviews?.length ? (
+        <div>
+          <h2 className="mb-2 text-lg font-extrabold">💬 Мои отзывы</h2>
+          <ul className="grid gap-2 text-sm">
+            {reviews.map((r) => {
+              const l = r.listings as unknown as L;
+              return (
+                <li key={r.id} className="flex flex-wrap gap-x-2">
+                  <Link href={`/${l?.section}/${l?.slug}`} className="font-bold text-primary">{l?.title}</Link>
+                  <span className="text-highlight">{"★".repeat(r.rating)}</span>
+                  <span>{REV_STATUS[r.status]}</span>
+                  {r.status === "rejected" && r.reject_reason ? <span className="text-muted">({r.reject_reason})</span> : null}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ) : null}
+    </section>
   );
 }
 

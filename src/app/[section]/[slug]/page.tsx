@@ -14,6 +14,7 @@ import { breadcrumbsJsonLd, jsonLdScript, listingEventsJsonLd, listingJsonLd } f
 import { miniAppLink, siteUrl, SITE_INDEXABLE } from "@/lib/env";
 import QRCode from "qrcode";
 import { getVimeoThumbs } from "@/lib/data/video";
+import { getListingReviews } from "@/lib/data/reviews";
 import { t } from "@/i18n/ru";
 import type { Section } from "@/lib/blocks/types";
 
@@ -166,7 +167,7 @@ export default async function SlugPage({ params, searchParams }: PageProps<"/[se
     color: { dark: "#0a3d45", light: "#ffffff" },
   });
   const vimeoIds = listing.data.blocks.flatMap((b) => (b.type === "video" && !b.hidden ? b.data.items.filter((v) => v.provider === "vimeo").map((v) => v.videoId) : []));
-  const vimeoThumbs = vimeoIds.length ? await getVimeoThumbs(vimeoIds) : {};
+  const [vimeoThumbs, reviews] = await Promise.all([vimeoIds.length ? getVimeoThumbs(vimeoIds) : Promise.resolve({}), getListingReviews(listing.id)]);
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -180,7 +181,8 @@ export default async function SlugPage({ params, searchParams }: PageProps<"/[se
               schemaType: topCategory?.schema_type ?? null,
               categoryName: cat?.name ?? "",
               districtNames: listing.data.header.districtSlugs.map((s) => districtNames[s] ?? s),
-              rating: null, // рейтинг появится вместе с отзывами платформы (этап 3)
+              // Рейтинг — только по отзывам нашей платформы (раздел 8 ТЗ)
+              rating: listing.ratingCount > 0 && listing.ratingAvg ? { value: Number(listing.ratingAvg), count: listing.ratingCount } : null,
             }),
             breadcrumbsJsonLd([
               { name: "Главная", url: siteUrl() },
@@ -206,6 +208,8 @@ export default async function SlugPage({ params, searchParams }: PageProps<"/[se
         isDemo={listing.isDemo}
         districtNames={districtNames}
         vimeoThumbs={vimeoThumbs}
+        reviews={reviews}
+        hasOwner={listing.hasOwner}
         share={{
           url,
           shortUrl,
