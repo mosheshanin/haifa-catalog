@@ -91,3 +91,11 @@ h3 {
 .pb-action-bar {
   padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
 }
+
+/* Промо мини-приложения в подвале не нужно внутри самого Mini App (2 ноября 2026). */
+html[data-telegram="1"] .tg-promo {
+  display: none;
+}
+html[data-telegram="1"] .site-footer {
+  margin-top: 4rem;
+}
