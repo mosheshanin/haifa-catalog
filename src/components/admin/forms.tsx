@@ -21,6 +21,7 @@ import {
   postListingToChannel,
 } from "@/app/actions/admin";
 import { FormMessage, SubmitButton, inputCls, labelCls, textareaCls } from "@/components/forms/ui";
+import { ICONS_3D, icon3dSrc, isIcon3d } from "@/lib/icons-3d";
 
 const btn = "inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-bold";
 
@@ -255,7 +256,33 @@ export function UserAccessForm({ id, role, blocked, self }: { id: string; role: 
   );
 }
 
-type Cat = { id: number; section: string; parent_id: number | null; slug: string; name: string; icon: string | null; aliases: string[]; sort: number; is_active: boolean; seo_title: string | null; seo_description: string | null; seo_text: string | null; amenities?: string[] };
+type Cat = { id: number; section: string; parent_id: number | null; slug: string; name: string; icon: string | null; icon_3d?: string | null; aliases: string[]; sort: number; is_active: boolean; seo_title: string | null; seo_description: string | null; seo_text: string | null; amenities?: string[] };
+
+// Выбор 3D-иконки категории с предпросмотром (3dicons Gradient, 3 ноября 2026).
+// Пусто: у подкатегории — иконка родительской категории, у категории верхнего уровня — эмодзи из поля «Эмодзи».
+const ICON_OPTIONS = Object.entries(ICONS_3D).sort((a, b) => a[1].localeCompare(b[1], "ru"));
+
+function Icon3dPicker({ value, isSub }: { value: string | null | undefined; isSub: boolean }) {
+  const [v, setV] = useState(isIcon3d(value) ? value : "");
+  return (
+    <div className="grid gap-1">
+      <span className={labelCls}>3D-иконка на сайте</span>
+      <div className="flex items-center gap-3">
+        <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-surface-alt" aria-hidden>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {v ? <img src={icon3dSrc(v)} alt="" width={48} height={48} /> : <span className="px-1 text-center text-xs text-muted">{isSub ? "как у категории" : "эмодзи"}</span>}
+        </span>
+        <select name="icon_3d" aria-label="3D-иконка на сайте" value={v} onChange={(e) => setV(e.target.value)} className={inputCls}>
+          <option value="">{isSub ? "— как у категории —" : "— без 3D-иконки (будет эмодзи) —"}</option>
+          {ICON_OPTIONS.map(([k, label]) => (
+            <option key={k} value={k}>{label}</option>
+          ))}
+        </select>
+      </div>
+      <span className="text-xs text-muted">Эмодзи остаётся для Telegram-бота и выпадающих списков.</span>
+    </div>
+  );
+}
 
 export function CategoryForm({ c, parents }: { c?: Cat; parents: Array<{ id: number; name: string; section: string }> }) {
   return (
@@ -263,7 +290,7 @@ export function CategoryForm({ c, parents }: { c?: Cat; parents: Array<{ id: num
       {c ? <input type="hidden" name="id" value={c.id} /> : null}
       <div className="grid gap-2 sm:grid-cols-[4rem_1fr]">
         <label className={labelCls}>
-          Иконка
+          Эмодзи
           <input name="icon" defaultValue={c?.icon ?? ""} maxLength={8} className={inputCls} />
         </label>
         <label className={labelCls}>
@@ -271,6 +298,7 @@ export function CategoryForm({ c, parents }: { c?: Cat; parents: Array<{ id: num
           <input name="name" required defaultValue={c?.name ?? ""} maxLength={100} className={inputCls} />
         </label>
       </div>
+      <Icon3dPicker value={c?.icon_3d} isSub={!!c?.parent_id} />
       {!c ? (
         <div className="grid gap-2 sm:grid-cols-3">
           <label className={labelCls}>

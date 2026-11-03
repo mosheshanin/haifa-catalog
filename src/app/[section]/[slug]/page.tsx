@@ -120,8 +120,8 @@ async function CategoryPage({ section, category, searchParams }: { section: Sect
           {subcategories.map((c) => (
             <li key={c.id}>
               <Link href={`/${section}/${category.slug}/${c.slug}`} className="flex min-h-11 items-center gap-2 rounded-2xl border border-line bg-white px-4 py-2 text-sm font-bold leading-snug hover:border-primary hover:bg-primary-soft">
-                {/* У подкатегорий своей 3D-иконки нет — иконка категории (решение 3 ноября 2026) */}
-                <Icon3d name={categoryIcon3d(category)} size={26} fallback={c.icon} className="-my-1" />
+                {/* Своя 3D-иконка подкатегории, иначе — иконка категории (решение 3 ноября 2026) */}
+                <Icon3d name={categoryIcon3d(c, category)} size={26} fallback={c.icon} className="-my-1" />
                 {c.name}
               </Link>
             </li>

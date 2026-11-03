@@ -20,8 +20,9 @@ mig = os.path.dirname(os.path.abspath(sys.argv[1]))
 for c in categories:
     c["amenities"] = []
     c["icon"] = None
-# Эмодзи категорий — из миграции иконок (3 ноября 2026)
-for pat, key in (("*_category_icons.sql", "icon"),):
+    c["icon_3d"] = None
+# Иконки категорий: эмодзи и 3D — из миграций иконок (3 ноября 2026)
+for pat, key in (("*_category_icons.sql", "icon"), ("*_category_icons_3d.sql", "icon_3d")):
     for f in glob.glob(os.path.join(mig, pat)):
         for m in re.finditer(r"\('(biznes|specialisty)', '([a-z0-9-]+)', '([^']+)'\)", open(f, encoding="utf-8").read()):
             for c in categories:

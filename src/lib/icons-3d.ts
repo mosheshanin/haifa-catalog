@@ -131,35 +131,11 @@ export function isIcon3d(name: string | null | undefined): name is string {
 
 export const icon3dSrc = (name: string) => `/icons/3d/${name}.webp`;
 
-// 3D-иконки 21 категории верхнего уровня, ключ — «раздел/адрес категории». Хранятся в коде, а не в базе:
-// эмодзи в categories.icon остаются для Telegram-бота и выпадающих списков, где картинку не вставить.
-// Новая категория без строки здесь показывается с эмодзи из админки.
-// Подкатегории своих 3D-иконок не имеют — берут иконку категории (решение 3 ноября 2026).
-// В наборе нет машины, дома, грузовика: временные замены — ключ, метка на карте, ракета.
-const CATEGORY_ICONS_3D: Record<string, string> = {
-  "biznes/eda": "tea-cup",
-  "biznes/krasota": "scissor",
-  "biznes/zdorovye": "lab",
-  "biznes/dom-i-remont": "roll-brush",
-  "biznes/avto": "key",
-  "biznes/obrazovanie": "notebook",
-  "biznes/magaziny": "bag",
-  "biznes/yuridicheskie-uslugi": "money-bag",
-  "biznes/nedvizhimost": "map-pin",
-  "biznes/dosug": "music",
-  "biznes/turistam": "travel",
-  "specialisty/vrachi-i-psihologi": "heart",
-  "specialisty/krasota": "brush",
-  "specialisty/repetitory": "pencil",
-  "specialisty/yuristy-i-buhgaltery": "calculator",
-  "specialisty/mastera": "tool",
-  "specialisty/pereezdy": "rocket",
-  "specialisty/nyani-i-sidelki": "girl",
-  "specialisty/foto-video-vedushchie": "camera",
-  "specialisty/it-i-dizayn": "computer",
-  "specialisty/dokumenty-i-repatriaciya": "file-text",
-};
-
-export function categoryIcon3d(c: { section: string; slug: string } | undefined): string | null {
-  return c ? (CATEGORY_ICONS_3D[`${c.section}/${c.slug}`] ?? null) : null;
+// Иконка категории хранится в базе (categories.icon_3d, выбирается в админке; миграция 20261103000001).
+// У подкатегории без своей иконки — иконка родительской категории (решение 3 ноября 2026).
+// Эмодзи categories.icon остаются для Telegram-бота и выпадающих списков.
+type WithIcon = { icon_3d?: string | null } | null | undefined;
+export function categoryIcon3d(c: WithIcon, parent?: WithIcon): string | null {
+  if (isIcon3d(c?.icon_3d)) return c.icon_3d;
+  return isIcon3d(parent?.icon_3d) ? parent.icon_3d : null;
 }

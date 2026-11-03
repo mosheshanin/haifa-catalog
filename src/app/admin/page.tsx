@@ -331,7 +331,7 @@ async function Dictionaries() {
                   .map((s) => (
                     <details key={s.id} className="rounded-xl bg-surface-alt p-3">
                       <summary className="min-h-11 cursor-pointer text-sm font-bold">
-                        — {s.icon} {s.name} <span className="font-normal text-muted">· {s.slug}</span>
+                        — <Icon3d name={categoryIcon3d(s, c)} size={22} fallback={s.icon} className="mr-1 inline-block align-middle" /> {s.name} <span className="font-normal text-muted">· {s.slug}</span>
                       </summary>
                       <div className="mt-3">
                         <CategoryForm c={s} parents={[]} />

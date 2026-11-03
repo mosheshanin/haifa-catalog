@@ -26,6 +26,7 @@ import {
 } from "@/lib/telegram/channel";
 import { telegramBotTokenOptional } from "@/lib/env.server";
 import { siteUrl } from "@/lib/env";
+import { isIcon3d } from "@/lib/icons-3d";
 
 const titles = BLOCK_TITLES as Record<string, string>;
 const str = (f: FormData, k: string, max = 500) => String(f.get(k) ?? "").trim().slice(0, max);
@@ -304,6 +305,8 @@ export async function saveCategory(_: unknown, form: FormData): Promise<ActionRe
     const row = {
       name: str(form, "name", 100),
       icon: str(form, "icon", 8) || null,
+      // 3D-иконка — только из набора public/icons/3d (src/lib/icons-3d.ts); пусто = эмодзи / иконка категории
+      icon_3d: isIcon3d(str(form, "icon_3d", 40)) ? str(form, "icon_3d", 40) : null,
       aliases: aliasesOf(str(form, "aliases", 2000)),
       seo_title: str(form, "seo_title", 120) || null,
       seo_description: str(form, "seo_description", 300) || null,

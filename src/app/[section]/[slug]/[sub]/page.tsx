@@ -107,7 +107,7 @@ export default async function SubPage({ params, searchParams }: PageProps<"/[sec
           {r.kind === "subcategory" ? r.category.name : r.district.name}
         </nav>
         <h1 className="flex items-center gap-3 text-2xl font-extrabold leading-tight sm:text-3xl">
-          <Icon3d name={categoryIcon3d(parent)} size={52} fallback={r.kind === "subcategory" ? r.category.icon : parent.icon} priority className="-my-2" />
+          <Icon3d name={r.kind === "subcategory" ? categoryIcon3d(r.category, parent) : categoryIcon3d(parent)} size={52} fallback={r.kind === "subcategory" ? r.category.icon : parent.icon} priority className="-my-2" />
           <span>{title}</span>
         </h1>
         {r.kind === "district" ? (

@@ -10,6 +10,7 @@ export type Category = {
   slug: string;
   name: string;
   icon: string | null;
+  icon_3d: string | null; // 3D-иконка (public/icons/3d); пусто у подкатегории — берётся иконка категории
   sort: number;
   schema_type: string | null;
   seo_title: string | null;
@@ -27,7 +28,7 @@ export async function getCategories(): Promise<Category[]> {
   cacheLife("hours");
   const { data, error } = await createPublicClient()
     .from("categories")
-    .select("id, section, parent_id, slug, name, icon, sort, schema_type, seo_title, seo_description, seo_text, amenities")
+    .select("id, section, parent_id, slug, name, icon, icon_3d, sort, schema_type, seo_title, seo_description, seo_text, amenities")
     .eq("is_active", true)
     .order("sort");
   if (error) throw error;
