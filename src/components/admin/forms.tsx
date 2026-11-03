@@ -8,6 +8,7 @@ import {
   decideVersion,
   revertInstant,
   saveCategory,
+  updateServiceOrder,
   saveDistrict,
   saveSettings,
   saveSynonym,
@@ -156,6 +157,31 @@ function Mini({ action, children, msg = true }: { action: (p: unknown, f: FormDa
       {children}
       {msg ? <FormMessage state={state as never} /> : null}
     </form>
+  );
+}
+
+// Статус заказа дополнительных услуг и заметка администратора.
+export function ServiceOrderForm({ id, status, note }: { id: string; status: string; note: string | null }) {
+  return (
+    <Mini action={updateServiceOrder}>
+      <input type="hidden" name="id" value={id} />
+      <div className="flex flex-wrap items-end gap-2">
+        <label className={`${labelCls} min-w-40 flex-1`}>
+          Статус
+          <select name="status" defaultValue={status} className={inputCls}>
+            <option value="new">Новый</option>
+            <option value="in_progress">В работе</option>
+            <option value="done">Выполнен</option>
+            <option value="cancelled">Отменён</option>
+          </select>
+        </label>
+        <label className={`${labelCls} min-w-56 flex-[2]`}>
+          Заметка (видна только администраторам)
+          <input name="note" defaultValue={note ?? ""} maxLength={500} className={inputCls} placeholder="Созвонились, оплата 10.11" />
+        </label>
+        <SubmitButton>Сохранить</SubmitButton>
+      </div>
+    </Mini>
   );
 }
 

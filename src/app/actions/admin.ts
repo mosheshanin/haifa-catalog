@@ -157,6 +157,22 @@ export async function decideComplaint(_: unknown, form: FormData): Promise<Actio
   }, "Готово.");
 }
 
+// ---------- Заказы дополнительных услуг (3 ноября 2026) ----------
+const ORDER_STATUSES = ["new", "in_progress", "done", "cancelled"] as const;
+export async function updateServiceOrder(_: unknown, form: FormData): Promise<ActionResult> {
+  return runAction(async () => {
+    const admin = await requireAdmin();
+    const id = str(form, "id", 40);
+    const status = String(form.get("status") ?? "");
+    if (!(ORDER_STATUSES as readonly string[]).includes(status)) throw new ActionError("Неизвестный статус.");
+    const note = str(form, "note", 500) || null;
+    const { error } = await createAdminClient().from("service_orders").update({ status, admin_note: note, handled_by: admin.id }).eq("id", id);
+    if (error) throw error;
+    await audit(admin.id, "service_order.updated", "service_order", id, { status });
+    refresh();
+  }, "Сохранено.");
+}
+
 // ---------- Права владельца ----------
 export async function decideClaim(_: unknown, form: FormData): Promise<ActionResult> {
   return runAction(async () => {

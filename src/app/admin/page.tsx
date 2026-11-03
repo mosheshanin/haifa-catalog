@@ -16,6 +16,7 @@ import {
   RevertForm,
   ReviewDecision,
   SetupBotButton,
+  ServiceOrderForm,
   SettingsForm,
   SynonymForm,
   UserAccessForm,
@@ -31,6 +32,7 @@ import { getSiteSettings } from "@/lib/data/settings";
 import { addDays, israelToday } from "@/lib/blocks/expire";
 import { t } from "@/i18n/ru";
 import { Icon3d } from "@/components/ui/icon-3d";
+import { formatShekels } from "@/lib/extra-services";
 import { categoryIcon3d } from "@/lib/icons-3d";
 
 export const metadata: Metadata = { title: t.admin.title, robots: { index: false } };
@@ -39,6 +41,7 @@ const TABS = [
   { k: "queue", label: "🛡 Очередь" },
   { k: "instant", label: "⚡ Правки без проверки" },
   { k: "listings", label: "🗂️ Карточки" },
+  { k: "orders", label: "🛎 Заказы услуг" },
   { k: "users", label: "👥 Пользователи" },
   { k: "dict", label: "📚 Справочники" },
   { k: "import", label: "📥 Импорт" },
@@ -375,6 +378,62 @@ async function Dictionaries() {
   );
 }
 
+const ORDER_STATUS: Record<string, string> = { new: "🆕 Новый", in_progress: "🕓 В работе", done: "✅ Выполнен", cancelled: "✖ Отменён" };
+
+// Заказы дополнительных услуг с последнего шага добавления карточки (3 ноября 2026). Оплата — вне сайта.
+async function Orders() {
+  const sb = createAdminClient();
+  const { data } = await sb
+    .from("service_orders")
+    .select("id, items, total, comment, status, admin_note, created_at, listings(id, title), profiles!service_orders_user_id_fkey(display_name, telegram_username, google_email)")
+    .order("created_at", { ascending: false })
+    .limit(200);
+  const rows = data ?? [];
+  return (
+    <Panel title="🛎 Заказы дополнительных услуг">
+      <p className="text-sm text-muted">Владелец отмечает услуги на последнем шаге добавления карточки. Свяжитесь с ним, обсудите детали и оплату, затем поменяйте статус.</p>
+      {!rows.length ? <p className="py-4 text-sm text-muted">Заказов пока нет.</p> : null}
+      <ul className="grid gap-3">
+        {rows.map((o) => {
+          const l = o.listings as unknown as { id: string; title: string | null } | null;
+          const u = o.profiles as unknown as { display_name: string | null; telegram_username: string | null; google_email: string | null } | null;
+          const items = (o.items as Array<{ title: string; price: number }>) ?? [];
+          return (
+            <li key={o.id} className="grid gap-3 rounded-2xl border border-line p-4">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <p className="font-extrabold">
+                  {l ? <Link href={`/kabinet/kartochka/${l.id}`} className="text-primary underline">{l.title ?? "Без названия"}</Link> : "Карточка удалена"}
+                  <span className="ml-2 text-sm font-normal text-muted">{dt(o.created_at)}</span>
+                </p>
+                <span className="whitespace-nowrap rounded-full bg-surface-alt px-2.5 py-1 text-xs font-bold">{ORDER_STATUS[o.status] ?? o.status}</span>
+              </div>
+              <ul className="grid gap-1 text-sm">
+                {items.map((i) => (
+                  <li key={i.title} className="flex justify-between gap-3">
+                    <span>{i.title}</span>
+                    <b className="whitespace-nowrap tabular-nums">{formatShekels(i.price)}</b>
+                  </li>
+                ))}
+                <li className="flex justify-between gap-3 border-t border-line pt-1 font-extrabold">
+                  <span>Итого</span>
+                  <span className="whitespace-nowrap tabular-nums">{formatShekels(o.total)}</span>
+                </li>
+              </ul>
+              <p className="text-sm">
+                Заказчик: <b>{u?.display_name ?? "—"}</b>
+                {u?.telegram_username ? <> · Telegram: <a href={`https://t.me/${u.telegram_username}`} className="text-primary underline" target="_blank" rel="noreferrer">@{u.telegram_username}</a></> : null}
+                {u?.google_email ? <> · {u.google_email}</> : null}
+              </p>
+              {o.comment ? <p className="rounded-xl bg-surface-alt p-2 text-sm">💬 {o.comment}</p> : null}
+              <ServiceOrderForm id={o.id} status={o.status} note={o.admin_note} />
+            </li>
+          );
+        })}
+      </ul>
+    </Panel>
+  );
+}
+
 async function Log({ actor }: { actor?: string }) {
   const sb = createAdminClient();
   let query = sb.from("audit_log").select("id, actor_id, action, entity_type, entity_id, details, created_at, profiles(display_name)").order("created_at", { ascending: false }).limit(200);
@@ -549,6 +608,7 @@ async function AdminContent({ searchParams }: { searchParams: Promise<Record<str
       {tab === "queue" ? <Queue /> : null}
       {tab === "instant" ? <Instant districtNames={districtNames} /> : null}
       {tab === "listings" ? <Listings q={one("q")} status={one("status")} /> : null}
+      {tab === "orders" ? <Orders /> : null}
       {tab === "users" ? <Users q={one("q")} selfId={user.id} /> : null}
       {tab === "dict" ? <Dictionaries /> : null}
       {tab === "import" ? <ImportPanel /> : null}

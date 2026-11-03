@@ -13,52 +13,98 @@ import { escapeHtml, notifyAdmins, notifyUser } from "@/lib/telegram/notify";
 import { onFirstPublish, onOffersPublished } from "@/lib/telegram/channel";
 import { decideRequest } from "@/lib/telegram/requests";
 import { israelToday } from "@/lib/blocks/expire";
+import { extraByCode, formatShekels } from "@/lib/extra-services";
 
 const titles = BLOCK_TITLES as Record<string, string>;
 
 // ---------- Новая карточка («Добавить бизнес или специалиста») ----------
+type NewListingInput = { section: string; title: string; profession?: string; categoryId: number; district: string; noOwner?: boolean };
+
+// Общая часть создания карточки: черновик listings + первая версия с описанием и адресом/зоной выезда.
+async function createListingDraft(input: NewListingInput) {
+  const user = await requireUser();
+  await rateLimit(`create-listing:${user.id}`, user.role === "admin" ? 200 : 5, 86400);
+  const section = input.section === "specialisty" ? "specialisty" : ("biznes" as Section);
+  const title = String(input.title ?? "").trim().slice(0, 120);
+  const categoryId = Number(input.categoryId);
+  const district = String(input.district ?? "");
+  if (title.length < 2) throw new ActionError("Укажите название.");
+  const sb = createAdminClient();
+  const [{ data: cat }, { data: dist }] = await Promise.all([
+    sb.from("categories").select("id").eq("id", categoryId).eq("section", section).eq("is_active", true).maybeSingle(),
+    sb.from("districts").select("slug").eq("slug", district).eq("is_active", true).maybeSingle(),
+  ]);
+  if (!cat) throw new ActionError("Выберите категорию.");
+  if (!dist) throw new ActionError("Выберите район.");
+  const noOwner = user.role === "admin" && input.noOwner === true;
+  const slug = await uniqueSlug(section, title);
+  const { data: listing, error } = await sb
+    .from("listings")
+    .insert({ section, slug, status: "draft", owner_id: noOwner ? null : user.id, created_by: user.id, title })
+    .select("id")
+    .single();
+  if (error) throw error;
+  const profession = section === "specialisty" ? String(input.profession ?? "").trim().slice(0, 100) || undefined : undefined;
+  const data: ListingData = {
+    section,
+    header: { title, profession, categoryId, districtSlugs: [district], badges: [] },
+    contacts: {},
+    blocks: [
+      { id: `description-${crypto.randomUUID().slice(0, 8)}`, type: "description", data: { text: "" } },
+      section === "biznes"
+        ? { id: `address-${crypto.randomUUID().slice(0, 8)}`, type: "address", data: { address: "" } }
+        : { id: `service_area-${crypto.randomUUID().slice(0, 8)}`, type: "service_area", data: { districtSlugs: [district], formats: ["at_home"] } },
+    ],
+  };
+  const { error: vErr } = await sb.from("listing_versions").insert({ listing_id: listing.id, status: "draft", data, created_by: user.id });
+  if (vErr) throw vErr;
+  await audit(user.id, "listing.created", "listing", listing.id, { section, title, noOwner });
+  return { id: listing.id as string, data };
+}
+
 export async function createListing(_: unknown, form: FormData): Promise<ActionResult> {
   const result = await runAction(async () => {
-    const user = await requireUser();
-    await rateLimit(`create-listing:${user.id}`, user.role === "admin" ? 200 : 5, 86400);
-    const section = form.get("section") === "specialisty" ? "specialisty" : ("biznes" as Section);
-    const title = String(form.get("title") ?? "").trim().slice(0, 120);
-    const categoryId = Number(form.get("categoryId"));
-    const district = String(form.get("district") ?? "");
-    if (title.length < 2) throw new ActionError("Укажите название.");
-    const sb = createAdminClient();
-    const [{ data: cat }, { data: dist }] = await Promise.all([
-      sb.from("categories").select("id").eq("id", categoryId).eq("section", section).eq("is_active", true).maybeSingle(),
-      sb.from("districts").select("slug").eq("slug", district).eq("is_active", true).maybeSingle(),
-    ]);
-    if (!cat) throw new ActionError("Выберите категорию.");
-    if (!dist) throw new ActionError("Выберите район.");
-    const noOwner = user.role === "admin" && form.get("noOwner") === "1";
-    const slug = await uniqueSlug(section, title);
-    const { data: listing, error } = await sb
-      .from("listings")
-      .insert({ section, slug, status: "draft", owner_id: noOwner ? null : user.id, created_by: user.id, title })
-      .select("id")
-      .single();
-    if (error) throw error;
-    const data: ListingData = {
-      section,
-      header: { title, categoryId, districtSlugs: [district], badges: [] },
-      contacts: {},
-      blocks: [
-        { id: `description-${crypto.randomUUID().slice(0, 8)}`, type: "description", data: { text: "" } },
-        section === "biznes"
-          ? { id: `address-${crypto.randomUUID().slice(0, 8)}`, type: "address", data: { address: "" } }
-          : { id: `service_area-${crypto.randomUUID().slice(0, 8)}`, type: "service_area", data: { districtSlugs: [district], formats: ["at_home"] } },
-      ],
-    };
-    const { error: vErr } = await sb.from("listing_versions").insert({ listing_id: listing.id, status: "draft", data, created_by: user.id });
-    if (vErr) throw vErr;
-    await audit(user.id, "listing.created", "listing", listing.id, { section, title, noOwner });
-    return listing.id as string;
+    const { id } = await createListingDraft({
+      section: String(form.get("section") ?? ""),
+      title: String(form.get("title") ?? ""),
+      categoryId: Number(form.get("categoryId")),
+      district: String(form.get("district") ?? ""),
+      noOwner: form.get("noOwner") === "1",
+    });
+    return id;
   });
   if (result.ok && result.data) redirect(`/kabinet/kartochka/${result.data}`);
   return result;
+}
+
+// Пошаговое добавление (3 ноября 2026): черновик создаётся после первых четырёх вопросов, дальше шаги сохраняют его.
+export async function startListing(input: NewListingInput): Promise<ActionResult<{ id: string; data: ListingData }>> {
+  return runAction(() => createListingDraft(input));
+}
+
+// ---------- Заказ дополнительных услуг (последний шаг добавления карточки) ----------
+export async function orderExtras(listingId: string, codes: string[], comment?: string): Promise<ActionResult> {
+  return runAction(async () => {
+    const user = await requireUser();
+    await rateLimit(`extras:${user.id}`, 10, 86400);
+    const listing = await getListingRow(listingId);
+    assertCanEdit(listing, user);
+    const picked = [...new Set(codes)].map((c) => extraByCode(c)).filter((s): s is NonNullable<typeof s> => Boolean(s));
+    if (!picked.length) throw new ActionError("Выберите хотя бы одну услугу.");
+    const groups = picked.map((s) => s.group).filter(Boolean);
+    if (new Set(groups).size !== groups.length) throw new ActionError("Выберите один вариант интервью.");
+    const items = picked.map((s) => ({ code: s.code, title: s.title, price: s.price }));
+    const total = items.reduce((sum, s) => sum + s.price, 0);
+    const note = String(comment ?? "").trim().slice(0, 1000) || null;
+    const sb = createAdminClient();
+    const { data: order, error } = await sb.from("service_orders").insert({ listing_id: listing.id, user_id: user.id, items, total, comment: note }).select("id").single();
+    if (error) throw error;
+    notifyAdmins(
+      `🛎 Заказ услуг для «${escapeHtml(listing.title ?? "")}» на ${formatShekels(total)}:\n${items.map((i) => `• ${escapeHtml(i.title)} — ${formatShekels(i.price)}`).join("\n")}${note ? `\nКомментарий: ${escapeHtml(note)}` : ""}`,
+      "/admin?tab=orders",
+    );
+    await audit(user.id, "service_order.created", "listing", listing.id, { order: order.id, total, codes: items.map((i) => i.code) });
+  }, "Заказ принят. Администратор свяжется с вами, чтобы обсудить детали и оплату.");
 }
 
 // ---------- Черновик ----------
