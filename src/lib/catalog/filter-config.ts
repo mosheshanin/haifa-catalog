@@ -38,6 +38,7 @@ const BY_CATEGORY: Record<string, Partial<FilterConfig>> = {
   "specialisty/krasota": { home: HOME, site: "🏠 Приём у себя" },
   "specialisty/repetitory": { home: "🚗 Приезжает к ученику", online: ONLINE },
   "specialisty/yuristy-i-buhgaltery": { online: ONLINE },
+  "specialisty/uslugi-dlya-biznesa": { online: ONLINE }, // 3 ноября 2026
   // Мастера, переезды, няни, фото и видео выезжают все — фильтр «выезд» там ничего не отбирает.
   "specialisty/mastera": {},
   "specialisty/pereezdy": {},

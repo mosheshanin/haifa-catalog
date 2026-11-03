@@ -103,7 +103,7 @@ function PhoneIllustration() {
             {/* Главный блок с поиском */}
             <div className="rounded-2xl bg-primary px-3 py-3.5 text-white">
               <p className="text-[0.5625rem] font-extrabold text-highlight">HaifaBusinessClub</p>
-              <p className="mt-1 font-display text-[0.8125rem] font-extrabold leading-tight">Сообщество проверенных бизнесов и специалистов Хайфы</p>
+              <p className="mt-1 font-display text-[0.8125rem] font-extrabold leading-tight">Проявитесь там, где вас ищут</p>
               <div className="mt-2.5 flex items-center gap-1 rounded-full bg-white p-0.5 pl-2 text-[0.5625rem] text-muted">
                 <span>🔍 Что ищете?</span>
                 <span className="ml-auto rounded-full bg-accent px-2 py-1 font-bold text-on-accent">Найти</span>
