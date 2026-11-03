@@ -5,6 +5,29 @@ import { TelegramPromo } from "@/components/layout/telegram-promo";
 import { LEGAL_PAGES } from "@/lib/legal";
 import { CookieSettingsLink } from "@/components/legal/consent";
 
+const HBC_PROJECTS = [
+  {
+    href: "https://t.me/bismarketbot",
+    logo: "/brand/projects/bmarket.webp",
+    alt: "BMarket",
+    caption: "Бизнес Маркет",
+    w: 340,
+    h: 96,
+    plate: "",
+    imgClass: "h-12 w-auto",
+  },
+  {
+    href: "https://www.facebook.com/groups/575429493787196",
+    logo: "/brand/projects/haifabusinessclub-white.webp",
+    alt: "#HaifaBusinessClub",
+    caption: "Бизнес-встречи оффлайн",
+    w: 518,
+    h: 48,
+    plate: "bg-primary px-4",
+    imgClass: "h-5 w-auto",
+  },
+];
+
 export function SiteFooter() {
   return (
     // Отступ сверху большой: телефон из промо-блока выступает над подвалом (в Mini App блок скрыт, см. globals.css)
@@ -26,6 +49,35 @@ export function SiteFooter() {
           ➕ {t.nav.addListing}
         </Link>
       </div>
+      {/* Проекты HBC (3 ноября 2026): логотипы вырезаны из картинок заказчика, файлы — public/brand/projects */}
+      <section aria-labelledby="hbc-projects" className="border-t border-line">
+        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+          <h2 id="hbc-projects" className="text-base font-bold">
+            Проекты HBC
+          </h2>
+          <ul className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:max-w-3xl">
+            {HBC_PROJECTS.map((p) => (
+              <li key={p.href} className="min-w-0">
+                <a
+                  href={p.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex h-full flex-col items-start gap-3 rounded-2xl border border-line p-4 hover:border-primary/40 hover:bg-surface-alt"
+                >
+                  <span className={`flex h-12 items-center overflow-hidden rounded-xl ${p.plate}`}>
+                    {/* eslint-disable-next-line @next/next/no-img-element -- маленький логотип, оптимизация не нужна */}
+                    <img src={p.logo} alt={p.alt} width={p.w} height={p.h} loading="lazy" className={p.imgClass} />
+                  </span>
+                  <span className="text-sm text-muted group-hover:text-ink">
+                    {p.caption} <span aria-hidden="true">↗</span>
+                    <span className="sr-only"> (откроется в новой вкладке)</span>
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
       {/* Документы — отдельной строкой внизу подвала (решение 2 ноября 2026, этап 5) */}
       <div className="border-t border-line">
         <nav aria-label="Документы" className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-5 gap-y-2 px-4 py-4 text-xs text-muted sm:px-6">
