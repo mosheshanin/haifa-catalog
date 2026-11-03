@@ -108,7 +108,6 @@ export function ListingWizard(props: {
   const [topId, setTopId] = useState<number | null>(null);
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [districts, setDistricts] = useState<string[]>([]);
-  const [noOwner, setNoOwner] = useState(false);
 
   const [listingId, setListingId] = useState<string | null>(null);
   const [data, setData] = useState<ListingData | null>(null);
@@ -216,7 +215,7 @@ export function ListingWizard(props: {
         return persist(nextData, () => enterStep(stepIdx + 1, nextData));
       }
       return start(async () => {
-        const r = await startListing({ section: sec, title, profession, categoryId: categoryId!, district: districts[0], noOwner });
+        const r = await startListing({ section: sec, title, profession, categoryId: categoryId!, district: districts[0] });
         if (!r.ok) return setError(r.error);
         const created = r.data!;
         let d = created.data;
@@ -356,12 +355,6 @@ export function ListingWizard(props: {
             <div className="grid gap-3 sm:grid-cols-2">
               <ChoiceTile selected={section === "biznes"} onClick={() => { setSection("biznes"); setTopId(null); setCategoryId(null); }} icon={<Icon3d name="chart" size={48} />} title="Бизнес" text="Салон, кафе, клиника, магазин, компания" />
               <ChoiceTile selected={section === "specialisty"} onClick={() => { setSection("specialisty"); setTopId(null); setCategoryId(null); }} icon={<Icon3d name="boy" size={48} />} title="Специалист" text="Частный мастер, врач, репетитор, юрист" />
-              {isAdmin ? (
-                <label className="flex min-h-11 items-center gap-3 text-sm font-bold sm:col-span-2">
-                  <input type="checkbox" checked={noOwner} onChange={(e) => setNoOwner(e.target.checked)} className="size-5 accent-primary" />
-                  Создать без владельца (карточку заполняет администратор)
-                </label>
-              ) : null}
             </div>
           ) : null}
 
