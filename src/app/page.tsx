@@ -2,6 +2,8 @@ import Link from "next/link";
 import { SearchForm } from "@/components/search/search-form";
 import { ShowMore } from "@/components/catalog/show-more";
 import { ArrowRightIcon } from "@/components/icons";
+import { Icon3d } from "@/components/ui/icon-3d";
+import { categoryIcon3d } from "@/lib/icons-3d";
 import { getSectionCategories } from "@/lib/data/dictionaries";
 import { t } from "@/i18n/ru";
 import { jsonLdScript, siteJsonLd } from "@/lib/seo/jsonld";
@@ -9,11 +11,14 @@ import { miniAppLink, siteUrl } from "@/lib/env";
 import type { Section } from "@/lib/blocks/types";
 
 // Заголовок блока на главной: заголовок, подзаголовок с воздухом между ними, ссылка «Все» справа.
-function SectionHeading({ id, title, lead, href }: { id: string; title: string; lead?: string; href?: string }) {
+function SectionHeading({ id, title, icon, lead, href }: { id: string; title: string; icon?: string; lead?: string; href?: string }) {
   return (
     <div className="mb-5 flex items-end justify-between gap-4 sm:mb-6">
       <div className="min-w-0">
-        <h2 id={id} className="text-2xl font-extrabold leading-tight sm:text-[1.75rem]">{title}</h2>
+        <h2 id={id} className="flex items-center gap-3 text-2xl font-extrabold leading-tight sm:text-[1.75rem]">
+          {icon ? <Icon3d name={icon} size={44} className="-my-1.5" /> : null}
+          {title}
+        </h2>
         {lead ? <p className="mt-2 leading-relaxed text-muted">{lead}</p> : null}
       </div>
       {href ? (
@@ -40,8 +45,9 @@ async function CategoryGrid({ section }: { section: Section }) {
             href={`/${section}/${c.slug}`}
             className="group flex h-full min-h-[4.5rem] items-center gap-4 rounded-2xl border border-line bg-white px-4 py-3 font-bold leading-snug transition hover:border-primary hover:bg-primary-soft"
           >
-            <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-primary-soft text-2xl group-hover:bg-white" aria-hidden>
-              {c.icon ?? "📌"}
+            {/* 3D-иконка без подложки, чуть крупнее места под неё: объём читается лучше (3 ноября 2026) */}
+            <span className="grid size-12 shrink-0 place-items-center" aria-hidden>
+              <Icon3d name={categoryIcon3d(c)} size={54} fallback={c.icon ?? "📌"} className="drop-shadow-[0_6px_6px_rgba(30,27,75,0.18)] transition group-hover:-translate-y-0.5 motion-reduce:transition-none" />
             </span>
             <span className="min-w-0 flex-1 text-balance break-words">{c.name}</span>
             <ArrowRightIcon className="size-5 shrink-0 text-muted transition group-hover:translate-x-0.5 group-hover:text-primary" />
@@ -81,9 +87,10 @@ export default async function HomePage() {
             <SearchForm />
           </div>
           <div className="mt-5 flex flex-wrap gap-2">
-            {[["💅", "Маникюр"], ["🦷", "Стоматолог"], ["💡", "Электрик"], ["📚", "Репетитор"], ["⚖️", "Юрист"]].map(([icon, q]) => (
-              <Link key={q} href={`/poisk?q=${encodeURIComponent(q)}`} className="rounded-full bg-white/15 px-3.5 py-2 text-sm font-semibold hover:bg-white/25">
-                {icon} {q}
+            {/* В 3dicons нет зуба и весов: временно сердце и щит (решение 3 ноября 2026) */}
+            {[["paint-brush", "Маникюр"], ["heart", "Стоматолог"], ["bulb", "Электрик"], ["notebook", "Репетитор"], ["sheild", "Юрист"]].map(([icon, q]) => (
+              <Link key={q} href={`/poisk?q=${encodeURIComponent(q)}`} className="inline-flex items-center gap-2 rounded-full bg-white/15 py-1.5 pl-2 pr-3.5 text-sm font-semibold hover:bg-white/25">
+                <Icon3d name={icon} size={26} priority className="drop-shadow-[0_2px_3px_rgba(0,0,0,0.35)]" /> {q}
               </Link>
             ))}
           </div>
@@ -92,13 +99,16 @@ export default async function HomePage() {
 
       {(["biznes", "specialisty"] as const).map((section) => (
         <section key={section} aria-labelledby={`h-${section}`}>
-          <SectionHeading id={`h-${section}`} title={`${section === "biznes" ? "🏢" : "👷"} ${t.sections[section].title}`} lead={t.sections[section].lead} href={`/${section}`} />
+          <SectionHeading id={`h-${section}`} title={t.sections[section].title} icon={section === "biznes" ? "chart" : "boy"} lead={t.sections[section].lead} href={`/${section}`} />
           <CategoryGrid section={section} />
         </section>
       ))}
 
       <section className="rounded-[2rem] border-2 border-dashed border-primary/30 bg-white p-6 sm:p-12">
-        <h2 className="text-xl font-extrabold leading-snug text-balance sm:text-2xl">🙋 {t.home.ownerCta}</h2>
+        <h2 className="flex items-center gap-3 text-xl font-extrabold leading-snug text-balance sm:text-2xl">
+          <Icon3d name="megaphone" size={48} className="-my-2 shrink-0" />
+          <span>{t.home.ownerCta}</span>
+        </h2>
         <p className="mt-3 max-w-2xl leading-relaxed text-muted">{t.home.ownerCtaLead}</p>
         <Link href="/kabinet/novaya" className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-accent px-5 font-bold text-white hover:bg-accent-hover sm:w-auto sm:px-6">
           {t.home.ownerCtaButton} <ArrowRightIcon className="size-5" />

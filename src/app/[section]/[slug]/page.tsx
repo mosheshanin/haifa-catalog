@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Icon3d } from "@/components/ui/icon-3d";
+import { categoryIcon3d } from "@/lib/icons-3d";
 import { notFound, permanentRedirect } from "next/navigation";
 import { Suspense } from "react";
 import { getFilterAvailability } from "@/lib/data/filters";
@@ -106,9 +108,9 @@ async function CategoryPage({ section, category, searchParams }: { section: Sect
           <Link href="/" className="hover:text-primary">Главная</Link> ›{" "}
           <Link href={`/${section}`} className="hover:text-primary">{t.sections[section].title}</Link> › {category.name}
         </nav>
-        <h1 className="text-2xl font-extrabold leading-tight sm:text-3xl">
-          {category.icon ? <span aria-hidden>{category.icon} </span> : null}
-          {category.name} в Хайфе
+        <h1 className="flex items-center gap-3 text-2xl font-extrabold leading-tight sm:text-3xl">
+          <Icon3d name={categoryIcon3d(category)} size={52} fallback={category.icon} priority className="-my-2" />
+          <span>{category.name} в Хайфе</span>
         </h1>
         {intro ? <p className="mt-3 max-w-3xl leading-relaxed text-muted">{intro}</p> : null}
       </div>
@@ -117,8 +119,9 @@ async function CategoryPage({ section, category, searchParams }: { section: Sect
         <ul className="flex flex-wrap gap-2">
           {subcategories.map((c) => (
             <li key={c.id}>
-              <Link href={`/${section}/${category.slug}/${c.slug}`} className="flex min-h-11 items-center rounded-2xl border border-line bg-white px-4 py-2 text-sm font-bold leading-snug hover:border-primary hover:bg-primary-soft">
-                {c.icon ? `${c.icon} ` : ""}
+              <Link href={`/${section}/${category.slug}/${c.slug}`} className="flex min-h-11 items-center gap-2 rounded-2xl border border-line bg-white px-4 py-2 text-sm font-bold leading-snug hover:border-primary hover:bg-primary-soft">
+                {/* У подкатегорий своей 3D-иконки нет — иконка категории (решение 3 ноября 2026) */}
+                <Icon3d name={categoryIcon3d(category)} size={26} fallback={c.icon} className="-my-1" />
                 {c.name}
               </Link>
             </li>

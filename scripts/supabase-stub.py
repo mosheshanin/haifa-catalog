@@ -19,6 +19,14 @@ import glob, os
 mig = os.path.dirname(os.path.abspath(sys.argv[1]))
 for c in categories:
     c["amenities"] = []
+    c["icon"] = None
+# Эмодзи категорий — из миграции иконок (3 ноября 2026)
+for pat, key in (("*_category_icons.sql", "icon"),):
+    for f in glob.glob(os.path.join(mig, pat)):
+        for m in re.finditer(r"\('(biznes|specialisty)', '([a-z0-9-]+)', '([^']+)'\)", open(f, encoding="utf-8").read()):
+            for c in categories:
+                if c["section"] == m[1] and c["slug"] == m[2]:
+                    c[key] = m[3]
 for f in glob.glob(os.path.join(mig, "*_amenities_by_category.sql")):
     for m in re.finditer(r"\('(biznes|specialisty)', '([a-z0-9-]+)', array\[(.*?)\]\)", open(f, encoding="utf-8").read()):
         for c in categories:

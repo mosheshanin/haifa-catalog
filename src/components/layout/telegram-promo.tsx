@@ -1,4 +1,5 @@
 import { t } from "@/i18n/ru";
+import { Icon3d } from "@/components/ui/icon-3d";
 import { miniAppLink } from "@/lib/env";
 
 // Промо-блок мини-приложения в подвале (решения 2 ноября 2026, раздел 10 ТЗ). Телефон-иллюстрация «заезжает»
@@ -35,8 +36,8 @@ export function TelegramPromo() {
           <ul className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:gap-x-8">
             {p.benefits.map((b) => (
               <li key={b.title} className="flex gap-3 rounded-2xl bg-white/10 p-4 ring-1 ring-white/15 backdrop-blur-sm xl:bg-transparent xl:p-0 xl:ring-0 xl:backdrop-blur-none">
-                <span aria-hidden className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-xl">
-                  {b.icon}
+                <span aria-hidden className="flex h-11 w-11 shrink-0 items-center justify-center">
+                  <Icon3d name={b.icon} size={46} className="drop-shadow-[0_4px_6px_rgba(0,0,0,0.3)]" />
                 </span>
                 <span className="min-w-0">
                   <span className="block font-bold">{b.title}</span>
@@ -108,25 +109,25 @@ function PhoneIllustration() {
                 <span className="ml-auto rounded-full bg-accent px-2 py-1 font-bold text-white">Найти</span>
               </div>
               <div className="mt-2 flex flex-wrap gap-1">
-                {["💅 Маникюр", "🦷 Стоматолог", "💡 Электрик"].map((c) => (
-                  <span key={c} className="whitespace-nowrap rounded-full bg-white/15 px-1.5 py-0.5 text-[0.5625rem] font-bold">
-                    {c}
+                {[["paint-brush", "Маникюр"], ["heart", "Стоматолог"], ["bulb", "Электрик"]].map(([icon, c]) => (
+                  <span key={c} className="inline-flex items-center gap-0.5 whitespace-nowrap rounded-full bg-white/15 py-0.5 pl-0.5 pr-1.5 text-[0.5625rem] font-bold">
+                    <Icon3d name={icon} size={12} /> {c}
                   </span>
                 ))}
               </div>
             </div>
 
             {/* Категории */}
-            <p className="px-0.5 font-display text-[0.8125rem] font-extrabold">🏢 Бизнесы</p>
+            <p className="flex items-center gap-1 px-0.5 font-display text-[0.8125rem] font-extrabold"><Icon3d name="chart" size={16} /> Бизнесы</p>
             {[
-              ["🍽️", "Еда и напитки"],
-              ["💅", "Красота и уход"],
-              ["🩺", "Здоровье и клиники"],
-              ["🛠️", "Дом и ремонт"],
-              ["🚗", "Авто"],
+              ["tea-cup", "Еда и напитки"],
+              ["scissor", "Красота и уход"],
+              ["lab", "Здоровье и клиники"],
+              ["roll-brush", "Дом и ремонт"],
+              ["key", "Авто"],
             ].map(([icon, name]) => (
               <div key={name} className="flex items-center gap-2 rounded-xl border border-line bg-white p-1.5">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-[0.8125rem]">{icon}</span>
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center"><Icon3d name={icon} size={28} /></span>
                 <span className="min-w-0 flex-1 truncate text-[0.6875rem] font-bold">{name}</span>
                 <span className="pr-1 text-[0.6875rem] text-muted">→</span>
               </div>

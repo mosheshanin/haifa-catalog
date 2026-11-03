@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Icon3d } from "@/components/ui/icon-3d";
+import { categoryIcon3d } from "@/lib/icons-3d";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { getFilterAvailability } from "@/lib/data/filters";
@@ -47,7 +49,10 @@ export default async function SectionPage({ params, searchParams }: PageProps<"/
         <nav aria-label="Хлебные крошки" className="mb-3 text-sm text-muted">
           <Link href="/" className="hover:text-primary">Главная</Link> › {t.sections[section].title}
         </nav>
-        <h1 className="text-2xl font-extrabold leading-tight sm:text-3xl">{section === "biznes" ? "🏢" : "👷"} {t.sections[section].title} Хайфы</h1>
+        <h1 className="flex items-center gap-3 text-2xl font-extrabold leading-tight sm:text-3xl">
+          <Icon3d name={section === "biznes" ? "chart" : "boy"} size={48} priority className="-my-2" />
+          <span>{t.sections[section].title} Хайфы</span>
+        </h1>
         <p className="mt-2 leading-relaxed text-muted">{t.sections[section].lead}</p>
       </div>
 
@@ -55,7 +60,7 @@ export default async function SectionPage({ params, searchParams }: PageProps<"/
         {categories.map((c) => (
           <li key={c.id}>
             <Link href={`/${section}/${c.slug}`} className="flex min-h-11 items-center gap-2 rounded-2xl border border-line bg-white px-4 py-2 text-sm font-bold leading-snug hover:border-primary hover:bg-primary-soft">
-              {c.icon ? <span aria-hidden>{c.icon}</span> : null}
+              <Icon3d name={categoryIcon3d(c)} size={30} fallback={c.icon} className="-my-1" />
               {c.name}
             </Link>
           </li>

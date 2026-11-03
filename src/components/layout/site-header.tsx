@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Icon3d } from "@/components/ui/icon-3d";
 import { UserMenu } from "@/components/auth/user-menu";
 import { SearchForm } from "@/components/search/search-form";
 import { t } from "@/i18n/ru";
@@ -42,11 +43,11 @@ export function SiteHeader() {
         </div>
       </div>
       <nav className="flex flex-wrap gap-1.5 px-4 pb-2 md:hidden" aria-label="Разделы">
-        <Link href="/biznes" className="whitespace-nowrap rounded-full bg-primary-soft px-3 py-1.5 text-sm font-semibold text-primary">
-          🏢 {t.nav.biznes}
+        <Link href="/biznes" className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-primary-soft py-1 pl-1.5 pr-3 text-sm font-semibold text-primary">
+          <Icon3d name="chart" size={22} priority /> {t.nav.biznes}
         </Link>
-        <Link href="/specialisty" className="whitespace-nowrap rounded-full bg-primary-soft px-3 py-1.5 text-sm font-semibold text-primary">
-          👷 {t.nav.specialisty}
+        <Link href="/specialisty" className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-primary-soft py-1 pl-1.5 pr-3 text-sm font-semibold text-primary">
+          <Icon3d name="boy" size={22} priority /> {t.nav.specialisty}
         </Link>
       </nav>
     </header>

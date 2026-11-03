@@ -30,6 +30,8 @@ import { BLOCK_TITLES, type ListingBlock } from "@/lib/blocks/types";
 import { getSiteSettings } from "@/lib/data/settings";
 import { addDays, israelToday } from "@/lib/blocks/expire";
 import { t } from "@/i18n/ru";
+import { Icon3d } from "@/components/ui/icon-3d";
+import { categoryIcon3d } from "@/lib/icons-3d";
 
 export const metadata: Metadata = { title: t.admin.title, robots: { index: false } };
 
@@ -320,7 +322,7 @@ async function Dictionaries() {
           {top.map((c) => (
             <details key={c.id} className="rounded-2xl border border-line p-3">
               <summary className="min-h-11 cursor-pointer font-bold">
-                {c.icon} {c.name} <span className="text-xs font-normal text-muted">· {c.section === "biznes" ? "бизнесы" : "специалисты"} · {c.slug}{c.is_active ? "" : " · скрыта"}</span>
+                <Icon3d name={categoryIcon3d(c)} size={26} fallback={c.icon} className="mr-1 inline-block align-middle" /> {c.name} <span className="text-xs font-normal text-muted">· {c.section === "biznes" ? "бизнесы" : "специалисты"} · {c.slug}{c.is_active ? "" : " · скрыта"}</span>
               </summary>
               <div className="mt-3 grid gap-4">
                 <CategoryForm c={c} parents={[]} />

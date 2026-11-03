@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ListingBlock, ListingData, MenuTag, WeekdayKey } from "@/lib/blocks/types";
+import { Icon3d } from "@/components/ui/icon-3d";
 import {
   ChatIcon,
   CheckBadgeIcon,
@@ -108,12 +109,22 @@ function filterFromHref(section: "biznes" | "specialisty", href: string): Filter
   return filterConfig(section, sub ? { slug: sub, parentSlug: top } : { slug: top });
 }
 
+// 3D-иконки заголовков блоков (3dicons Gradient, 3 ноября 2026); в коде блоки по-прежнему помечены эмодзи.
+const BLOCK_ICONS_3D: Record<string, string> = {
+  "📝": "file-text", "🎁": "gift", "💰": "money", "🕒": "clock", "📍": "location", "🚗": "explorer",
+  "📷": "camera", "✨": "magic-trick", "❓": "chat-bubble", "⭐": "star", "🗣️": "chat", "✍️": "pencil",
+  "🌟": "trophy", "🎬": "video-camera", "👥": "boy", "🗂️": "folder", "🍽️": "tea-cup", "🗓️": "calender",
+  "🎉": "megaphone", "💼": "target", "📰": "bell", "📜": "medal", "💬": "chat-text", "📲": "mobile",
+};
+
 function Section({ id, title, icon, children }: { id?: string; title: string; icon?: string; children: React.ReactNode }) {
   return (
     // Фон блока задаёт подложка .card-blocks (globals.css): соседние блоки разного цвета (решение 2 ноября 2026).
     <section id={id} className="card-block scroll-mt-32 rounded-[var(--radius-card)] border border-line bg-[var(--block-bg,#fff)] p-5 shadow-sm sm:p-7">
       <h2 className="mb-4 flex items-center gap-2.5 text-lg font-extrabold leading-snug sm:mb-5 sm:text-xl">
-        {icon ? (
+        {icon && BLOCK_ICONS_3D[icon] ? (
+          <Icon3d name={BLOCK_ICONS_3D[icon]} size={40} className="-my-1 drop-shadow-[0_4px_4px_rgba(30,27,75,0.16)]" />
+        ) : icon ? (
           <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[var(--block-accent,var(--color-primary-soft))] text-lg" aria-hidden>
             {icon}
           </span>

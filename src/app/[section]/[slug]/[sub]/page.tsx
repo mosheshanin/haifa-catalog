@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Icon3d } from "@/components/ui/icon-3d";
+import { categoryIcon3d } from "@/lib/icons-3d";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { getFilterAvailability } from "@/lib/data/filters";
@@ -104,9 +106,9 @@ export default async function SubPage({ params, searchParams }: PageProps<"/[sec
           <Link href={`/${section}/${parent.slug}`} className="hover:text-primary">{parent.name}</Link> ›{" "}
           {r.kind === "subcategory" ? r.category.name : r.district.name}
         </nav>
-        <h1 className="text-2xl font-extrabold leading-tight sm:text-3xl">
-          {(r.kind === "subcategory" ? r.category.icon : parent.icon) ? <span aria-hidden>{r.kind === "subcategory" ? r.category.icon : parent.icon} </span> : null}
-          {title}
+        <h1 className="flex items-center gap-3 text-2xl font-extrabold leading-tight sm:text-3xl">
+          <Icon3d name={categoryIcon3d(parent)} size={52} fallback={r.kind === "subcategory" ? r.category.icon : parent.icon} priority className="-my-2" />
+          <span>{title}</span>
         </h1>
         {r.kind === "district" ? (
           <p className="mt-3 leading-relaxed text-muted">
