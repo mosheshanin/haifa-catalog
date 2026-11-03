@@ -223,7 +223,7 @@ async function Listings({ q, status }: { q?: string; status?: string }) {
     <Panel
       title="🗂️ Карточки"
       actions={
-        <Link href="/kabinet/novaya" className="inline-flex min-h-11 items-center rounded-2xl bg-accent px-4 text-sm font-bold text-white">
+        <Link href="/kabinet/novaya" className="inline-flex min-h-11 items-center rounded-2xl bg-accent px-4 text-sm font-bold text-on-accent">
           + Создать карточку
         </Link>
       }
@@ -541,7 +541,7 @@ async function AdminContent({ searchParams }: { searchParams: Promise<Record<str
             className={`min-h-11 rounded-full px-4 py-2.5 text-sm font-bold ${tab === x.k ? "bg-primary text-white" : "border border-line bg-white hover:border-primary"}`}
           >
             {x.label}
-            {x.k === "queue" && queueCount ? <span className="ml-1 rounded-full bg-accent px-2 text-white">{queueCount}</span> : null}
+            {x.k === "queue" && queueCount ? <span className="ml-1 rounded-full bg-accent px-2 text-on-accent">{queueCount}</span> : null}
             {x.k === "instant" && ic.count ? <span className="ml-1 rounded-full bg-highlight px-2">{ic.count}</span> : null}
           </Link>
         ))}

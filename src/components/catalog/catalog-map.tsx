@@ -21,8 +21,8 @@ export const MAP_STYLE = "https://tiles.openfreemap.org/styles/liberty";
 const WORKER_URL = "/maplibre/maplibre-gl-worker.mjs";
 const HAIFA: [number, number] = [34.99, 32.8];
 // Цвета из globals.css (--color-primary, --color-accent)
-const PRIMARY = "#1e1b4b"; // основной цвет сайта (логотип)
-const ACCENT = "#c2410c";
+const PRIMARY = "#26262b"; // основной цвет сайта (графит, палитра 3 ноября 2026)
+const ACCENT = "#eab308";
 
 const LOCALE = {
   "NavigationControl.ZoomIn": "Приблизить",

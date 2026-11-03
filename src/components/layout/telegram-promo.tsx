@@ -10,7 +10,7 @@ const p = t.telegramPromo;
 export function TelegramPromo() {
   return (
     <section aria-labelledby="tg-promo-title" className="tg-promo mx-auto max-w-6xl px-4 pt-10 sm:px-6">
-      <div className="relative isolate flow-root rounded-[2rem] bg-[linear-gradient(135deg,#2aabee_0%,#3a63e0_48%,#1e1b4b_100%)] text-white shadow-[0_24px_60px_-24px_rgba(30,27,75,0.55)] xl:min-h-[31rem]">
+      <div className="relative isolate flow-root rounded-[2rem] bg-[linear-gradient(135deg,#2aabee_0%,#3a63e0_48%,#26262b_100%)] text-white shadow-[0_24px_60px_-24px_rgba(38,38,43,0.55)] xl:min-h-[31rem]">
         {/* Мягкие световые пятна — внутри карточки */}
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden rounded-[2rem]">
           <div className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-white/20 blur-3xl" />
@@ -73,10 +73,10 @@ function PhoneIllustration() {
       </div>
 
       {/* Корпус */}
-      <div className="rounded-[2.4rem] bg-[#14122e] p-2 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.6)] ring-1 ring-white/20 xl:h-full">
+      <div className="rounded-[2.4rem] bg-[#1b1b1f] p-2 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.6)] ring-1 ring-white/20 xl:h-full">
         <div className="relative flex h-[33rem] flex-col overflow-hidden rounded-[2rem] bg-surface-alt text-ink xl:h-full">
           {/* Вырез камеры */}
-          <div className="absolute left-1/2 top-2 z-10 h-4 w-16 -translate-x-1/2 rounded-full bg-[#14122e]" />
+          <div className="absolute left-1/2 top-2 z-10 h-4 w-16 -translate-x-1/2 rounded-full bg-[#1b1b1f]" />
 
           {/* Шапка Telegram */}
           <div className="flex items-center justify-between bg-white px-3 pb-2 pt-8 text-[0.6875rem]">
@@ -106,7 +106,7 @@ function PhoneIllustration() {
               <p className="mt-1 font-display text-[0.8125rem] font-extrabold leading-tight">Сообщество проверенных бизнесов и специалистов Хайфы</p>
               <div className="mt-2.5 flex items-center gap-1 rounded-full bg-white p-0.5 pl-2 text-[0.5625rem] text-muted">
                 <span>🔍 Что ищете?</span>
-                <span className="ml-auto rounded-full bg-accent px-2 py-1 font-bold text-white">Найти</span>
+                <span className="ml-auto rounded-full bg-accent px-2 py-1 font-bold text-on-accent">Найти</span>
               </div>
               <div className="mt-2 flex flex-wrap gap-1">
                 {[["paint-brush", "Маникюр"], ["heart", "Стоматолог"], ["bulb", "Электрик"]].map(([icon, c]) => (

@@ -24,7 +24,7 @@ export function FavoriteButton({ listingId, className = "", withLabel = false }:
       }}
       className={`inline-flex shrink-0 items-center justify-center gap-2 rounded-full font-bold transition ${
         withLabel ? "h-12 border border-line bg-white px-4 hover:border-accent" : "size-10 hover:bg-primary-soft"
-      } ${active ? "text-accent" : "text-muted hover:text-accent"} ${className}`}
+      } ${active ? "text-accent-ink" : "text-muted hover:text-accent-ink"} ${className}`}
     >
       <HeartIcon className={`size-5 ${active ? "fill-accent" : ""}`} />
       {withLabel ? (active ? "В избранном" : "В избранное") : null}

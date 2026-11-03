@@ -384,7 +384,7 @@ export function ListingEditor(props: {
                 {pendingSave ? "Сохраняем…" : "💾 Черновик"}
               </button>
             ) : null}
-            <button type="button" onClick={doSubmit} disabled={pendingSave || pendingSubmit} className="min-h-12 flex-1 rounded-2xl bg-accent px-3 font-bold text-white hover:bg-accent-hover disabled:opacity-60 sm:flex-none sm:px-5">
+            <button type="button" onClick={doSubmit} disabled={pendingSave || pendingSubmit} className="min-h-12 flex-1 rounded-2xl bg-accent px-3 font-bold text-on-accent hover:bg-accent-hover disabled:opacity-60 sm:flex-none sm:px-5">
               {pendingSubmit ? "Отправляем…" : isAdmin ? "🚀 Опубликовать" : props.hasPublished ? "📤 Отправить" : "📤 На проверку"}
             </button>
           </div>

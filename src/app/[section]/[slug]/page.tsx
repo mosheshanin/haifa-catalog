@@ -229,7 +229,7 @@ export default async function SlugPage({ params, searchParams }: PageProps<"/[se
     type: "svg",
     errorCorrectionLevel: "M",
     margin: 1,
-    color: { dark: "#1e1b4b", light: "#ffffff" }, // цвет логотипа
+    color: { dark: "#26262b", light: "#ffffff" }, // основной цвет сайта
   });
   const vimeoIds = listing.data.blocks.flatMap((b) => (b.type === "video" && !b.hidden ? b.data.items.filter((v) => v.provider === "vimeo").map((v) => v.videoId) : []));
   const [vimeoThumbs, reviews] = await Promise.all([vimeoIds.length ? getVimeoThumbs(vimeoIds) : Promise.resolve({}), getListingReviews(listing.id)]);

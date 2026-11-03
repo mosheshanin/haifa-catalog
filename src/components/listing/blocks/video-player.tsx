@@ -41,7 +41,7 @@ function Player({ video, thumb }: { video: VideoItem; thumb?: string }) {
               // eslint-disable-next-line @next/next/no-img-element
               <img src={thumb} alt="" loading="lazy" decoding="async" className="absolute inset-0 size-full object-cover opacity-90" />
             ) : (
-              <span className="absolute inset-0 bg-gradient-to-br from-primary to-[#4f46e5]" aria-hidden />
+              <span className="absolute inset-0 bg-gradient-to-br from-primary to-[#5e5e66]" aria-hidden />
             )}
             <span className="relative grid size-16 place-items-center rounded-full bg-white/95 text-2xl text-primary shadow-lg transition group-hover:scale-110">
               ▶

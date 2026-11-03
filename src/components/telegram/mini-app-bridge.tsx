@@ -69,7 +69,7 @@ export function MiniAppBridge() {
         wa.ready();
         wa.expand();
         wa.setHeaderColor?.("#ffffff");
-        wa.setBackgroundColor?.("#f6f6fb");
+        wa.setBackgroundColor?.("#f4f4f2");
         wa.setBottomBarColor?.("#ffffff");
         document.documentElement.dataset.telegram = "1";
         // Кнопки Telegram («Назад», «Оставить заявку», ярлык) ждут этого события.

@@ -32,7 +32,7 @@ async function CabinetContent() {
       <Panel
         title="Ваши карточки"
         actions={
-          <Link href="/kabinet/novaya" className="inline-flex min-h-11 items-center rounded-2xl bg-accent px-4 font-bold text-white hover:bg-accent-hover">
+          <Link href="/kabinet/novaya" className="inline-flex min-h-11 items-center rounded-2xl bg-accent px-4 font-bold text-on-accent hover:bg-accent-hover">
             + {t.nav.addListingShort}
           </Link>
         }

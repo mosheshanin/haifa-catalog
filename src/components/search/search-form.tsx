@@ -25,7 +25,7 @@ export function SearchForm({ compact = false, defaultValue }: { compact?: boolea
       {compact ? null : (
         <button
           type="submit"
-          className="absolute right-1.5 top-1/2 h-11 -translate-y-1/2 rounded-full bg-accent px-5 font-bold text-white hover:bg-accent-hover"
+          className="absolute right-1.5 top-1/2 h-11 -translate-y-1/2 rounded-full bg-accent px-5 font-bold text-on-accent hover:bg-accent-hover"
         >
           {t.search.button}
         </button>

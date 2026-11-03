@@ -47,7 +47,7 @@ export function TelegramRequestButton({ targetId = "request" }: { targetId?: str
       setTimeout(() => target.querySelector<HTMLInputElement>("input:not([type=hidden]), textarea")?.focus({ preventScroll: true }), 500);
     };
     mb.setText("✍️ Оставить заявку");
-    mb.setParams?.({ color: "#c2410c", text_color: "#ffffff" }); // --color-accent
+    mb.setParams?.({ color: "#facc15", text_color: "#1d1d1f" }); // --color-accent / --color-on-accent
     mb.onClick(go);
     mb.show(); // наблюдатель ниже спрячет кнопку, если форма уже на экране
     const io = new IntersectionObserver(([e]) => (e.isIntersecting ? mb.hide() : mb.show()), { threshold: 0.15 });

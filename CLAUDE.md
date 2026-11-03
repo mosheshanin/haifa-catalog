@@ -95,10 +95,10 @@ Vercel не дал заказчику сохранить имена с `NEXT_PUB
   подкатегория «Русские продукты» → «Восточноевропейские продукты» (`/biznes/magaziny/vostochnoevropejskie-produkty`),
   «Магазины и продукты» (миграция 0014; старые слова — в псевдонимах для поиска). «Русский» остаётся одним из языков
   общения в фильтре и карточке, наравне с остальными.
-- **3D-иконки (3 ноября 2026):** заказчик выбрал набор **3dicons, стиль Gradient** (CC0, https://3dicons.co) по
-  сравнению https://claude.ai/artifact/NuWMVLDKBPp69iVGikbCdS (отклонены: свои плитки/объёмные на Phosphor, Fluent 3D,
-  3dicons Color). Файлы — `public/icons/3d/<имя>.webp` (119 шт., 192 px, обрезаны по краю; исходники 2400 px — копия
-  набора на GitHub `LanzeG/3D-ICONS`, папка `ICONS HERE!/<имя>/<имя>-dynamic-gradient.png`; логотипы Blender/Figma/
+- **3D-иконки (3 ноября 2026):** набор **3dicons** (CC0, https://3dicons.co). Сначала выбран стиль Gradient
+  (сравнение https://claude.ai/artifact/NuWMVLDKBPp69iVGikbCdS), вечером вместе с палитрой заменён на стиль
+  **Premium — «графит и золото»**. Файлы — `public/icons/3d/<имя>.webp` (119 шт., 192 px, обрезаны по краю; исходники
+  2400 px — копия набора на GitHub `LanzeG/3D-ICONS`, папка `ICONS HERE!/<имя>/<имя>-dynamic-premium.png`; логотипы Blender/Figma/
   Minecraft убраны). Подписи на русском и `categoryIcon3d` — `src/lib/icons-3d.ts`, вывод — `<Icon3d name size
   fallback>` (`src/components/ui/icon-3d.tsx`, при неизвестном имени — эмодзи). Иконка категории — колонка
   **`categories.icon_3d`** (миграция `20261103000001_category_icons_3d.sql`), выбор с предпросмотром в админке
@@ -256,8 +256,16 @@ Vercel не дал заказчику сохранить имена с `NEXT_PUB
   широкой, ~640 px), поэтому под картой всегда кнопка «Читать отзывы в Google Картах». С ключом Embed API — проверить заново.
 - Шрифты: текст — Onest (`@fontsource-variable/onest`, `--font-sans`), заголовки h1–h3 — Manrope
   (`@fontsource-variable/manrope`, `--font-display`, класс `font-display` для прочих крупных надписей); оба с нашего домена.
-  Палитра — под логотип: основной `#1e1b4b`, наведение `#312e81`, мягкий `#ecebfa`, фон `#f6f6fb`, акцент прежний
-  `#c2410c`. Цвет прописан ещё в метках карт (`place-map.tsx`, `catalog-map.tsx`), `themeColor` в layout и фоне Mini App.
+  **Палитра «Графит и лимонный» (решение заказчика 3 ноября 2026, вариант А сравнения
+  https://claude.ai/artifact/ETvJfCf7VFhcLkJjGS68HN):** основной `#26262b`, наведение `#3a3a40`, мягкий `#f3f1e7`,
+  фон `#f4f4f2`, линии `#e4e3de`, текст `#1d1d1f`, второстепенный `#5e5e66`, акцент жёлтый `#facc15` (наведение
+  `#eab308`). **Жёлтый — только заливки:** текст на жёлтом — `text-on-accent` (`#1d1d1f`), жёлтый как цвет текста
+  на белом не используем — для текста-акцента `text-accent-ink` (`#7a5600`). Кнопки `bg-accent` всегда с
+  `text-on-accent` (не `text-white`). Цвет прописан ещё в метках карт (`place-map.tsx`, `catalog-map.tsx`),
+  `themeColor` в layout, фоне Mini App и его главной кнопке (`mini-app-chrome.tsx`), картинках предпросмотра (`og.tsx`),
+  QR-коде. Логотип перекрашен: графитовая плашка, жёлтые буквы (`hbc-lockup.svg`, `hbc-mark.svg`, `icon.svg`,
+  `hbc-logo.svg`; PNG/ICO пересобраны sharp); прежний синий исходник — `public/brand/hbc-logo-navy.svg`.
+  Аватар бота в @BotFather надо обновить вручную (`hbc-logo-640.png`).
   Фото примеров — Unsplash через `src/components/ui/photo.tsx`.
 - **Сетка и отступы (2 ноября 2026):** `main` — `py-8 sm:py-10`; между блоками главной 48/64 px; заголовок блока →
   подзаголовок 8 px, → содержимое 20–24 px (`SectionHeading` в `src/app/page.tsx`); плитки категорий 3/2/1 колонки
@@ -267,7 +275,7 @@ Vercel не дал заказчику сохранить имена с `NEXT_PUB
   **Сетки страниц и списков — `grid grid-cols-1 …`** (minmax(0,1fr)): иначе строка с `truncate`/`nowrap` раздвигает
   колонку шире экрана, а `overflow-x: clip` на html/body прячет это — прокрутки нет, страница просто обрезана справа.
   Проверять края элементов (`getBoundingClientRect().right > clientWidth`), а не только `scrollWidth`.
-- Правила оформления: фото, 3D-иконки 3dicons Gradient (эмодзи — только там, где картинку не вставить);
+- Правила оформления: фото, 3D-иконки 3dicons Premium (эмодзи — только там, где картинку не вставить);
   **никакой горизонтальной прокрутки** — меню и чипы переносятся (`flex-wrap`).
   **Проверка переносов:** разовый скрипт Playwright на 320/360/375/390/412 px считает строки надписи через
   `Range.getClientRects()` у кнопок, чипов и бейджей (кнопки-картинки «🔍»/«▶» — ложные срабатывания).

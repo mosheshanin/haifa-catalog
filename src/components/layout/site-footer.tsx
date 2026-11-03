@@ -21,7 +21,7 @@ export function SiteFooter() {
         </div>
         <Link
           href="/kabinet/novaya"
-          className="inline-flex min-h-12 items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-accent px-5 font-bold text-white hover:bg-accent-hover max-[359px]:gap-1.5 max-[359px]:px-3 max-[359px]:text-[0.8125rem] sm:w-auto"
+          className="inline-flex min-h-12 items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-accent px-5 font-bold text-on-accent hover:bg-accent-hover max-[359px]:gap-1.5 max-[359px]:px-3 max-[359px]:text-[0.8125rem] sm:w-auto"
         >
           ➕ {t.nav.addListing}
         </Link>

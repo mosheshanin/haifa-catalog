@@ -123,7 +123,7 @@ function Section({ id, title, icon, children }: { id?: string; title: string; ic
     <section id={id} className="card-block scroll-mt-32 rounded-[var(--radius-card)] border border-line bg-[var(--block-bg,#fff)] p-5 shadow-sm sm:p-7">
       <h2 className="mb-4 flex items-center gap-2.5 text-lg font-extrabold leading-snug sm:mb-5 sm:text-xl">
         {icon && BLOCK_ICONS_3D[icon] ? (
-          <Icon3d name={BLOCK_ICONS_3D[icon]} size={40} className="-my-1 drop-shadow-[0_4px_4px_rgba(30,27,75,0.16)]" />
+          <Icon3d name={BLOCK_ICONS_3D[icon]} size={40} className="-my-1 drop-shadow-[0_4px_4px_rgba(20,20,20,0.18)]" />
         ) : icon ? (
           <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[var(--block-accent,var(--color-primary-soft))] text-lg" aria-hidden>
             {icon}
@@ -142,7 +142,7 @@ function PhotoPlaceholder({ label, url }: { label?: string; url?: string }) {
       {url ? (
         <Photo src={url} alt={label ?? ""} className="aspect-[4/3] w-full" sizes="(max-width: 640px) 50vw, 33vw" />
       ) : (
-        <div className="grid aspect-[4/3] place-items-center bg-gradient-to-br from-primary-soft to-[#dcdaf3] text-sm font-semibold text-primary">
+        <div className="grid aspect-[4/3] place-items-center bg-gradient-to-br from-primary-soft to-[#e7e4d6] text-sm font-semibold text-primary">
           📷 Фото
         </div>
       )}
@@ -166,8 +166,8 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
         <Section id="offers" title={t.listing.offers} icon="🎁">
           <ul className="grid grid-cols-1 gap-3">
             {block.data.items.map((o, i) => (
-              <li key={i} className="rounded-2xl border-2 border-accent/30 bg-[#fff4ee] p-4">
-                <p className="flex items-start gap-2 font-extrabold leading-snug text-accent">
+              <li key={i} className="rounded-2xl border-2 border-accent/50 bg-[#fdf8e1] p-4">
+                <p className="flex items-start gap-2 font-extrabold leading-snug text-accent-ink">
                   <TagIcon className="mt-0.5 size-5 shrink-0" />
                   <span className="min-w-0">
                     {o.discountPercent ? <span className="whitespace-nowrap">−{o.discountPercent}% · </span> : null}
@@ -546,7 +546,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
               <li key={i} className="grid min-w-0 gap-3 overflow-hidden rounded-2xl border border-line sm:grid-cols-[12rem_1fr]">
                 {e.photoUrl ? <Photo src={e.photoUrl} alt={e.title} className="aspect-[16/9] w-full sm:aspect-auto sm:h-full" sizes="(max-width: 640px) 100vw, 192px" /> : null}
                 <div className="min-w-0 p-3 sm:pl-0">
-                  <p className="text-sm font-extrabold text-accent">📅 {formatEventWhen(e.start, e.end)}</p>
+                  <p className="text-sm font-extrabold text-accent-ink">📅 {formatEventWhen(e.start, e.end)}</p>
                   <h3 className="mt-1 text-lg font-extrabold leading-tight">{e.title}</h3>
                   {e.place ? <p className="mt-1 text-sm text-muted">📍 {e.place}</p> : null}
                   {e.description ? <p className="mt-2 text-sm leading-relaxed">{e.description}</p> : null}
@@ -555,7 +555,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
                       <span className="rounded-full bg-primary-soft px-2.5 py-1 text-sm font-bold text-primary">{e.price === 0 ? "Бесплатно" : formatPrice(e.price)}</span>
                     ) : null}
                     {safeHref(e.registerUrl) ? (
-                      <a href={safeHref(e.registerUrl)} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center rounded-xl bg-accent px-4 py-2 text-sm font-bold text-white hover:bg-accent-hover">
+                      <a href={safeHref(e.registerUrl)} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center rounded-xl bg-accent px-4 py-2 text-sm font-bold text-on-accent hover:bg-accent-hover">
                         ✍️ Записаться
                       </a>
                     ) : null}
@@ -722,7 +722,7 @@ export function ListingView({
         {header.coverUrl ? (
           <Photo src={header.coverUrl} alt={header.title} className="h-40 w-full sm:h-56" sizes="(max-width: 768px) 100vw, 768px" priority />
         ) : (
-          <div className="h-28 bg-gradient-to-r from-primary via-[#312e81] to-[#4f46e5] sm:h-40" aria-hidden />
+          <div className="h-28 bg-gradient-to-r from-primary via-[#3a3a40] to-[#8a7a3a] sm:h-40" aria-hidden />
         )}
         <div className="px-5 pb-6 sm:px-7 sm:pb-7">
           {header.logoUrl ? (
@@ -908,7 +908,7 @@ export function ListingView({
               <MapPinIcon className="size-5" />
             </a>
           ) : data.blocks.some((b) => b.type === "request") ? (
-            <a href="#request" className="flex h-12 min-w-0 flex-1 items-center justify-center rounded-2xl bg-accent px-1 font-bold text-white">
+            <a href="#request" className="flex h-12 min-w-0 flex-1 items-center justify-center rounded-2xl bg-accent px-1 font-bold text-on-accent">
               Записаться
             </a>
           ) : null}
@@ -957,7 +957,7 @@ function ContactAside({
           </a>
         ) : null}
         {requestEnabled ? (
-          <a href="#request" className={`${btn} bg-accent text-white hover:bg-accent-hover`}>
+          <a href="#request" className={`${btn} bg-accent text-on-accent hover:bg-accent-hover`}>
             ✍️ {t.listing.request}
           </a>
         ) : null}

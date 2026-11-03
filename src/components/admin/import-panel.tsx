@@ -135,7 +135,7 @@ export function ImportPanel() {
               );
             })}
           </ul>
-          <button type="button" onClick={run} disabled={busy || !ready || done.length > 0} className="mt-4 min-h-12 rounded-2xl bg-accent px-5 font-bold text-white disabled:opacity-60">
+          <button type="button" onClick={run} disabled={busy || !ready || done.length > 0} className="mt-4 min-h-12 rounded-2xl bg-accent px-5 font-bold text-on-accent disabled:opacity-60">
             {busy ? `Импортируем… ${done.length} из ${ready}` : done.length ? `Готово: ${done.filter((d) => d.ok).length} из ${ready}` : `📥 Импортировать ${ready}`}
           </button>
         </Panel>

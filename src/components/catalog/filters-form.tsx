@@ -42,7 +42,7 @@ export function FiltersForm({
   return (
     <details className="group rounded-[var(--radius-card)] border border-line bg-white shadow-sm md:open:pb-1" open={active > 0}>
       <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 font-extrabold marker:hidden">
-        <span>⚙️ Фильтры{active ? <span className="ml-2 whitespace-nowrap rounded-full bg-accent px-2 py-0.5 text-xs text-white">{active}</span> : null}</span>
+        <span>⚙️ Фильтры{active ? <span className="ml-2 whitespace-nowrap rounded-full bg-accent px-2 py-0.5 text-xs text-on-accent">{active}</span> : null}</span>
         <span className="text-sm font-semibold text-muted group-open:hidden">показать</span>
         <span className="hidden text-sm font-semibold text-muted group-open:inline">скрыть</span>
       </summary>

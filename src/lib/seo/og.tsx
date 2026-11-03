@@ -68,23 +68,23 @@ export async function renderOg(o: { eyebrow?: string; title: string; subtitle?: 
   const title = clip(o.title.replace(/\u00a0/g, " "), 70);
   return new ImageResponse(
     (
-      <div style={{ display: "flex", width: "100%", height: "100%", background: "#f6f6fb", fontFamily: "Onest" }}>
+      <div style={{ display: "flex", width: "100%", height: "100%", background: "#f4f4f2", fontFamily: "Onest" }}>
         {/* Ширина колонки задана явно: иначе длинное название уходит под фото, а не переносится */}
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", width: o.photo ? 640 : 1176, padding: "56px 60px" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={mark} width={170} height={72} alt="" style={{ borderRadius: 14 }} />
           <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-            {o.eyebrow ? <Words text={clip(o.eyebrow, 60)} style={{ fontSize: 30, color: "#c2410c" }} /> : null}
-            <Words text={title} style={{ fontFamily: "Manrope", fontSize: o.photo ? (title.length > 30 ? 48 : 58) : title.length > 40 ? 56 : 68, lineHeight: 1.08, color: "#1e1b4b" }} />
-            {o.subtitle ? <Words text={clip(o.subtitle, o.photo ? 90 : 110)} style={{ fontSize: 30, lineHeight: 1.3, color: "#4b4a6b" }} /> : null}
+            {o.eyebrow ? <Words text={clip(o.eyebrow, 60)} style={{ fontSize: 30, color: "#7a5600" }} /> : null}
+            <Words text={title} style={{ fontFamily: "Manrope", fontSize: o.photo ? (title.length > 30 ? 48 : 58) : title.length > 40 ? 56 : 68, lineHeight: 1.08, color: "#26262b" }} />
+            {o.subtitle ? <Words text={clip(o.subtitle, o.photo ? 90 : 110)} style={{ fontSize: 30, lineHeight: 1.3, color: "#55555c" }} /> : null}
           </div>
-          <div style={{ fontSize: 26, color: "#4b4a6b" }}>HaifaBusinessClub · Хайфа</div>
+          <div style={{ fontSize: 26, color: "#55555c" }}>HaifaBusinessClub · Хайфа</div>
         </div>
         {o.photo ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={o.photo} width={560} height={630} alt="" style={{ objectFit: "cover" }} />
         ) : (
-          <div style={{ display: "flex", width: 24, background: "#1e1b4b" }} />
+          <div style={{ display: "flex", width: 24, background: "#facc15" }} />
         )}
       </div>
     ),

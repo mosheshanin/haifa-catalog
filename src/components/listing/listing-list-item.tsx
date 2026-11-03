@@ -67,7 +67,7 @@ export function ListingListItem({
   const langs = listing.languages.map((l) => LANG_SHORT[l] ?? l);
   return (
     <article className="group relative flex min-w-0 gap-4 rounded-[var(--radius-card)] border border-line bg-white p-4 shadow-sm transition hover:border-primary hover:shadow-md sm:gap-5 sm:p-5">
-      <div className="relative grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-[#4338ca] text-2xl font-extrabold text-white sm:size-28">
+      <div className="relative grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-[#4a4a52] text-2xl font-extrabold text-highlight sm:size-28">
         {listing.cover_url ? (
           <Photo src={listing.cover_url} alt="" className="absolute inset-0 size-full" sizes="112px" />
         ) : (

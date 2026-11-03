@@ -1,21 +1,26 @@
 @import "tailwindcss";
 
 /*
-  Палитра из раздела 10 ТЗ: основной цвет — тёмно-синий из логотипа (решение 2 ноября 2026).
+  Палитра из раздела 10 ТЗ: «Графит и лимонный» (решение заказчика 3 ноября 2026, вариант А сравнения
+  https://claude.ai/artifact/ETvJfCf7VFhcLkJjGS68HN; до этого — тёмно-синий из логотипа).
+  Жёлтый — только заливки (кнопки, плашки, звёзды): текст на нём графитовый (--color-on-accent),
+  жёлтым текстом на белом не пишем — для текста-акцента есть тёмное золото --color-accent-ink.
   Цвета хранятся как переменные: заменить палитру или добавить тёмную тему можно, не трогая вёрстку.
 */
 :root {
-  --color-primary: #1e1b4b;
-  --color-primary-hover: #312e81;
-  --color-primary-soft: #ecebfa;
-  --color-accent: #c2410c;
-  --color-accent-hover: #a3370a;
-  --color-highlight: #ffc933;
-  --color-ink: #1b1a2e;
-  --color-muted: #5e5c75;
-  --color-line: #e3e2ef;
+  --color-primary: #26262b;
+  --color-primary-hover: #3a3a40;
+  --color-primary-soft: #f3f1e7;
+  --color-accent: #facc15;
+  --color-accent-hover: #eab308;
+  --color-on-accent: #1d1d1f;
+  --color-accent-ink: #7a5600;
+  --color-highlight: #facc15;
+  --color-ink: #1d1d1f;
+  --color-muted: #5e5e66;
+  --color-line: #e4e3de;
   --color-surface: #ffffff;
-  --color-surface-alt: #f6f6fb;
+  --color-surface-alt: #f4f4f2;
   --color-danger: #b42318;
   --color-success: #1e7a3c;
   --radius-card: 1.25rem;
@@ -27,6 +32,8 @@
   --color-primary-soft: var(--color-primary-soft);
   --color-accent: var(--color-accent);
   --color-accent-hover: var(--color-accent-hover);
+  --color-on-accent: var(--color-on-accent);
+  --color-accent-ink: var(--color-accent-ink);
   --color-highlight: var(--color-highlight);
   --color-ink: var(--color-ink);
   --color-muted: var(--color-muted);
@@ -103,8 +110,8 @@ html[data-telegram="1"] .site-footer {
 /* Карточка: соседние блоки разного цвета (решение 2 ноября 2026) — пять мягких оттенков по кругу.
    Счёт идёт по видимым блокам (скрытые не рисуются), поэтому соседние цвета всегда разные.
    --block-accent — подложка значка блока; текст на всех оттенках проходит контраст AA. */
-.card-blocks > .card-block:nth-of-type(5n + 1) { --block-bg: #ffffff; --block-accent: #ecebfa; }
-.card-blocks > .card-block:nth-of-type(5n + 2) { --block-bg: #f4f3fe; --block-accent: #e0def8; }
-.card-blocks > .card-block:nth-of-type(5n + 3) { --block-bg: #eff8f2; --block-accent: #d3eedc; }
-.card-blocks > .card-block:nth-of-type(5n + 4) { --block-bg: #fff5ec; --block-accent: #fbe0c8; }
-.card-blocks > .card-block:nth-of-type(5n + 5) { --block-bg: #eef5fc; --block-accent: #d6e7f8; }
+.card-blocks > .card-block:nth-of-type(5n + 1) { --block-bg: #ffffff; --block-accent: #f3f1e7; }
+.card-blocks > .card-block:nth-of-type(5n + 2) { --block-bg: #f6f5ef; --block-accent: #ebe8dc; }
+.card-blocks > .card-block:nth-of-type(5n + 3) { --block-bg: #fdf8e1; --block-accent: #f7ecbf; }
+.card-blocks > .card-block:nth-of-type(5n + 4) { --block-bg: #f1f1ee; --block-accent: #e2e2dd; }
+.card-blocks > .card-block:nth-of-type(5n + 5) { --block-bg: #faf6e8; --block-accent: #f1e7c6; }

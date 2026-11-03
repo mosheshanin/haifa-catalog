@@ -48,7 +48,7 @@ async function CategoryGrid({ section }: { section: Section }) {
           >
             {/* 3D-иконка без подложки, чуть крупнее места под неё: объём читается лучше (3 ноября 2026) */}
             <span className="grid size-12 shrink-0 place-items-center" aria-hidden>
-              <Icon3d name={categoryIcon3d(c)} size={54} fallback={c.icon ?? "📌"} className="drop-shadow-[0_6px_6px_rgba(30,27,75,0.18)] transition group-hover:-translate-y-0.5 motion-reduce:transition-none" />
+              <Icon3d name={categoryIcon3d(c)} size={54} fallback={c.icon ?? "📌"} className="drop-shadow-[0_6px_6px_rgba(20,20,20,0.2)] transition group-hover:-translate-y-0.5 motion-reduce:transition-none" />
             </span>
             <span className="min-w-0 flex-1 text-balance break-words">{c.name}</span>
             <ArrowRightIcon className="size-5 shrink-0 text-muted transition group-hover:translate-x-0.5 group-hover:text-primary" />
@@ -78,8 +78,8 @@ export default async function HomePage() {
         )}
       />
       <section className="relative overflow-hidden rounded-[2rem] bg-primary px-6 py-10 text-white sm:px-12 sm:py-16">
-        {/* Светлый отсвет того же синего: жёлтый на тёмно-синем давал грязное коричневое пятно */}
-        <div className="absolute -right-16 -top-16 size-64 rounded-full bg-[#6366f1]/35 blur-2xl" aria-hidden />
+        {/* Жёлтый отсвет на графите (палитра 3 ноября 2026) */}
+        <div className="absolute -right-16 -top-16 size-64 rounded-full bg-[#facc15]/20 blur-2xl" aria-hidden />
         <div className="relative max-w-2xl">
           <p className="font-bold text-highlight">{t.site.brand}</p>
           <h1 className="mt-3 text-3xl font-extrabold leading-tight text-balance sm:text-5xl sm:leading-[1.1]">{t.home.title}</h1>
@@ -111,7 +111,7 @@ export default async function HomePage() {
           <span>{t.home.ownerCta}</span>
         </h2>
         <p className="mt-3 max-w-2xl pl-15 leading-relaxed text-muted">{t.home.ownerCtaLead}</p>
-        <Link href="/kabinet/novaya" className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-accent px-5 font-bold text-white hover:bg-accent-hover sm:w-auto sm:px-6">
+        <Link href="/kabinet/novaya" className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-accent px-5 font-bold text-on-accent hover:bg-accent-hover sm:w-auto sm:px-6">
           {t.home.ownerCtaButton} <ArrowRightIcon className="size-5" />
         </Link>
       </section>

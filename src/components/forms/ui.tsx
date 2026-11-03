@@ -12,9 +12,9 @@ export const labelCls = "grid min-w-0 gap-1 text-sm font-bold";
 
 export function SubmitButton({ children, className = "", tone = "primary" }: { children: ReactNode; className?: string; tone?: "primary" | "accent" | "danger" }) {
   const { pending } = useFormStatus();
-  const color = tone === "accent" ? "bg-accent hover:bg-accent-hover" : tone === "danger" ? "bg-danger hover:brightness-95" : "bg-primary hover:bg-primary-hover";
+  const color = tone === "accent" ? "bg-accent text-on-accent hover:bg-accent-hover" : tone === "danger" ? "bg-danger text-white hover:brightness-95" : "bg-primary text-white hover:bg-primary-hover";
   return (
-    <button type="submit" disabled={pending} className={`inline-flex min-h-12 items-center justify-center rounded-2xl px-5 font-bold text-white disabled:opacity-60 ${color} ${className}`}>
+    <button type="submit" disabled={pending} className={`inline-flex min-h-12 items-center justify-center rounded-2xl px-5 font-bold disabled:opacity-60 ${color} ${className}`}>
       {pending ? "Отправляем…" : children}
     </button>
   );
