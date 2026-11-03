@@ -53,7 +53,7 @@ export default async function SectionPage({ params, searchParams }: PageProps<"/
           <Icon3d name={section === "biznes" ? "chart" : "boy"} size={48} priority className="-my-2" />
           <span>{t.sections[section].title} Хайфы</span>
         </h1>
-        <p className="mt-2 leading-relaxed text-muted">{t.sections[section].lead}</p>
+        <p className="mt-2 pl-15 leading-relaxed text-muted">{t.sections[section].lead}</p>
       </div>
 
       <ul className="flex flex-wrap gap-2">

@@ -111,11 +111,11 @@ export default async function SubPage({ params, searchParams }: PageProps<"/[sec
           <span>{title}</span>
         </h1>
         {r.kind === "district" ? (
-          <p className="mt-3 leading-relaxed text-muted">
+          <p className="mt-3 pl-16 leading-relaxed text-muted">
             Проверенные {section === "biznes" ? "заведения и компании" : "специалисты"} в районе {r.district.name} и рядом.
           </p>
         ) : r.category.seo_text ? (
-          <p className="mt-2 max-w-3xl text-muted">{r.category.seo_text}</p>
+          <p className="mt-2 max-w-3xl pl-16 text-muted">{r.category.seo_text}</p>
         ) : null}
       </div>
       <Suspense fallback={<ResultsSkeleton />}>

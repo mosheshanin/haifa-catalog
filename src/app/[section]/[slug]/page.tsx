@@ -112,7 +112,7 @@ async function CategoryPage({ section, category, searchParams }: { section: Sect
           <Icon3d name={categoryIcon3d(category)} size={52} fallback={category.icon} priority className="-my-2" />
           <span>{category.name} в Хайфе</span>
         </h1>
-        {intro ? <p className="mt-3 max-w-3xl leading-relaxed text-muted">{intro}</p> : null}
+        {intro ? <p className="mt-3 max-w-3xl pl-16 leading-relaxed text-muted">{intro}</p> : null}
       </div>
 
       {subcategories.length ? (

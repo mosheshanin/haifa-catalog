@@ -19,7 +19,8 @@ function SectionHeading({ id, title, icon, lead, href }: { id: string; title: st
           {icon ? <Icon3d name={icon} size={44} className="-my-1.5" /> : null}
           {title}
         </h2>
-        {lead ? <p className="mt-2 leading-relaxed text-muted">{lead}</p> : null}
+        {/* Подзаголовок начинается вровень с текстом заголовка: иконка 44 px + промежуток 12 px */}
+        {lead ? <p className={`mt-2 leading-relaxed text-muted ${icon ? "pl-14" : ""}`}>{lead}</p> : null}
       </div>
       {href ? (
         <Link href={href} className="inline-flex min-h-11 shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-3 font-bold text-primary hover:bg-primary-soft">
@@ -109,7 +110,7 @@ export default async function HomePage() {
           <Icon3d name="megaphone" size={48} className="-my-2 shrink-0" />
           <span>{t.home.ownerCta}</span>
         </h2>
-        <p className="mt-3 max-w-2xl leading-relaxed text-muted">{t.home.ownerCtaLead}</p>
+        <p className="mt-3 max-w-2xl pl-15 leading-relaxed text-muted">{t.home.ownerCtaLead}</p>
         <Link href="/kabinet/novaya" className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-accent px-5 font-bold text-white hover:bg-accent-hover sm:w-auto sm:px-6">
           {t.home.ownerCtaButton} <ArrowRightIcon className="size-5" />
         </Link>
