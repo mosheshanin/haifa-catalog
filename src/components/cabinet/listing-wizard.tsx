@@ -507,7 +507,7 @@ export function ListingWizard(props: {
                           </span>
                           <span className="mt-0.5 block text-sm leading-snug text-muted">{x.text}</span>
                         </span>
-                        <span aria-hidden className={`mt-1 grid size-6 shrink-0 place-items-center rounded-md border-2 text-sm font-black ${on ? "border-accent bg-accent text-white" : "border-line"}`}>
+                        <span aria-hidden className={`mt-1 grid size-6 shrink-0 place-items-center rounded-md border-2 text-sm font-black ${on ? "border-accent bg-accent text-on-accent" : "border-line"}`}>
                           {on ? "✓" : ""}
                         </span>
                       </button>
@@ -561,7 +561,7 @@ export function ListingWizard(props: {
               </button>
             ) : null}
             {step === "final" ? (
-              <button type="button" onClick={submit} disabled={busy || !contactOk} className="order-1 col-span-2 min-h-12 rounded-2xl bg-accent px-5 font-bold text-white hover:bg-accent-hover disabled:opacity-60 sm:order-none">
+              <button type="button" onClick={submit} disabled={busy || !contactOk} className="order-1 col-span-2 min-h-12 rounded-2xl bg-accent px-5 font-bold text-on-accent hover:bg-accent-hover disabled:opacity-60 sm:order-none">
                 {busy ? "Отправляем…" : isAdmin ? "Опубликовать" : extras.size ? "Отправить карточку и заказ" : "Отправить на проверку"}
               </button>
             ) : (
