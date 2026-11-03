@@ -92,6 +92,13 @@ function block(raw: unknown, ctx: Ctx): ListingBlock | undefined {
         },
       };
     case "hours": {
+      // «Всегда» и «По запросу» (3 ноября 2026): расписание по дням не нужно.
+      const mode = d.mode === "always" || d.mode === "on_request" ? d.mode : undefined;
+      if (mode === "always") {
+        const allDay = Object.fromEntries(DAYS.map((day) => [day, [{ open: "00:00", close: "00:00" }]]));
+        return { id, type: "hours", hidden, data: { week: allDay, mode, note: str(d.note, 200) } };
+      }
+      if (mode === "on_request") return { id, type: "hours", hidden, data: { week: {}, mode, note: str(d.note, 200) } };
       const week: Partial<Record<WeekdayKey, { open: string; close: string }[]>> = {};
       const w = obj(d.week);
       for (const day of DAYS) {

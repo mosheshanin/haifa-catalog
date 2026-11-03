@@ -7,6 +7,7 @@ export type Section = "biznes" | "specialisty";
 export type WeekdayKey = "sun" | "mon" | "tue" | "wed" | "thu" | "fri" | "sat";
 
 export type HoursInterval = { open: string; close: string }; // "09:00" — "18:00", время Израиля
+export type HoursMode = "always" | "on_request";
 
 export type HeaderBlock = {
   title: string;
@@ -95,7 +96,9 @@ export type ListingBlock =
       id: string;
       type: "hours";
       hidden?: boolean;
-      data: { week: Partial<Record<WeekdayKey, HoursInterval[]>>; exceptions?: HoursException[]; note?: string };
+      // mode (3 ноября 2026): "always" — круглосуточно (в week все дни 00:00–00:00, поиск «Открыто сейчас» работает
+      // как есть), "on_request" — по предварительной договорённости (week пустой, статуса «Открыто/Закрыто» нет).
+      data: { week: Partial<Record<WeekdayKey, HoursInterval[]>>; exceptions?: HoursException[]; note?: string; mode?: HoursMode };
     }
   | { id: string; type: "services"; hidden?: boolean; data: { groups: ServiceGroup[] } }
   | { id: string; type: "offers"; hidden?: boolean; data: { items: OfferItem[] } }

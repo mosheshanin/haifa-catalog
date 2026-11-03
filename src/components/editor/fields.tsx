@@ -154,8 +154,51 @@ function HoursEditor({ obj, onChange }: { obj: Obj; onChange: (o: Obj) => void }
   const exceptions = (obj.exceptions ?? []) as Array<{ date: string; closed?: boolean; intervals?: Interval[]; note?: string }>;
   const setDay = (day: string, iv: Interval[]) => onChange({ ...obj, week: { ...week, [day]: iv } });
   const setExc = (list: typeof exceptions) => onChange({ ...obj, exceptions: list });
+  // Режим (3 ноября 2026): по расписанию, круглосуточно или по запросу. Для двух последних дни не заполняются,
+  // расписание собирает сервер (sanitize.ts).
+  const mode = (obj.mode as string | undefined) ?? "";
+  const MODES = [
+    { v: "", t: "По расписанию" },
+    { v: "always", t: "Всегда (круглосуточно)" },
+    { v: "on_request", t: "По запросу" },
+  ];
+  const setMode = (v: string) => {
+    if (!v) {
+      // Обратно к расписанию: если дни были «круглосуточными», ставим обычные рабочие часы.
+      const allDay = Object.values(week).some((iv) => iv?.some((x) => x.open === "00:00" && x.close === "00:00"));
+      const fresh = { sun: [{ open: "09:00", close: "18:00" }], mon: [{ open: "09:00", close: "18:00" }], tue: [{ open: "09:00", close: "18:00" }], wed: [{ open: "09:00", close: "18:00" }], thu: [{ open: "09:00", close: "18:00" }] };
+      onChange({ ...obj, mode: undefined, week: allDay || !Object.keys(week).length ? fresh : week });
+    } else onChange({ ...obj, mode: v });
+  };
+  const modeSwitch = (
+    <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Как вы работаете">
+      {MODES.map((m) => (
+        <button
+          key={m.v}
+          type="button"
+          role="radio"
+          aria-checked={mode === m.v}
+          onClick={() => setMode(m.v)}
+          className={`min-h-11 rounded-full border-2 px-4 text-sm font-bold ${mode === m.v ? "border-primary bg-primary-soft" : "border-line bg-white hover:border-primary/40"}`}
+        >
+          {m.t}
+        </button>
+      ))}
+    </div>
+  );
+  if (mode) {
+    return (
+      <div className="grid gap-3">
+        {modeSwitch}
+        <p className="rounded-xl bg-surface-alt p-3 text-sm">
+          {mode === "always" ? "В карточке будет написано «Круглосуточно, без выходных» и всегда гореть «Открыто сейчас»." : "В карточке будет написано «По предварительной договорённости», без статуса «Открыто / Закрыто»."}
+        </p>
+      </div>
+    );
+  }
   return (
     <div className="grid gap-3">
+      {modeSwitch}
       {DAYS.map((d) => {
         const iv = week[d.value] ?? [];
         const open = iv.length > 0;

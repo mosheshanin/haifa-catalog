@@ -14,6 +14,7 @@ import { EditorContext, Fields, PhotoInput } from "@/components/editor/fields";
 import { amenityList } from "@/lib/catalog/amenities";
 import { filterConfig } from "@/lib/catalog/filter-config";
 import { categoryIcon3d } from "@/lib/icons-3d";
+import { ALL_HAIFA, isAllHaifa } from "@/lib/catalog/districts";
 import { Icon3d } from "@/components/ui/icon-3d";
 import { EXTRA_SERVICES, formatShekels } from "@/lib/extra-services";
 import { inputCls, labelCls } from "@/components/forms/ui";
@@ -51,6 +52,26 @@ const BLOCK_ORDER: BlockType[] = ["description", "services", "hours", "address",
 
 const REQUIRED: StepKey[] = ["type", "name", "category", "district"];
 
+// Какие дополнительные услуги предлагать на шаге (коды из src/lib/extra-services.ts).
+const OFFERS_BY_STEP: Partial<Record<StepKey, string[]>> = {
+  contacts: ["subdomain_site", "description"],
+  about: ["description", "interview"],
+  place: ["description"],
+  hours: ["description"],
+  services: ["consult", "description"],
+  photos: ["photoshoot", "description"],
+  languages: ["description"],
+  features: ["description"],
+};
+// Короткий текст предложения на шаге, если он отличается от описания услуги.
+const STEP_OFFER_TEXT: Record<string, string> = {
+  description: "Не хотите писать сами? Редактор HBC сделает описание за вас.",
+  subdomain_site: "Нет своего сайта? Сделаем сайт на основе этой карточки.",
+  photoshoot: "Нет хороших фото? Пришлём фотографа.",
+  interview: "Расскажите о себе в интервью — опубликуем в карточке и на главной.",
+  consult: "Подскажем, как выстроить цены и привлечь клиентов.",
+};
+
 const uid = (t: string) => `${t}-${crypto.randomUUID().slice(0, 8)}`;
 const hasContact = (c: ListingData["contacts"] | undefined) => Boolean(c && (c.phone || c.whatsapp || c.telegram || c.email));
 
@@ -74,6 +95,7 @@ function ChoiceTile({ selected, onClick, icon, title, text }: { selected: boolea
 export function ListingWizard(props: {
   categories: WizardCategory[];
   districts: Option[];
+  haifaDistricts: string[]; // районы Хайфы для варианта «Вся Хайфа»
   amenities: { biznes: string[]; specialisty: string[] };
   languages: string[];
   limits: Limits;
@@ -346,8 +368,8 @@ export function ListingWizard(props: {
           {step === "name" ? (
             <div className="grid gap-4">
               <label className={labelCls}>
-                {sec === "biznes" ? "Название" : "Имя и первая буква фамилии"}
-                <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} autoFocus className={inputCls} placeholder={sec === "biznes" ? "Салон «Лаванда»" : "Анна К."} />
+                {sec === "biznes" ? "Название" : "Имя и фамилия"}
+                <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} autoFocus className={inputCls} placeholder={sec === "biznes" ? "Салон «Лаванда»" : "Анна Коэн"} />
               </label>
               {sec === "specialisty" ? (
                 <label className={labelCls}>
@@ -398,6 +420,23 @@ export function ListingWizard(props: {
 
           {step === "district" ? (
             <div className="flex flex-wrap gap-2">
+              {/* «Вся Хайфа» (3 ноября 2026) отмечает все районы Хайфы; в карточке они покажутся одной строкой «Вся Хайфа» */}
+              {props.haifaDistricts.length ? (() => {
+                const all = isAllHaifa(districts, props.haifaDistricts);
+                return (
+                  <button
+                    type="button"
+                    aria-pressed={all}
+                    onClick={() =>
+                      setDistricts(all ? districts.filter((x) => !props.haifaDistricts.includes(x)) : [...props.haifaDistricts, ...districts.filter((x) => !props.haifaDistricts.includes(x))])
+                    }
+                    className={`min-h-11 rounded-full border-2 px-3.5 text-sm font-extrabold ${all ? "border-primary bg-accent text-on-accent" : "border-primary/40 bg-white hover:border-primary"}`}
+                  >
+                    {all ? "✓ " : ""}
+                    {ALL_HAIFA}
+                  </button>
+                );
+              })() : null}
               {props.districts.map((d) => {
                 const on = districts.includes(d.value);
                 return (
@@ -540,6 +579,37 @@ export function ListingWizard(props: {
             </div>
           ) : null}
 
+          {/* Дополнительные услуги по ходу заполнения (3 ноября 2026): «Улучшить описание» — на каждом шаге,
+              остальное — там, где к месту. Отмеченное попадает в заказ на последнем шаге. */}
+          {listingId && step !== "final" && OFFERS_BY_STEP[step] ? (
+            <div className="grid gap-2">
+              {OFFERS_BY_STEP[step]!.map((code) => {
+                const x = EXTRA_SERVICES.find((e) => e.code === code);
+                if (!x) return null;
+                const on = extras.has(code);
+                return (
+                  <div key={code} className={`flex flex-wrap items-center gap-3 rounded-2xl border p-3 ${on ? "border-accent bg-primary-soft" : "border-dashed border-line bg-surface-alt"}`}>
+                    <Icon3d name={x.icon} size={36} />
+                    <div className="min-w-0 flex-1 basis-48">
+                      <p className="text-sm font-bold leading-snug">
+                        {x.title} · <span className="whitespace-nowrap tabular-nums">{formatShekels(x.price)}</span>
+                      </p>
+                      <p className="text-xs leading-snug text-muted">{STEP_OFFER_TEXT[code] ?? x.text}</p>
+                    </div>
+                    <button
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() => toggleExtra(code)}
+                      className={`min-h-10 whitespace-nowrap rounded-xl px-3 text-sm font-bold ${on ? "bg-accent text-on-accent" : "border border-line bg-white hover:border-primary"}`}
+                    >
+                      {on ? "✓ Добавлено" : "Хочу"}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
+
           {error ? (
             <p role="alert" className="rounded-2xl bg-[#fdecea] p-3 text-sm font-bold text-danger">
               {error}
@@ -621,7 +691,7 @@ function QUESTIONS(sec: Section): Record<StepKey, { title: string; hint?: string
   const biz = sec === "biznes";
   return {
     type: { title: "Кого добавляем?", hint: "Бизнес — заведение или компания. Специалист — частный мастер, который работает сам.", short: "Тип" },
-    name: { title: biz ? "Как называется ваш бизнес?" : "Как вас зовут?", hint: biz ? "Так, как написано на вывеске или в соцсетях." : "Имя и первая буква фамилии — так принято в каталоге.", short: "Название" },
+    name: { title: biz ? "Как называется ваш бизнес?" : "Как вас зовут?", hint: biz ? "Так, как написано на вывеске или в соцсетях." : "Так, как вас знают клиенты: имя и фамилия.", short: "Название" },
     category: { title: "Чем вы занимаетесь?", hint: "Выберите категорию, а потом уточните, если подходит.", short: "Категория" },
     district: { title: biz ? "В каком районе вы находитесь?" : "В каких районах вы работаете?", hint: "Можно выбрать несколько.", short: "Район" },
     contacts: { title: "Как с вами связаться?", hint: "Достаточно одного способа. Клиенты увидят кнопки «Позвонить», «WhatsApp», «Telegram».", short: "Контакты" },

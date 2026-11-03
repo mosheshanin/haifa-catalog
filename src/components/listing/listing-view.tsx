@@ -44,6 +44,7 @@ import { ClaimButton, ComplaintButton, ReportListingButton, RequestForm, ReviewF
 import { filterConfig, type FilterConfig } from "@/lib/catalog/filter-config";
 import { TelegramRequestButton } from "@/components/telegram/mini-app-chrome";
 import type { PublicReview } from "@/lib/data/reviews";
+import { districtLabels } from "@/lib/catalog/districts";
 
 export type ShareInfo = { url: string; shortUrl?: string; miniAppUrl: string; qrSvg?: string; temporaryAddress: boolean };
 
@@ -211,9 +212,16 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
     case "hours":
       return (
         <Section title={t.listing.hours} icon="🕒">
-          <div className="mb-3">
-            <OpenNowBadge week={block.data.week} exceptions={block.data.exceptions} />
-          </div>
+          {block.data.mode !== "on_request" ? (
+            <div className="mb-3">
+              <OpenNowBadge week={block.data.week} exceptions={block.data.exceptions} mode={block.data.mode} />
+            </div>
+          ) : null}
+          {block.data.mode === "always" ? (
+            <p className="font-bold">{t.listing.hoursAlways}</p>
+          ) : block.data.mode === "on_request" ? (
+            <p className="font-bold">{t.listing.hoursOnRequest}</p>
+          ) : (
           <dl className="grid grid-cols-[3rem_1fr] gap-y-1.5">
             {DAY_NAMES.map(([key, label]) => (
               <div key={key} className="contents">
@@ -226,6 +234,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
               </div>
             ))}
           </dl>
+          )}
           {block.data.exceptions?.length ? (
             <div className="mt-4 rounded-2xl bg-[#fff8e1] p-3">
               <p className="mb-1.5 text-sm font-extrabold">📅 Особые дни</p>
@@ -275,7 +284,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
               </span>
             ))}
           </p>
-          <p>{block.data.districtSlugs.map((s) => districtNames[s] ?? s).join(", ")}</p>
+          <p>{districtLabels(block.data.districtSlugs, districtNames).join(", ")}</p>
         </Section>
       );
     case "gallery":
@@ -676,7 +685,7 @@ export function ListingView({
   const { header, contacts } = data;
   const hours = data.blocks.find((b) => b.type === "hours");
   const address = data.blocks.find((b) => b.type === "address");
-  const districts = header.districtSlugs.map((s) => districtNames[s] ?? s);
+  const districts = districtLabels(header.districtSlugs, districtNames);
   const sectionTitle = t.sections[data.section].title;
   const waText = "Здравствуйте! Нашёл(а) вас в каталоге HBC.";
   const request = data.blocks.find((b) => b.type === "request" && !b.hidden);
@@ -744,7 +753,7 @@ export function ListingView({
             {header.badges.includes("documents_checked") ? (
               <span className="whitespace-nowrap rounded-full bg-[#e5f4e4] px-2.5 py-1 text-xs font-bold text-success">Документы проверены</span>
             ) : null}
-            {hours?.type === "hours" ? <OpenNowBadge week={hours.data.week} /> : null}
+            {hours?.type === "hours" ? <OpenNowBadge week={hours.data.week} mode={hours.data.mode} /> : null}
           </div>
           <h1 className="mt-3 text-2xl font-extrabold leading-tight sm:text-3xl">{header.title}</h1>
           <p className="mt-2 text-muted">
@@ -879,7 +888,7 @@ export function ListingView({
           listingId={listingId}
           contacts={contacts}
           waText={waText}
-          openNow={hours?.type === "hours" ? <OpenNowBadge week={hours.data.week} /> : null}
+          openNow={hours?.type === "hours" ? <OpenNowBadge week={hours.data.week} mode={hours.data.mode} /> : null}
           address={address?.type === "address" ? address.data : undefined}
           requestEnabled={Boolean(requestEnabled)}
         />

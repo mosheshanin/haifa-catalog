@@ -51,6 +51,7 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
       }
       categories={categories.filter((c) => c.section === listing.section).map((c) => ({ id: c.id, name: c.name, slug: c.slug, icon: c.icon, parentId: c.parent_id, amenities: c.amenities ?? [] }))}
       districts={districts.map((d) => ({ value: d.slug, label: d.name }))}
+      haifaDistricts={districts.filter((d) => d.kind === "haifa").map((d) => d.slug)}
       amenities={listing.section === "specialisty" ? settings.amenitiesSpecialisty : settings.amenities}
       languages={settings.languages}
       limits={limitsOf(listing)}

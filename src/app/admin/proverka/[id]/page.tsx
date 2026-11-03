@@ -11,6 +11,7 @@ import { BlockPreview, ListingView } from "@/components/listing/listing-view";
 import { Photo } from "@/components/ui/photo";
 import { changeTitle } from "@/lib/blocks/moderation";
 import { BLOCK_TITLES, type ListingBlock, type ListingData } from "@/lib/blocks/types";
+import { districtLabels, districtNameMap } from "@/lib/catalog/districts";
 
 export const metadata: Metadata = { title: "Проверка правки", robots: { index: false } };
 
@@ -38,7 +39,7 @@ function Val({ k, v, names }: { k: string; v: unknown; names: { cat: Record<numb
   if (v === undefined || v === null || v === "" || (Array.isArray(v) && !v.length)) return <span className="text-muted">—</span>;
   if ((k === "logoUrl" || k === "coverUrl") && typeof v === "string") return <Photo src={v} alt={k} className="h-20 w-32 rounded-lg" sizes="128px" />;
   if (k === "categoryId") return <>{names.cat[Number(v)] ?? String(v)}</>;
-  if (k === "districtSlugs" && Array.isArray(v)) return <>{v.map((s) => names.dist[s] ?? s).join(", ")}</>;
+  if (k === "districtSlugs" && Array.isArray(v)) return <>{districtLabels(v as string[], names.dist).join(", ")}</>;
   return <span className="break-words">{Array.isArray(v) ? v.join(", ") : String(v)}</span>;
 }
 
@@ -77,7 +78,7 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
   const listing = await getListingRow(vr!.listing_id);
   const published: ListingData | null = (await getVersion(listing.published_version_id))?.data ?? null;
   const [cats, dists] = await Promise.all([getCategories(), getDistricts()]);
-  const names = { cat: Object.fromEntries(cats.map((c) => [c.id, c.name])), dist: Object.fromEntries(dists.map((d) => [d.slug, d.name])) };
+  const names = { cat: Object.fromEntries(cats.map((c) => [c.id, c.name])), dist: districtNameMap(dists) };
   const whole = v.moderated_keys.includes("*") || !published;
 
   if (v.status !== "pending") {

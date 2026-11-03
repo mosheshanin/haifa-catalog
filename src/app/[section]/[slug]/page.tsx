@@ -21,6 +21,7 @@ import { getVimeoThumbs } from "@/lib/data/video";
 import { getListingReviews } from "@/lib/data/reviews";
 import { t } from "@/i18n/ru";
 import type { Section } from "@/lib/blocks/types";
+import { districtLabels, districtNameMap } from "@/lib/catalog/districts";
 
 // Адрес /<раздел>/<slug> — это либо категория (/biznes/krasota), либо карточка (/biznes/nazvanie).
 // База не даёт им совпасть (раздел 8 ТЗ, постоянные адреса).
@@ -210,7 +211,7 @@ export default async function SlugPage({ params, searchParams }: PageProps<"/[se
   if ("redirect" in listing) permanentRedirect(listing.redirect);
 
   const [categories, districts] = await Promise.all([getCategories(), getDistricts()]);
-  const districtNames = Object.fromEntries(districts.map((d) => [d.slug, d.name]));
+  const districtNames = districtNameMap(districts);
   const cat = categories.find((c) => c.id === listing.categoryId);
   const parent = cat?.parent_id ? categories.find((c) => c.id === cat.parent_id) : undefined;
   const topCategory = parent ?? cat;
@@ -245,7 +246,7 @@ export default async function SlugPage({ params, searchParams }: PageProps<"/[se
               data: listing.data,
               schemaType: topCategory?.schema_type ?? null,
               categoryName: cat?.name ?? "",
-              districtNames: listing.data.header.districtSlugs.map((s) => districtNames[s] ?? s),
+              districtNames: districtLabels(listing.data.header.districtSlugs, districtNames),
               // Рейтинг — только по отзывам нашей платформы (раздел 8 ТЗ)
               rating: listing.ratingCount > 0 && listing.ratingAvg ? { value: Number(listing.ratingAvg), count: listing.ratingCount } : null,
             }),

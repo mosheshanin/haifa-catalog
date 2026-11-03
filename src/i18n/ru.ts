@@ -48,6 +48,8 @@ export const ru = {
   listing: {
     openNow: "Открыто сейчас",
     closedNow: "Закрыто",
+    hoursAlways: "Круглосуточно, без выходных",
+    hoursOnRequest: "По предварительной договорённости — напишите или позвоните",
     call: "Позвонить",
     whatsapp: "WhatsApp",
     telegram: "Telegram",

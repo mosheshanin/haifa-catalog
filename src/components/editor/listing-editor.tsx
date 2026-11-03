@@ -12,6 +12,7 @@ import { filterConfig } from "@/lib/catalog/filter-config";
 import { inputCls, labelCls } from "@/components/forms/ui";
 import { ListingView } from "@/components/listing/listing-view";
 import { saveDraft, submitListing } from "@/app/actions/cabinet";
+import { districtNameMap } from "@/lib/catalog/districts";
 
 type Obj = Record<string, unknown>;
 type Category = { id: number; name: string; slug: string; icon: string | null; parentId: number | null; amenities: string[] };
@@ -80,6 +81,7 @@ export function ListingEditor(props: {
   languages: string[];
   limits: Limits;
   isAdmin: boolean;
+  haifaDistricts?: string[];
 }) {
   const { listing, isAdmin } = props;
   const [data, setData] = useState<ListingData>(props.initial);
@@ -128,7 +130,7 @@ export function ListingEditor(props: {
 
   const present = new Set(data.blocks.map((b) => b.type));
   const addable = ADDABLE_ORDER.filter((t) => !present.has(t));
-  const districtNames = Object.fromEntries(props.districts.map((d) => [d.value, d.label]));
+  const districtNames = districtNameMap(props.districts.map((d) => ({ slug: d.value, name: d.label, kind: props.haifaDistricts?.includes(d.value) ? "haifa" : undefined })));
   const categoryName = props.categories.find((c) => c.id === data.header.categoryId)?.name ?? "";
   // Фильтры категории: какие поля «Особенностей» показывать (кассы, доставка/выезд) и как их назвать.
   const filter = useMemo(() => {

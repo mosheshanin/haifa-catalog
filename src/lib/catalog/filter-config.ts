@@ -33,6 +33,7 @@ const BY_CATEGORY: Record<string, Partial<FilterConfig>> = {
   "biznes/nedvizhimost": { open: true },
   "biznes/dosug": { open: true },
   "biznes/turistam": { open: true },
+  "biznes/uslugi-dlya-biznesa": { open: true, home: CLIENT, online: ONLINE }, // 3 ноября 2026
   "specialisty/vrachi-i-psihologi": { kupa: true, home: "🏠 Визит на дом", online: ONLINE },
   "specialisty/krasota": { home: HOME, site: "🏠 Приём у себя" },
   "specialisty/repetitory": { home: "🚗 Приезжает к ученику", online: ONLINE },

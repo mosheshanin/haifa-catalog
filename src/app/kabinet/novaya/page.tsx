@@ -19,6 +19,7 @@ async function Content() {
       <ListingWizard
         categories={categories.map((c) => ({ id: c.id, section: c.section, name: c.name, slug: c.slug, icon: c.icon, icon_3d: c.icon_3d, parentId: c.parent_id, amenities: c.amenities ?? [] }))}
         districts={districts.map((d) => ({ value: d.slug, label: d.name }))}
+        haifaDistricts={districts.filter((d) => d.kind === "haifa").map((d) => d.slug)}
         amenities={{ biznes: settings.amenities, specialisty: settings.amenitiesSpecialisty }}
         languages={settings.languages}
         limits={limitsOf({ features: {} })}

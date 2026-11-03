@@ -62,9 +62,9 @@ export function listingJsonLd(opts: {
     }
   }
 
-  if (hours) {
+  if (hours && hours.data.mode !== "on_request") {
     json.openingHoursSpecification = Object.entries(hours.data.week).flatMap(([day, intervals]) =>
-      (intervals ?? []).map((i) => ({ "@type": "OpeningHoursSpecification", dayOfWeek: DAY_SCHEMA[day], opens: i.open, closes: i.close })),
+      (intervals ?? []).map((i) => ({ "@type": "OpeningHoursSpecification", dayOfWeek: DAY_SCHEMA[day], opens: i.open, closes: i.open === "00:00" && i.close === "00:00" ? "23:59" : i.close })),
     );
   }
 

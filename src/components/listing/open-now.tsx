@@ -49,7 +49,8 @@ export function isOpenNow(week: Week, date = new Date(), exceptions: HoursExcept
 }
 
 // Статус считается в браузере: страница кэшируется, а время идёт.
-export function OpenNowBadge({ week, exceptions }: { week: Week; exceptions?: HoursException[] }) {
+// mode "on_request": часов нет, статус не показываем; "always": всегда «Открыто» (week = 00:00–00:00 каждый день).
+export function OpenNowBadge({ week, exceptions, mode }: { week: Week; exceptions?: HoursException[]; mode?: string }) {
   const [open, setOpen] = useState<boolean | null>(null);
   useEffect(() => {
     const update = () => setOpen(isOpenNow(week, new Date(), exceptions ?? week.exceptions ?? []));
@@ -58,7 +59,7 @@ export function OpenNowBadge({ week, exceptions }: { week: Week; exceptions?: Ho
     return () => clearInterval(id);
   }, [week, exceptions]);
 
-  if (open === null) return null;
+  if (open === null || mode === "on_request") return null;
   return (
     <span
       className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-bold ${
