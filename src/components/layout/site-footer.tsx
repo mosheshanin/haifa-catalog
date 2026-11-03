@@ -43,11 +43,15 @@ export function SiteFooter() {
               <AddToHomeScreenButton />
             </div>
           </div>
-          <nav aria-labelledby="hbc-projects">
-            <p id="hbc-projects" className="text-xs font-bold text-muted">
+          {/* Подпись «Проекты HBC» повёрнута на 90° и стоит слева от логотипов (просьба заказчика 3 ноября 2026) */}
+          <nav aria-labelledby="hbc-projects" className="flex items-center gap-4">
+            <p
+              id="hbc-projects"
+              className="shrink-0 rotate-180 whitespace-nowrap border-l border-line pl-3 text-xs font-bold text-muted [writing-mode:vertical-rl]"
+            >
               Проекты HBC
             </p>
-            <ul className="mt-3 flex flex-wrap gap-x-10 gap-y-5">
+            <ul className="flex flex-wrap gap-x-10 gap-y-5">
               {HBC_PROJECTS.map((p) => (
                 <li key={p.href}>
                   <a href={p.href} target="_blank" rel="noopener noreferrer" className="group flex flex-col gap-2">
