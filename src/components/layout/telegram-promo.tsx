@@ -5,16 +5,18 @@ import { miniAppLink } from "@/lib/env";
 // Промо-блок мини-приложения в подвале (решения 2 ноября 2026, раздел 10 ТЗ). Телефон-иллюстрация «заезжает»
 // вверх на фон страницы над подвалом. Внутри самого Mini App блок не нужен — скрыт CSS (html[data-telegram="1"]).
 // На экране телефона — главная страница каталога в том виде, как она открывается в Telegram.
+// Цвета — как у первого экрана главной (4 ноября 2026, просьба заказчика): графитовый фон с жёлтым свечением,
+// жёлтая кнопка с тёмным текстом. Синих цветов Telegram в блоке нет.
 const p = t.telegramPromo;
 
 export function TelegramPromo() {
   return (
     <section aria-labelledby="tg-promo-title" className="tg-promo mx-auto max-w-6xl px-4 pt-10 sm:px-6">
-      <div className="relative isolate flow-root rounded-[2rem] bg-[linear-gradient(135deg,#2aabee_0%,#3a63e0_48%,#26262b_100%)] text-white shadow-[0_24px_60px_-24px_rgba(38,38,43,0.55)] xl:min-h-[31rem]">
+      <div className="relative isolate flow-root rounded-[2rem] bg-primary text-white shadow-[0_24px_60px_-24px_rgba(38,38,43,0.55)] xl:min-h-[31rem]">
         {/* Мягкие световые пятна — внутри карточки */}
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden rounded-[2rem]">
-          <div className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-white/20 blur-3xl" />
-          <div className="absolute -bottom-32 right-1/3 h-80 w-80 rounded-full bg-[#ffc933]/25 blur-3xl" />
+          <div className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-white/[0.06] blur-3xl" />
+          <div className="absolute -right-16 -top-16 size-72 rounded-full bg-accent/20 blur-2xl" />
         </div>
 
         {/* Телефон. До 1280 px — над текстом, видна верхняя часть экрана (18rem), низ растворяется.
@@ -31,7 +33,7 @@ export function TelegramPromo() {
           <h2 id="tg-promo-title" className="text-[1.75rem] font-extrabold leading-tight sm:text-4xl">
             {p.title}
           </h2>
-          <p className="mt-3 max-w-xl text-white/85">{p.lead}</p>
+          <p className="mt-3 max-w-xl leading-relaxed text-white/90">{p.lead}</p>
 
           <ul className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:gap-x-8">
             {p.benefits.map((b) => (
@@ -52,7 +54,7 @@ export function TelegramPromo() {
               href={miniAppLink()}
               target="_blank"
               rel="noopener"
-              className="inline-flex min-h-13 items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-highlight px-6 font-display text-lg font-extrabold text-primary shadow-lg shadow-black/15 transition hover:-translate-y-0.5 hover:bg-[#ffd54f]"
+              className="inline-flex min-h-13 items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-accent px-6 font-display text-lg font-extrabold text-on-accent shadow-lg shadow-black/20 transition hover:-translate-y-0.5 hover:bg-accent-hover"
             >
               <span aria-hidden>✈️</span> {p.open}
             </a>
@@ -68,19 +70,19 @@ export function TelegramPromo() {
 function PhoneIllustration() {
   return (
     <div className="relative w-[15rem] shrink-0 xl:aspect-[9/19.5] xl:w-full">
-      <div className="absolute -right-5 top-28 z-10 rotate-[5deg] whitespace-nowrap rounded-full bg-highlight px-3 py-1.5 text-xs font-extrabold text-primary shadow-lg sm:-right-14 xl:-right-10 xl:top-[58%]">
+      <div className="absolute -right-5 top-28 z-10 rotate-[5deg] whitespace-nowrap rounded-full bg-accent px-3 py-1.5 text-xs font-extrabold text-on-accent shadow-lg sm:-right-14 xl:-right-10 xl:top-[58%]">
         🎁 −20% в избранном
       </div>
 
       {/* Корпус */}
-      <div className="rounded-[2.4rem] bg-[#1b1b1f] p-2 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.6)] ring-1 ring-white/20 xl:h-full">
+      <div className="rounded-[2.4rem] bg-[#1b1b1f] p-2 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.6)] ring-1 ring-white/25 xl:h-full">
         <div className="relative flex h-[33rem] flex-col overflow-hidden rounded-[2rem] bg-surface-alt text-ink xl:h-full">
           {/* Вырез камеры */}
           <div className="absolute left-1/2 top-2 z-10 h-4 w-16 -translate-x-1/2 rounded-full bg-[#1b1b1f]" />
 
           {/* Шапка Telegram */}
           <div className="flex items-center justify-between bg-white px-3 pb-2 pt-8 text-[0.6875rem]">
-            <span className="font-bold text-[#1677a8]">✕ Закрыть</span>
+            <span className="font-bold text-accent-ink">✕ Закрыть</span>
             <span className="font-bold">HBC</span>
             <span className="font-bold text-muted">•••</span>
           </div>
@@ -88,7 +90,7 @@ function PhoneIllustration() {
           {/* Шапка сайта */}
           <div className="border-b border-line bg-white px-3 pb-2 pt-1.5">
             <div className="flex items-center gap-1.5">
-              <span className="rounded-md bg-primary px-1.5 py-0.5 font-display text-[0.75rem] font-extrabold text-white">HBC</span>
+              <span className="rounded-md bg-primary px-1.5 py-0.5 font-display text-[0.75rem] font-extrabold text-highlight">HBC</span>
               <span className="ml-auto text-[0.8125rem]">🔎</span>
               <span className="text-[0.8125rem]">❤️</span>
               <span className="grid h-5 w-5 place-items-center rounded-full bg-primary text-[0.5625rem] font-bold text-white">А</span>
