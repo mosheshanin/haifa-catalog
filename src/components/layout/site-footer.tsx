@@ -21,7 +21,7 @@ const HBC_PROJECTS = [
     href: "https://www.facebook.com/groups/575429493787196",
     logo: "/brand/projects/haifabusinessclub.webp",
     alt: "#HaifaBusinessClub",
-    caption: "Бизнес-встречи оффлайн",
+    caption: "Бизнес-встречи и обучение",
     w: 518,
     h: 48,
     imgClass: "h-5 w-auto",
