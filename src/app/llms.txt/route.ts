@@ -1,12 +1,15 @@
 import { siteUrl } from "@/lib/env";
 import { getCategories } from "@/lib/data/dictionaries";
+import { getCategoryListingCounts } from "@/lib/data/listings";
 import { t } from "@/i18n/ru";
 
 // /llms.txt — краткое описание сайта и его разделов для ИИ-поисковиков (раздел 8 ТЗ; формат llmstxt.org).
 // Эксперимент: подтверждений, что крупные модели его учитывают, пока нет.
 export async function GET() {
   const base = siteUrl();
-  const categories = await getCategories();
+  // Только категории и подкатегории с карточками (правило 4 ноября 2026)
+  const [all, counts] = await Promise.all([getCategories(), getCategoryListingCounts()]);
+  const categories = all.filter((c) => (counts.get(c.id) ?? 0) > 0);
   const list = (section: "biznes" | "specialisty") =>
     categories
       .filter((c) => c.section === section && c.parent_id === null)

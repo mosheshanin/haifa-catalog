@@ -14,6 +14,7 @@ export type ListingRow = {
   title: string | null;
   is_demo: boolean;
   is_verified: boolean;
+  is_recommended: boolean;
   features: Record<string, unknown> | null;
   published_version_id: string | null;
 };
@@ -35,7 +36,7 @@ const VERSION_COLS = "id, status, data, moderated_keys, block_decisions, review_
 export async function getListingRow(id: string): Promise<ListingRow> {
   const { data } = await createAdminClient()
     .from("listings")
-    .select("id, section, slug, status, owner_id, title, is_demo, is_verified, features, published_version_id")
+    .select("id, section, slug, status, owner_id, title, is_demo, is_verified, is_recommended, features, published_version_id")
     .eq("id", id)
     .maybeSingle();
   if (!data) throw new ActionError("Карточка не найдена.");

@@ -125,15 +125,21 @@ export async function Results({
         <CatalogMap items={mapItems} missing={items.length - mapItems.length} />
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {items.map((l) => (
-            <ListingListItem
-              key={l.id}
-              listing={l}
-              subtitle={subtitleOf(l)}
-              districtLabel={districtLabelOf(l)}
-              reasons={showReasons ? reasonsFor(l, filters, districtName, districtSlugToId) : []}
-            />
-          ))}
+          {items.map((l) => {
+            // «HBC рекомендует» в списке категории: база ставит такие карточки первыми, здесь — вся ширина колонки
+            const wide = Boolean(filters.category && l.is_recommended);
+            return (
+              <div key={l.id} className={`grid min-w-0 ${wide ? "md:col-span-2" : ""}`}>
+                <ListingListItem
+                  listing={l}
+                  subtitle={subtitleOf(l)}
+                  districtLabel={districtLabelOf(l)}
+                  reasons={showReasons ? reasonsFor(l, filters, districtName, districtSlugToId) : []}
+                  wide={wide}
+                />
+              </div>
+            );
+          })}
         </div>
       )}
       {!isMap && pages > 1 ? (

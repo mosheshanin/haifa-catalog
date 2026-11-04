@@ -35,13 +35,14 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
       <div className="flex flex-wrap gap-2">
         <span className={`rounded-full px-3 py-1 text-xs font-bold ${STATUS_STYLE[listing.status]}`}>{t.cabinet.statuses[listing.status]}</span>
         {listing.is_demo ? <span className="rounded-full bg-[#f0efec] px-3 py-1 text-xs font-bold text-muted">Примерная</span> : null}
+        {listing.is_recommended ? <span className="rounded-full bg-primary px-3 py-1 text-xs font-bold text-highlight">★ {t.listing.recommended}</span> : null}
         <Link href={`/kabinet/kartochka/${id}`} className="inline-flex min-h-11 items-center rounded-xl bg-primary px-4 text-sm font-bold text-white">✏️ Редактировать от имени владельца</Link>
         {listing.status === "published" ? (
           <Link href={`/${listing.section}/${listing.slug}`} className="inline-flex min-h-11 items-center rounded-xl border border-line px-4 text-sm font-bold" target="_blank">Открыть ↗</Link>
         ) : null}
       </div>
       <Panel title="Действия">
-        <ListingAdminForms id={id} status={listing.status} verified={listing.is_verified} ownerLabel={ownerLabel} features={JSON.stringify(listing.features ?? {}, null, 1)}
+        <ListingAdminForms id={id} status={listing.status} verified={listing.is_verified} recommended={listing.is_recommended} ownerLabel={ownerLabel} features={JSON.stringify(listing.features ?? {}, null, 1)}
           channel={{ connected: Boolean(channel), auto: flags?.publish_to_channel ?? true, isDemo: listing.is_demo }}
         />
       </Panel>

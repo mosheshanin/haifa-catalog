@@ -10,7 +10,7 @@ import { t } from "@/i18n/ru";
 type Row = ListItemData & { district_ids: number[]; category_id: number | null };
 
 const COLUMNS =
-  "id, section, slug, title, summary, cover_url, languages, has_offer, rating_avg, rating_count, hours, is_verified, is_demo, district_ids, category_id";
+  "id, section, slug, title, summary, cover_url, languages, has_offer, rating_avg, rating_count, hours, is_verified, is_demo, is_recommended, district_ids, category_id";
 
 export function FavoritesList({
   districts,

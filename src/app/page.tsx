@@ -7,6 +7,7 @@ import { OwnerReel } from "@/components/home/owner-reel";
 import { HeroCutout } from "@/components/home/hero-cutout";
 import { categoryIcon3d } from "@/lib/icons-3d";
 import { getSectionCategories } from "@/lib/data/dictionaries";
+import { nonEmptyCategories } from "@/lib/data/listings";
 import { t } from "@/i18n/ru";
 import { jsonLdScript, siteJsonLd } from "@/lib/seo/jsonld";
 import { miniAppLink, siteUrl } from "@/lib/env";
@@ -36,7 +37,9 @@ function SectionHeading({ id, title, icon, lead, href }: { id: string; title: st
 const MOBILE_TILES = 6;
 
 async function CategoryGrid({ section }: { section: Section }) {
-  const categories = await getSectionCategories(section);
+  // Только категории с карточками (правило 4 ноября 2026)
+  const categories = await nonEmptyCategories(await getSectionCategories(section));
+  if (!categories.length) return <p className="text-muted">{t.home.emptySection}</p>;
   return (
     // Три колонки на компьютере, две на планшете, одна на телефоне: названия помещаются, плитки не теснятся (2 ноября 2026).
     // На телефоне — первые 6 плиток и «Показать ещё».

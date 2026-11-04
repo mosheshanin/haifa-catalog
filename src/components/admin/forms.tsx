@@ -189,6 +189,7 @@ export function ListingAdminForms({
   id,
   status,
   verified,
+  recommended,
   ownerLabel,
   features,
   channel,
@@ -196,6 +197,7 @@ export function ListingAdminForms({
   id: string;
   status: string;
   verified: boolean;
+  recommended: boolean;
   ownerLabel: string;
   features: string;
   channel?: { connected: boolean; auto: boolean; isDemo: boolean };
@@ -240,6 +242,17 @@ export function ListingAdminForms({
         <input type="hidden" name="op" value="verified" />
         <input type="hidden" name="value" value={verified ? "0" : "1"} />
         <SubmitButton className="w-fit">{verified ? "Снять отметку «Проверено» в каталоге" : "✅ Отметить «Проверено» в каталоге"}</SubmitButton>
+      </Mini>
+      <Mini action={updateListingAdmin}>
+        <input type="hidden" name="id" value={id} />
+        <input type="hidden" name="op" value="recommended" />
+        <input type="hidden" name="value" value={recommended ? "0" : "1"} />
+        <p className="text-sm text-muted">
+          {recommended
+            ? "Карточка со статусом «HBC рекомендует»: в своей категории стоит первой, выделена фоном и занимает всю ширину."
+            : "Статус «HBC рекомендует» ставит карточку первой в её категории, выделяет фоном и растягивает на всю ширину."}
+        </p>
+        <SubmitButton className="w-fit">{recommended ? "Снять статус «HBC рекомендует»" : "★ Дать статус «HBC рекомендует»"}</SubmitButton>
       </Mini>
       <Mini action={updateListingAdmin}>
         <input type="hidden" name="id" value={id} />

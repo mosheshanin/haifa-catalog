@@ -22,6 +22,7 @@ export type ListItemData = {
   hours: (Partial<Record<WeekdayKey, HoursInterval[]>> & { exceptions?: HoursException[] }) | null;
   is_verified: boolean;
   is_demo: boolean;
+  is_recommended?: boolean;
   distance_m?: number | null;
 };
 
@@ -57,19 +58,32 @@ export function ListingListItem({
   subtitle,
   districtLabel,
   reasons = [],
+  wide = false,
 }: {
   listing: ListItemData;
   subtitle: string;
   districtLabel: string;
   reasons?: string[];
+  /** Во всю ширину колонки (рекомендуемая карточка в списке категории): фото крупнее. */
+  wide?: boolean;
 }) {
   const href = `/${listing.section}/${listing.slug}`;
   const langs = listing.languages.map((l) => LANG_SHORT[l] ?? l);
+  const recommended = Boolean(listing.is_recommended);
   return (
-    <article className="group relative flex min-w-0 gap-4 rounded-[var(--radius-card)] border border-line bg-white p-4 shadow-sm transition hover:border-primary hover:shadow-md sm:gap-5 sm:p-5">
-      <div className="relative grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-[#4a4a52] text-2xl font-extrabold text-highlight sm:size-28">
+    <article
+      className={`group relative flex min-w-0 gap-4 rounded-[var(--radius-card)] border p-4 shadow-sm transition hover:shadow-md sm:gap-5 sm:p-5 ${
+        // «HBC рекомендует» (4 ноября 2026): мягкий жёлтый фон и жёлтая рамка; текст на нём — обычный тёмный
+        recommended ? "border-accent bg-recommended hover:border-accent-hover" : "border-line bg-white hover:border-primary"
+      }`}
+    >
+      <div
+        className={`relative grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-[#4a4a52] text-2xl font-extrabold text-highlight sm:size-28 ${
+          wide ? "md:size-36" : ""
+        }`}
+      >
         {listing.cover_url ? (
-          <Photo src={listing.cover_url} alt="" className="absolute inset-0 size-full" sizes="112px" />
+          <Photo src={listing.cover_url} alt="" className="absolute inset-0 size-full" sizes={wide ? "144px" : "112px"} />
         ) : (
           initials(listing.title)
         )}
@@ -82,6 +96,12 @@ export function ListingListItem({
       <div className="min-w-0 flex-1">
         {/* «В избранное» — в углу карточки, чтобы название получило всю ширину */}
         <FavoriteButton listingId={listing.id} className="absolute right-2 top-2 z-10" />
+        {recommended ? (
+          // Плашка в цветах логотипа: графит и жёлтые буквы
+          <p className="mb-1.5 inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-primary px-2.5 py-0.5 text-xs font-bold text-highlight">
+            ★ {t.listing.recommended}
+          </p>
+        ) : null}
         <h3 className="min-w-0 pr-8 text-lg font-extrabold leading-snug text-balance">
           <Link href={href} className="after:absolute after:inset-0 focus:outline-none">
             {listing.title}

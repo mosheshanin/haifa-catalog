@@ -3,6 +3,7 @@ import { cacheLife, cacheTag } from "next/cache";
 import { createPublicClient } from "@/lib/supabase/server";
 import type { HoursException, HoursInterval, ListingData, Section, WeekdayKey } from "@/lib/blocks/types";
 import { israelToday, pruneExpired } from "@/lib/blocks/expire";
+import { getCategories } from "@/lib/data/dictionaries";
 
 // Строка результата поиска (функция public.search_listings).
 export type ListingSummary = {
@@ -22,6 +23,7 @@ export type ListingSummary = {
   hours: (Partial<Record<WeekdayKey, HoursInterval[]>> & { exceptions?: HoursException[] }) | null; // + исключения
   is_verified: boolean;
   is_demo: boolean;
+  is_recommended: boolean; // «HBC рекомендует»: первая в своей категории, фон, вся ширина колонки
   distance_m: number | null;
   rank: number;
   detected_category: string | null;
@@ -84,6 +86,34 @@ export async function getCategoryDistrictCounts(categoryId: number): Promise<Map
   const { data, error } = await createPublicClient().rpc("category_district_counts", { p_category_id: categoryId });
   if (error) throw error;
   return new Map(((data ?? []) as Array<{ district_id: number; listings: number }>).map((r) => [Number(r.district_id), r.listings]));
+}
+
+// Сколько опубликованных карточек в каждой категории: id категории → число. У категории верхнего уровня
+// число включает её подкатегории. Пустые категории и подкатегории в списках сайта не выводятся (4 ноября 2026).
+export async function getCategoryListingCounts(): Promise<Map<number, number>> {
+  "use cache";
+  cacheTag("listings");
+  cacheLife("minutes");
+  const [{ data, error }, categories] = await Promise.all([
+    createPublicClient().rpc("category_listing_counts"),
+    getCategories(),
+  ]);
+  if (error) throw error;
+  const counts = new Map<number, number>();
+  const parentOf = new Map(categories.map((c) => [c.id, c.parent_id]));
+  for (const r of (data ?? []) as Array<{ category_id: number; listings: number }>) {
+    const id = Number(r.category_id);
+    counts.set(id, (counts.get(id) ?? 0) + r.listings);
+    const parent = parentOf.get(id);
+    if (parent) counts.set(parent, (counts.get(parent) ?? 0) + r.listings);
+  }
+  return counts;
+}
+
+// Только категории с карточками. keepSlug — выбранная в фильтре категория остаётся в списке, даже если пустая.
+export async function nonEmptyCategories<T extends { id: number; slug: string }>(categories: T[], keepSlug?: string): Promise<T[]> {
+  const counts = await getCategoryListingCounts();
+  return categories.filter((c) => (counts.get(c.id) ?? 0) > 0 || c.slug === keepSlug);
 }
 
 export type ListingPoint = { id: string; lat: number; lng: number };
@@ -211,5 +241,8 @@ export async function getSimilar(listing: { id: string; section: Section; catego
       ? await searchListings({ section: listing.section, category: listing.categorySlug, limit: 5 })
       : [];
   const seen = new Set<string>([listing.id]);
-  return [...byDistrict, ...byCategory].filter((l) => (seen.has(l.id) ? false : (seen.add(l.id), true))).slice(0, 4);
+  return [...byDistrict, ...byCategory]
+    .filter((l) => (seen.has(l.id) ? false : (seen.add(l.id), true)))
+    .slice(0, 4)
+    .sort((a, b) => Number(b.is_recommended) - Number(a.is_recommended)); // «HBC рекомендует» — первыми
 }

@@ -249,6 +249,9 @@ export async function updateListingAdmin(_: unknown, form: FormData): Promise<Ac
       await sb.from("listings").update({ status: op === "archive" ? "archived" : "published" }).eq("id", listing.id);
     } else if (op === "verified") {
       await sb.from("listings").update({ is_verified: form.get("value") === "1" }).eq("id", listing.id);
+    } else if (op === "recommended") {
+      // «HBC рекомендует» (4 ноября 2026): первая в своей категории, фон, вся ширина колонки
+      await sb.from("listings").update({ is_recommended: form.get("value") === "1" }).eq("id", listing.id);
     } else if (op === "owner") {
       const who = str(form, "owner", 120).replace(/^@/, "");
       let ownerId: string | null = null;

@@ -23,6 +23,7 @@
   --color-surface-alt: #f4f4f2;
   --color-danger: #b42318;
   --color-success: #1e7a3c;
+  --color-recommended: #fdf5d2; /* фон карточки «HBC рекомендует» (4 ноября 2026) */
   --radius-card: 1.25rem;
 }
 
@@ -42,6 +43,7 @@
   --color-surface-alt: var(--color-surface-alt);
   --color-danger: var(--color-danger);
   --color-success: var(--color-success);
+  --color-recommended: var(--color-recommended);
   --radius-card: var(--radius-card);
   /* Текст — Onest, заголовки — Manrope (решение 2 ноября 2026, раздел 10 ТЗ) */
   --font-sans: "Onest Variable", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;

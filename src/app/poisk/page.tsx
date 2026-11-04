@@ -6,6 +6,7 @@ import { FiltersForm } from "@/components/catalog/filters-form";
 import { Results, ResultsSkeleton } from "@/components/catalog/results";
 import { getCategories, getDistricts } from "@/lib/data/dictionaries";
 import { parseFilters } from "@/lib/catalog/params";
+import { nonEmptyCategories } from "@/lib/data/listings";
 
 export const metadata: Metadata = {
   title: "Поиск",
@@ -17,7 +18,11 @@ export const metadata: Metadata = {
 async function SearchContent({ searchParams }: { searchParams: PageProps<"/poisk">["searchParams"] }) {
   const [sp, districts, categories] = await Promise.all([searchParams, getDistricts(), getCategories()]);
   const filters = parseFilters(sp);
-  const avail = await getFilterAvailability({ categorySlug: filters.category }, filters);
+  const [avail, topCategories] = await Promise.all([
+    getFilterAvailability({ categorySlug: filters.category }, filters),
+    // Только категории с карточками; выбранная остаётся в списке (правило 4 ноября 2026)
+    nonEmptyCategories(categories.filter((c) => c.parent_id === null), filters.category),
+  ]);
   return (
     <>
       <div className="max-w-2xl">
@@ -27,7 +32,7 @@ async function SearchContent({ searchParams }: { searchParams: PageProps<"/poisk
         action="/poisk"
         filters={filters}
         districts={districts}
-        categories={categories.filter((c) => c.parent_id === null)}
+        categories={topCategories}
         resetHref={filters.q ? `/poisk?q=${encodeURIComponent(filters.q)}` : "/poisk"}
         avail={avail}
       />

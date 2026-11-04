@@ -14,6 +14,14 @@ for i, m in enumerate(re.finditer(r"\('([a-z0-9-]+)', '([^']+)', '(haifa|suburb)
 for i, m in enumerate(re.finditer(r"\('(biznes|specialisty)', '([a-z0-9-]+)', '([^']+)', (\d+), '(\w+)'\)", seed), 1):
     categories.append({"id": i, "section": m[1], "parent_id": None, "slug": m[2], "name": m[3], "sort": int(m[4]),
                        "schema_type": m[5], "seo_title": None, "seo_description": None, "seo_text": None})
+# Подкатегории (2 ноября 2026) — из миграции подкатегорий, если она рядом: нужны для проверки скрытия пустых
+import glob as _g, os as _o
+for f in _g.glob(_o.path.join(_o.path.dirname(_o.path.abspath(sys.argv[1])), "*_subcategories.sql")):
+    for m in re.finditer(r"\('(biznes|specialisty)', '([a-z0-9-]+)', '([a-z0-9-]+)', '([^']+)', '([^']*)', (\d+), array", open(f, encoding="utf-8").read()):
+        parent = next((c for c in categories if c["section"] == m[1] and c["slug"] == m[2] and c["parent_id"] is None), None)
+        if parent:
+            categories.append({"id": len(categories) + 1, "section": m[1], "parent_id": parent["id"], "slug": m[3], "name": m[4],
+                               "sort": int(m[6]), "schema_type": None, "seo_title": None, "seo_description": None, "seo_text": None})
 # Этап 5: свои «Особенности» категорий и тексты страниц категорий — из соседних миграций, если они есть.
 import glob, os
 mig = os.path.dirname(os.path.abspath(sys.argv[1]))
@@ -53,7 +61,8 @@ if len(sys.argv) > 2:
         listings.append({"id": f"10000000-0000-0000-0000-{i:012d}", "section": d["section"], "slug": d["slug"],
                          "category_id": cat, "is_verified": d["verified"], "is_demo": True, "rating_avg": d["rating"],
                          "rating_count": d["reviews"], "short_code": f"demo{i}", "published_version_id": vid,
-                         "published_at": "2026-11-01T00:00:00Z", "updated_at": "2026-11-01T00:00:00Z", "status": "published"})
+                         "published_at": "2026-11-01T00:00:00Z", "updated_at": "2026-11-01T00:00:00Z", "status": "published",
+                         "is_recommended": d["slug"] in os.environ.get("STUB_RECOMMENDED", "").split(",")})
 
 def rows(name, query):
     q = {k: v[0].removeprefix("eq.") for k, v in parse_qs(query).items() if v[0].startswith("eq.")}
@@ -94,15 +103,33 @@ class H(BaseHTTPRequestHandler):
             except ValueError:
                 args = {}
             out = []
+            # Фильтр категории (с подкатегориями), как в search_listings
+            cat_ids = None
+            if args.get("p_category"):
+                top = [c["id"] for c in categories if c["slug"] == args["p_category"] and (not args.get("p_section") or c["section"] == args["p_section"])]
+                cat_ids = set(top) | {c["id"] for c in categories if c.get("parent_id") in top}
             for l in listings:
                 if args.get("p_section") and l["section"] != args["p_section"]:
+                    continue
+                if cat_ids is not None and l["category_id"] not in cat_ids:
                     continue
                 h = versions[l["published_version_id"]]["data"]["header"]
                 ids = [d["id"] for d in districts if d["slug"] in h.get("districtSlugs", [])]
                 out.append({**l, "title": h["title"], "summary": h.get("profession") or h.get("slogan"), "cover_url": h.get("coverUrl"),
                             "district_ids": ids, "languages": ["Русский", "Иврит"], "formats": [], "has_offer": True, "hours": None,
                             "distance_m": None, "rank": 1, "detected_category": None, "detected_district": None, "total_count": len(listings)})
+            # «HBC рекомендует» первыми в категории (STUB_RECOMMENDED — slug карточек через запятую)
+            if cat_ids is not None:
+                out.sort(key=lambda r: not r["is_recommended"])
+            for r in out:
+                r["total_count"] = len(out)
             body = json.dumps(out[: int(args.get("p_limit") or 24)]).encode()
+        if self.path.endswith("/rpc/category_listing_counts"):
+            counts = {}
+            for l in listings:
+                if l["category_id"] is not None:
+                    counts[l["category_id"]] = counts.get(l["category_id"], 0) + 1
+            body = json.dumps([{"category_id": k, "listings": v} for k, v in counts.items()]).encode()
         if self.path.endswith("/rpc/category_amenity_counts") and listings:
             args = json.loads(raw or b"{}")
             counts = {}

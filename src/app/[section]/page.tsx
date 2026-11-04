@@ -9,6 +9,7 @@ import { FiltersForm } from "@/components/catalog/filters-form";
 import { Results, ResultsSkeleton } from "@/components/catalog/results";
 import { getDistricts, getSectionCategories, isSection } from "@/lib/data/dictionaries";
 import { parseFilters } from "@/lib/catalog/params";
+import { nonEmptyCategories } from "@/lib/data/listings";
 import { t } from "@/i18n/ru";
 import type { Section } from "@/lib/blocks/types";
 
@@ -29,10 +30,13 @@ export async function generateMetadata({ params }: PageProps<"/[section]">): Pro
 async function Explorer({ section, searchParams }: { section: Section; searchParams: PageProps<"/[section]">["searchParams"] }) {
   const [sp, districts, categories] = await Promise.all([searchParams, getDistricts(), getSectionCategories(section)]);
   const filters = parseFilters(sp);
-  const avail = await getFilterAvailability({ section, categorySlug: filters.category }, filters);
+  const [avail, shown] = await Promise.all([
+    getFilterAvailability({ section, categorySlug: filters.category }, filters),
+    nonEmptyCategories(categories, filters.category), // выбранная категория остаётся в списке
+  ]);
   return (
     <div className="grid grid-cols-1 gap-5">
-      <FiltersForm action={`/${section}`} filters={filters} districts={districts} categories={categories} resetHref={`/${section}`} avail={avail} />
+      <FiltersForm action={`/${section}`} filters={filters} districts={districts} categories={shown} resetHref={`/${section}`} avail={avail} />
       <Results filters={filters} section={section} basePath={`/${section}`} rawParams={sp} />
     </div>
   );
@@ -41,7 +45,8 @@ async function Explorer({ section, searchParams }: { section: Section; searchPar
 export default async function SectionPage({ params, searchParams }: PageProps<"/[section]">) {
   const { section } = await params;
   if (!isSection(section)) notFound();
-  const categories = await getSectionCategories(section);
+  // Категории без карточек не выводим (правило 4 ноября 2026)
+  const categories = await nonEmptyCategories(await getSectionCategories(section));
 
   return (
     <div className="grid grid-cols-1 gap-8">
@@ -56,6 +61,7 @@ export default async function SectionPage({ params, searchParams }: PageProps<"/
         <p className="mt-2 pl-15 leading-relaxed text-muted">{t.sections[section].lead}</p>
       </div>
 
+      {categories.length ? (
       <ul className="flex flex-wrap gap-2">
         {categories.map((c) => (
           <li key={c.id}>
@@ -66,6 +72,7 @@ export default async function SectionPage({ params, searchParams }: PageProps<"/
           </li>
         ))}
       </ul>
+      ) : null}
 
       <Suspense fallback={<ResultsSkeleton />}>
         <Explorer section={section} searchParams={searchParams} />

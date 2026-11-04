@@ -11,7 +11,7 @@ import { ListingView } from "@/components/listing/listing-view";
 import { ListingListItem } from "@/components/listing/listing-list-item";
 import { MockNotice } from "@/components/ui/mock-notice";
 import { getCategories, getCategory, getDistricts, isSection, type Category } from "@/lib/data/dictionaries";
-import { getCategoryDistrictCounts, getListingBySlug, getPublishedSlugs, getSimilar } from "@/lib/data/listings";
+import { getCategoryDistrictCounts, getCategoryListingCounts, getListingBySlug, getPublishedSlugs, getSimilar } from "@/lib/data/listings";
 import { parseFilters } from "@/lib/catalog/params";
 import { breadcrumbsJsonLd, jsonLdScript, listingEventsJsonLd, listingFaqJsonLd, listingJsonLd } from "@/lib/seo/jsonld";
 import { isListingComplete } from "@/lib/seo/indexable";
@@ -85,8 +85,14 @@ async function CategoryExplorer({ section, category, searchParams }: { section: 
 }
 
 async function CategoryPage({ section, category, searchParams }: { section: Section; category: Category; searchParams: PageProps<"/[section]/[slug]">["searchParams"] }) {
-  const [districts, categories, perDistrict] = await Promise.all([getDistricts(), getCategories(), getCategoryDistrictCounts(category.id)]);
-  const subcategories = categories.filter((c) => c.parent_id === category.id);
+  const [districts, categories, perDistrict, perCategory] = await Promise.all([
+    getDistricts(),
+    getCategories(),
+    getCategoryDistrictCounts(category.id),
+    getCategoryListingCounts(),
+  ]);
+  // Подкатегории — только с карточками (правило 4 ноября 2026)
+  const subcategories = categories.filter((c) => c.parent_id === category.id && (perCategory.get(c.id) ?? 0) > 0);
   // Районы — только те, где в этой категории есть карточки (решение 2 ноября 2026): пустые страницы «категория + район»
   // не нужны ни посетителю, ни поиску. Список свёрнут, ссылки остаются в разметке для поисковиков.
   const withCards = districts.filter((d) => perDistrict.has(d.id)).sort((a, b) => (perDistrict.get(b.id) ?? 0) - (perDistrict.get(a.id) ?? 0) || a.sort - b.sort);
@@ -291,12 +297,15 @@ export default async function SlugPage({ params, searchParams }: PageProps<"/[se
           <h2 id="similar" className="mb-5 text-2xl font-extrabold">🔁 {t.listing.similar}</h2>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {similar.map((l) => (
-              <ListingListItem
-                key={l.id}
-                listing={l}
-                subtitle={l.summary ?? ""}
-                districtLabel={l.district_ids.map((id) => districtById.get(id) ?? "").filter(Boolean).slice(0, 2).join(", ")}
-              />
+              // «Похожие» — из той же категории, поэтому рекомендуемые здесь тоже первые и во всю ширину
+              <div key={l.id} className={`grid min-w-0 ${l.is_recommended ? "md:col-span-2" : ""}`}>
+                <ListingListItem
+                  listing={l}
+                  subtitle={l.summary ?? ""}
+                  districtLabel={l.district_ids.map((id) => districtById.get(id) ?? "").filter(Boolean).slice(0, 2).join(", ")}
+                  wide={l.is_recommended}
+                />
+              </div>
             ))}
           </div>
         </section>

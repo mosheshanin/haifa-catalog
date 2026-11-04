@@ -218,7 +218,7 @@ async function Instant({ districtNames }: { districtNames: Record<string, string
 
 async function Listings({ q, status }: { q?: string; status?: string }) {
   const sb = createAdminClient();
-  let query = sb.from("listings").select("id, section, slug, title, status, owner_id, is_demo, is_verified, updated_at").order("updated_at", { ascending: false }).limit(200);
+  let query = sb.from("listings").select("id, section, slug, title, status, owner_id, is_demo, is_verified, is_recommended, updated_at").order("updated_at", { ascending: false }).limit(200);
   if (q) query = query.ilike("title", `%${q.replace(/[%_]/g, "")}%`);
   if (status) query = query.eq("status", status);
   const { data } = await query;
@@ -250,6 +250,7 @@ async function Listings({ q, status }: { q?: string; status?: string }) {
             <span className="min-w-0 flex-1 font-bold">
               {l.title ?? l.slug} {l.is_demo ? <span className="text-xs font-normal text-muted">(пример)</span> : null}
               {!l.owner_id ? <span className="ml-1 text-xs font-normal text-muted">· без владельца</span> : null}
+              {l.is_recommended ? <span className="ml-1 whitespace-nowrap text-xs font-bold text-accent-ink">· ★ {t.listing.recommended}</span> : null}
             </span>
             <span className={`rounded-full px-3 py-1 text-xs font-bold ${STATUS_STYLE[l.status]}`}>{t.cabinet.statuses[l.status as keyof typeof t.cabinet.statuses]}</span>
             <Link href={`/admin/kartochka/${l.id}`} className="inline-flex min-h-11 items-center rounded-xl border border-line px-3 text-sm font-bold hover:border-primary">
