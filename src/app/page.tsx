@@ -4,6 +4,7 @@ import { ShowMore } from "@/components/catalog/show-more";
 import { ArrowRightIcon } from "@/components/icons";
 import { Icon3d } from "@/components/ui/icon-3d";
 import { OwnerReel } from "@/components/home/owner-reel";
+import { HeroCutout } from "@/components/home/hero-cutout";
 import { categoryIcon3d } from "@/lib/icons-3d";
 import { getSectionCategories } from "@/lib/data/dictionaries";
 import { t } from "@/i18n/ru";
@@ -78,26 +79,38 @@ export default async function HomePage() {
           }),
         )}
       />
-      <section className="relative overflow-hidden rounded-[2rem] bg-primary px-6 py-10 text-white sm:px-12 sm:py-16">
-        {/* Жёлтый отсвет на графите (палитра 3 ноября 2026) */}
-        <div className="absolute -right-16 -top-16 size-64 rounded-full bg-[#facc15]/20 blur-2xl" aria-hidden />
-        <div className="relative max-w-2xl">
-          <p className="font-bold text-highlight">{t.site.brand}</p>
-          <h1 className="mt-3 text-3xl font-extrabold leading-tight text-balance sm:text-5xl sm:leading-[1.1]">{t.home.title}</h1>
-          <p className="mt-4 text-lg leading-relaxed text-white/90">{t.home.lead}</p>
-          <div className="mt-8">
-            <SearchForm />
+      {/* Первый экран. Вырез в углу (HeroCutout) рисуется поверх фона блока и не обрезается его скруглённым углом,
+          поэтому у блока нет overflow-hidden, а жёлтое свечение лежит в своей обрезающей обёртке.
+          Блок — @container: размер выреза и колонка текста зависят от его ширины (от 65rem — компьютерный вид,
+          текст уже 37,5rem, форма крупная справа; меньше — форма над надписью, для неё оставлена полоса). */}
+      <div className="@container relative isolate">
+        <section className="relative rounded-[2rem] bg-primary px-6 py-10 text-white sm:px-12 sm:py-16">
+          {/* Жёлтый отсвет на графите (палитра 3 ноября 2026) */}
+          <div className="absolute inset-0 overflow-hidden rounded-[2rem]" aria-hidden>
+            <div className="absolute -right-16 -top-16 size-64 rounded-full bg-[#facc15]/20 blur-2xl" />
           </div>
-          <div className="mt-5 flex flex-wrap gap-2">
-            {/* В 3dicons нет зуба и весов: временно сердце и щит (решение 3 ноября 2026) */}
-            {[["paint-brush", "Маникюр"], ["heart", "Стоматолог"], ["bulb", "Электрик"], ["notebook", "Репетитор"], ["sheild", "Юрист"]].map(([icon, q]) => (
-              <Link key={q} href={`/poisk?q=${encodeURIComponent(q)}`} className="inline-flex items-center gap-2 rounded-full bg-white/15 py-1.5 pl-2 pr-3.5 text-sm font-semibold hover:bg-white/25">
-                <Icon3d name={icon} size={26} priority className="drop-shadow-[0_2px_3px_rgba(0,0,0,0.35)]" /> {q}
-              </Link>
-            ))}
+          <div className="relative z-10 max-w-2xl">
+            <div aria-hidden className="h-[calc(min(45.5cqw,12.9rem)_-_2.5rem)] sm:h-[calc(min(45.5cqw,12.9rem)_-_4rem)] @[65rem]:hidden" />
+            <div className="@[65rem]:max-w-[37.5rem]">
+              <p className="font-bold text-highlight">{t.site.brand}</p>
+              <h1 className="mt-3 text-3xl font-extrabold leading-tight text-balance sm:text-5xl sm:leading-[1.1]">{t.home.title}</h1>
+              <p className="mt-4 text-lg leading-relaxed text-white/90">{t.home.lead}</p>
+              <div className="mt-8">
+                <SearchForm />
+              </div>
+            </div>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {/* В 3dicons нет зуба и весов: временно сердце и щит (решение 3 ноября 2026) */}
+              {[["paint-brush", "Маникюр"], ["heart", "Стоматолог"], ["bulb", "Электрик"], ["notebook", "Репетитор"], ["sheild", "Юрист"]].map(([icon, q]) => (
+                <Link key={q} href={`/poisk?q=${encodeURIComponent(q)}`} className="inline-flex items-center gap-2 rounded-full bg-white/15 py-1.5 pl-2 pr-3.5 text-sm font-semibold hover:bg-white/25">
+                  <Icon3d name={icon} size={26} priority className="drop-shadow-[0_2px_3px_rgba(0,0,0,0.35)]" /> {q}
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+        <HeroCutout pauseLabel={t.home.heroPause} playLabel={t.home.heroPlay} />
+      </div>
 
       {(["biznes", "specialisty"] as const).map((section) => (
         <section key={section} aria-labelledby={`h-${section}`}>

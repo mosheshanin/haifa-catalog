@@ -245,3 +245,73 @@ html[data-telegram="1"] .site-footer {
 @media (prefers-reduced-motion: reduce) {
   .reel *, .reel *::before, .reel *::after { animation: none !important; }
 }
+
+/* ---------- Вырез в первом экране (4 ноября 2026) ----------
+   Цвет фона страницы поверх графитового блока: форма читается как вырез. Облако (≈80% времени) переходит в знаки ₪, + и %.
+   Устройство и все подводные камни — в шапке src/components/home/hero-cutout.tsx.
+   Размер слоя считается от ширины блока (он `@container`): на компьютере (от 65rem) форма крупная и слева от неё есть
+   место для текста; уже 65rem и на телефоне форма меньше и лежит над надписью (в вёрстке блока для неё оставлена полоса).
+   Анимации CSS и SMIL синхронизирует компонент; пауза — атрибут data-run. */
+.hc {
+  --hc-w: min(47.2cqw, 13.4rem);
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--hc-w);
+  overflow: hidden;
+  pointer-events: none;
+}
+@container (min-width: 65rem) {
+  .hc { --hc-w: 41.94cqw; }
+}
+.hc-stage { display: block; width: 100%; height: auto; fill: var(--color-surface-alt); }
+
+.hc-sign {
+  fill: none;
+  stroke: var(--color-surface-alt);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+  transform-origin: 111px 100px;
+  animation: hc-sign 30s ease-in-out infinite;
+}
+.hc-sign circle { fill: var(--color-surface-alt); stroke: none; }
+.hc-sign .hc-ring { fill: none; stroke: var(--color-surface-alt); stroke-width: 22; }
+@keyframes hc-sign {
+  0% { opacity: 0; transform: scale(0.92); }
+  3.333% { opacity: 1; transform: scale(1); }
+  6.667% { opacity: 1; transform: scale(1); }
+  10% { opacity: 0; transform: scale(0.92); }
+  100% { opacity: 0; transform: scale(0.92); }
+}
+/* Облако гаснет на секунду, пока знак держится (кадры симметричны: сумма прозрачностей остаётся 1, пока растёт размытие) */
+.hc-cloud { animation: hc-cloud 30s ease-in-out infinite; }
+@keyframes hc-cloud {
+  0%, 18.333% { opacity: 1; }
+  21.667%, 25% { opacity: 0; }
+  28.333%, 51.667% { opacity: 1; }
+  55%, 58.333% { opacity: 0; }
+  61.667%, 85% { opacity: 1; }
+  88.333%, 91.667% { opacity: 0; }
+  95%, 100% { opacity: 1; }
+}
+.hc-orb { animation: hc-spin linear infinite; }
+@keyframes hc-spin { to { transform: rotate(360deg); } }
+.hc-pu, .hc-core { transform-box: fill-box; transform-origin: center; }
+.hc-pu { animation: hc-pulse ease-in-out infinite alternate; }
+@keyframes hc-pulse { from { transform: scale(var(--p0)); } to { transform: scale(var(--p1)); } }
+.hc-core { animation: hc-wander var(--d) ease-in-out infinite; }
+@keyframes hc-wander {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(calc(var(--dx) * 1px), calc(var(--dy) * 1px)) scale(var(--a)); }
+  50% { transform: translate(calc(var(--dx) * -0.8px), calc(var(--dy) * 0.5px)) scale(var(--b)); }
+  75% { transform: translate(calc(var(--dx) * 0.3px), calc(var(--dy) * -1px)) scale(var(--a)); }
+}
+.hc[data-run="0"] * { animation-play-state: paused; }
+/* «Уменьшить движение»: один неподвижный знак ₪ (SMIL-размытие компонент останавливает сам) */
+@media (prefers-reduced-motion: reduce) {
+  .hc-cloud { animation: none; opacity: 0; }
+  .hc-core, .hc-pu, .hc-orb, .hc-sign { animation: none; }
+  .hc-sign-0 { opacity: 1; }
+}
