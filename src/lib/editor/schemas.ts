@@ -12,7 +12,8 @@ export type Field =
   | { k: string; label: string; type: "checkbox"; help?: string }
   | { k: string; label: string; type: "select"; options: Option[] | "districts" | "days"; required?: boolean }
   // when: поле видно только там, где оно имеет смысл (кассы — медицина, доставка/онлайн — бизнесы по таблице фильтров)
-  | { k: string; label: string; type: "multiselect"; options: Option[] | "districts" | "amenities" | "languages" | "kupot" | "bizFormats"; when?: "kupa" | "bizFormats"; help?: string }
+  // labelFrom: подпись берётся из подписей категории (filter.places), например «Районы выезда» / «Где можете встретиться»
+  | { k: string; label: string; type: "multiselect"; options: Option[] | "districts" | "amenities" | "languages" | "kupot" | "bizFormats" | "placeFormats"; when?: "kupa" | "bizFormats"; help?: string; labelFrom?: "area" }
   | { k: string; label: string; type: "photo"; help?: string }
   | { k: string; label: string; type: "photos"; max: number | keyof Limits }
   | { k: string; label: string; type: "file"; help?: string }
@@ -42,12 +43,9 @@ export const BLOCK_SCHEMAS: Record<ListingBlock["type"], Field[]> = {
     { k: "parking", label: "Парковка", type: "text", max: 200, placeholder: "Бесплатная во дворе" },
   ],
   service_area: [
-    { k: "formats", label: "Как работаете", type: "multiselect", options: [
-      { value: "at_home", label: "🚗 Выезд на дом" },
-      { value: "on_site", label: "🏠 Приём у себя" },
-      { value: "online", label: "💻 Онлайн" },
-    ] },
-    { k: "districtSlugs", label: "Районы выезда", type: "multiselect", options: "districts" },
+    // Подписи форматов — по категории (filter.places): «Выезд на дом» или «Встреча у клиента» (4 ноября 2026)
+    { k: "formats", label: "Как работаете", type: "multiselect", options: "placeFormats" },
+    { k: "districtSlugs", label: "Районы выезда", type: "multiselect", options: "districts", labelFrom: "area" },
   ],
   hours: [
     { k: "week", label: "Расписание", type: "hours" },

@@ -12,7 +12,7 @@ import type { Limits, ListingBlock, ListingData } from "@/lib/blocks/types";
 import { BLOCK_SCHEMAS, defaultBlockData, type Field, type Option } from "@/lib/editor/schemas";
 import { EditorContext, Fields, PhotoInput } from "@/components/editor/fields";
 import { amenityList } from "@/lib/catalog/amenities";
-import { filterConfig } from "@/lib/catalog/filter-config";
+import { filterConfig, type PlaceLabels } from "@/lib/catalog/filter-config";
 import { categoryIcon3d } from "@/lib/icons-3d";
 import { ALL_HAIFA, isAllHaifa } from "@/lib/catalog/districts";
 import { Icon3d } from "@/components/ui/icon-3d";
@@ -326,7 +326,7 @@ export function ListingWizard(props: {
 
   const total = steps.length;
   const optional = !REQUIRED.includes(step) && step !== "final";
-  const q = QUESTIONS(sec)[step];
+  const q = QUESTIONS(sec, filter.places)[step];
 
   return (
     <EditorContext.Provider value={{ districts: props.districts, amenities, languages: props.languages, limits: props.limits, section: sec, filter }}>
@@ -494,7 +494,7 @@ export function ListingWizard(props: {
                     return (
                       <li key={k} className="flex flex-wrap items-center gap-2">
                         <span aria-hidden>{filled ? "✅" : "⬜"}</span>
-                        <span className={filled ? "font-semibold" : "text-muted"}>{QUESTIONS(sec)[k].short}</span>
+                        <span className={filled ? "font-semibold" : "text-muted"}>{QUESTIONS(sec, filter.places)[k].short}</span>
                         {!filled ? (
                           <button type="button" onClick={() => enterStep(4 + i)} className="font-bold text-primary underline">
                             заполнить
@@ -680,7 +680,7 @@ function isFilled(k: StepKey, d: ListingData | null, sec: Section): boolean {
   }
 }
 
-function QUESTIONS(sec: Section): Record<StepKey, { title: string; hint?: string; short: string }> {
+function QUESTIONS(sec: Section, places: PlaceLabels): Record<StepKey, { title: string; hint?: string; short: string }> {
   const biz = sec === "biznes";
   return {
     type: { title: "Кого добавляем?", hint: "Бизнес — заведение или компания. Специалист — частный мастер, который работает сам.", short: "Тип" },
@@ -691,7 +691,7 @@ function QUESTIONS(sec: Section): Record<StepKey, { title: string; hint?: string
     about: { title: biz ? "Расскажите о бизнесе" : "Расскажите о себе", hint: "Пара абзацев о том, чем вы полезны клиентам. Можно пропустить и написать позже.", short: "Описание" },
     place: biz
       ? { title: "Где вас найти?", hint: "Адрес появится в карточке и на карте.", short: "Адрес" }
-      : { title: "Как и где вы работаете?", hint: "Выезжаете к клиентам, принимаете у себя или работаете онлайн.", short: "Где работаете" },
+      : { title: "Как и где вы работаете?", hint: places.hint, short: "Где работаете" },
     hours: { title: "Когда вы работаете?", hint: "Посетители увидят «Открыто сейчас» или «Закрыто».", short: "Часы работы" },
     services: { title: "Какие у вас услуги и цены?", hint: "Несколько главных услуг с ценой. Остальное можно добавить потом.", short: "Услуги и цены" },
     photos: { title: "Добавьте фото", hint: "Карточки с фото открывают в несколько раз чаще. Хватит обложки и 3–5 фото работ или места.", short: "Фото" },

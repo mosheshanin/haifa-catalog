@@ -5,22 +5,24 @@ import { getCategories, getDistricts } from "@/lib/data/dictionaries";
 import { PAGE_SIZE, getListingPoints, searchListings, type ListingSummary } from "@/lib/data/listings";
 import { toSearch, withParams, type CatalogFilters, type RawParams } from "@/lib/catalog/params";
 import { pluralRu } from "@/lib/format";
+import { DEFAULT_PLACES, filterConfig, type PlaceLabels } from "@/lib/catalog/filter-config";
 import { t } from "@/i18n/ru";
 import type { Section } from "@/lib/blocks/types";
 
 // Метки совпадений: коротко объясняют, почему карточка в результатах (идея из анализа Deloclub).
-function reasonsFor(l: ListingSummary, f: CatalogFilters, districtName: (id: number) => string, districtSlugToId: Map<string, number>) {
+// places — подписи категории карточки: «🚗 Выезжает: Адар» или «🤝 Встречи: Адар» (4 ноября 2026).
+function reasonsFor(l: ListingSummary, f: CatalogFilters, districtName: (id: number) => string, districtSlugToId: Map<string, number>, places: PlaceLabels) {
   const r: string[] = [];
   const district = f.district ?? l.detected_district ?? undefined;
   if (district) {
     const id = districtSlugToId.get(district);
     if (id && l.district_ids.includes(id)) {
-      r.push(l.formats.includes("at_home") ? `🚗 Выезжает: ${districtName(id)}` : `📍 ${districtName(id)}`);
+      r.push(l.formats.includes("at_home") ? `${places.reach}: ${districtName(id)}` : `📍 ${districtName(id)}`);
     }
   }
   if (f.language && l.languages.includes(f.language)) r.push(`🗣️ ${f.language}`);
-  if (f.atHome && l.formats.includes("at_home")) r.push(l.section === "biznes" ? "🚗 Выезд или доставка" : "🚗 Выезд к клиенту");
-  if (f.onSite && l.formats.includes("on_site")) r.push("🏠 Приём у себя");
+  if (f.atHome && l.formats.includes("at_home")) r.push(places !== DEFAULT_PLACES ? places.home : l.section === "biznes" ? "🚗 Выезд или доставка" : "🚗 Выезд к клиенту");
+  if (f.onSite && l.formats.includes("on_site")) r.push(places.site);
   if (f.online && l.formats.includes("online")) r.push("💻 Онлайн");
   if (l.has_offer && (f.hasOffer || f.q || district)) r.push("🎁 Есть акция");
   return r;
@@ -76,6 +78,12 @@ export async function Results({
   const subtitleOf = (l: ListingSummary) => {
     const cat = l.category_id ? categoryById.get(l.category_id) : undefined;
     return l.section === "specialisty" && l.summary ? l.summary : (cat?.name ?? l.summary ?? "");
+  };
+  const placesOf = (l: ListingSummary): PlaceLabels => {
+    const cat = l.category_id ? categoryById.get(l.category_id) : undefined;
+    if (!cat) return DEFAULT_PLACES;
+    const parent = cat.parent_id ? categoryById.get(cat.parent_id) : undefined;
+    return filterConfig(l.section, parent ? { slug: cat.slug, parentSlug: parent.slug } : { slug: cat.slug }).places;
   };
   const districtLabelOf = (l: ListingSummary) => l.district_ids.map(districtName).filter(Boolean).slice(0, 2).join(", ");
 
@@ -134,7 +142,7 @@ export async function Results({
                   listing={l}
                   subtitle={subtitleOf(l)}
                   districtLabel={districtLabelOf(l)}
-                  reasons={showReasons ? reasonsFor(l, filters, districtName, districtSlugToId) : []}
+                  reasons={showReasons ? reasonsFor(l, filters, districtName, districtSlugToId, placesOf(l)) : []}
                   wide={wide}
                 />
               </div>

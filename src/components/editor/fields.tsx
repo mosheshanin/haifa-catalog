@@ -35,6 +35,12 @@ function optionsOf(o: Option[] | string, opts: EditorOptions): Option[] {
   if (o === "amenities") return opts.amenities.map((v) => ({ value: v, label: v }));
   if (o === "languages") return opts.languages.map((v) => ({ value: v, label: v }));
   if (o === "kupot") return KUPOT_LIST.map((v) => ({ value: v, label: v }));
+  if (o === "placeFormats")
+    return [
+      { value: "at_home", label: opts.filter.places.home },
+      { value: "on_site", label: opts.filter.places.site },
+      { value: "online", label: opts.filter.places.online },
+    ];
   if (o === "bizFormats")
     return [
       opts.filter.home ? { value: "at_home", label: opts.filter.home } : null,
@@ -500,7 +506,7 @@ function FieldView({ field, obj, onChange }: { field: Field; obj: Obj; onChange:
     case "multiselect":
       return (
         <div className="grid gap-1">
-          <span className="text-sm font-bold">{field.label}</span>
+          <span className="text-sm font-bold">{field.labelFrom ? opts.filter.places[field.labelFrom] : field.label}</span>
           <MultiSelect options={multiOptions(optionsOf(field.options, opts), (v as string[]) ?? [])} value={(v as string[]) ?? []} onChange={set} />
           {field.help ? <span className="text-xs text-muted">{field.help}</span> : null}
         </div>

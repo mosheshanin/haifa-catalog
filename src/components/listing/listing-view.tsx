@@ -91,7 +91,6 @@ const DAY_NAMES: Array<[keyof NonNullable<Extract<ListingBlock, { type: "hours" 
   ["sat", "Сб"],
 ];
 
-const FORMAT_LABELS = { at_home: "🚗 Выезд на дом", on_site: "🏠 Приём у себя", online: "💻 Онлайн" } as const;
 
 const FEATURE_ICONS: Record<string, string> = {
   "Оплата картой": "💳",
@@ -281,11 +280,12 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
       );
     case "service_area":
       return (
-        <Section title={t.listing.serviceArea} icon="🚗">
+        // Подписи — по категории карточки: «Выезд на дом» или «Встреча у клиента» (4 ноября 2026)
+        <Section title={ctx.filter.places.title} icon="🚗">
           <p className="mb-2 flex flex-wrap gap-2">
             {block.data.formats.map((f) => (
               <span key={f} className="rounded-full bg-primary-soft px-3 py-1 text-sm font-bold text-primary">
-                {FORMAT_LABELS[f]}
+                {{ at_home: ctx.filter.places.home, on_site: ctx.filter.places.site, online: ctx.filter.places.online }[f]}
               </span>
             ))}
           </p>

@@ -294,7 +294,7 @@ export function ListingEditor(props: {
                 className={dragId === b.id ? "opacity-50" : ""}
               >
                 <Card
-                  title={BLOCK_TITLES[b.type]}
+                  title={b.type === "service_area" ? filter.places.title : BLOCK_TITLES[b.type]}
                   icon={BLOCK_ICONS[b.type]}
                   hint={
                     <span className="flex flex-wrap gap-2">
@@ -332,7 +332,7 @@ export function ListingEditor(props: {
                       <button
                         type="button"
                         onClick={() => {
-                          if (confirm(`Удалить блок «${BLOCK_TITLES[b.type]}» со всеми данными?`)) update({ ...data, blocks: data.blocks.filter((x) => x.id !== b.id) });
+                          if (confirm(`Удалить блок «${b.type === "service_area" ? filter.places.title : BLOCK_TITLES[b.type]}» со всеми данными?`)) update({ ...data, blocks: data.blocks.filter((x) => x.id !== b.id) });
                         }}
                         className="grid size-11 place-items-center rounded-lg text-danger hover:bg-[#fdecea]"
                         aria-label="Удалить блок"
@@ -358,7 +358,7 @@ export function ListingEditor(props: {
                       onClick={() => update({ ...data, blocks: [...data.blocks, { id: `${t}-${crypto.randomUUID().slice(0, 8)}`, type: t, data: defaultBlockData(t) } as ListingBlock] })}
                       className="min-h-11 rounded-full border border-line bg-white px-3 text-sm font-bold hover:border-primary hover:bg-primary-soft"
                     >
-                      {BLOCK_ICONS[t]} {BLOCK_TITLES[t]}
+                      {BLOCK_ICONS[t]} {t === "service_area" ? filter.places.title : BLOCK_TITLES[t]}
                     </button>
                   ))}
                 </div>
