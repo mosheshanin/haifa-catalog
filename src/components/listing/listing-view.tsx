@@ -175,6 +175,9 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
                     {o.title}
                   </span>
                 </p>
+                {/* Описание и цена предложения (поля редактора; не выводились до 4 ноября 2026) */}
+                {o.description ? <p className="mt-1 text-sm leading-relaxed">{o.description}</p> : null}
+                {o.price !== undefined ? <p className="mt-1 font-extrabold">{formatPrice(o.price)}</p> : null}
                 {o.promoCode ? (
                   <p className="mt-1 text-sm">
                     Промокод: <span className="rounded bg-white px-1.5 py-0.5 font-mono font-bold">{o.promoCode}</span>
@@ -196,9 +199,11 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
                 <ul className="divide-y divide-line">
                   {g.items.map((s, si) => (
                     <li key={si} className="flex items-baseline gap-3 py-2.5">
-                      <span className="flex-1">
+                      <span className="min-w-0 flex-1">
                         {s.name}
-                        {s.durationMin ? <span className="ml-2 text-sm text-muted">{s.durationMin} мин</span> : null}
+                        {s.durationMin ? <span className="ml-2 whitespace-nowrap text-sm text-muted">{s.durationMin} мин</span> : null}
+                        {/* Описание услуги (поле редактора «Описание»; не выводилось до 4 ноября 2026) */}
+                        {s.description ? <span className="mt-0.5 block text-sm leading-snug text-muted">{s.description}</span> : null}
                       </span>
                       {s.price !== undefined ? <span className="font-extrabold">{formatPrice(s.price, s.priceFrom)}</span> : null}
                     </li>
