@@ -249,7 +249,7 @@ html[data-telegram="1"] .site-footer {
 }
 
 /* ---------- Вырез в первом экране (4 ноября 2026) ----------
-   Цвет фона страницы поверх графитового блока: форма читается как вырез. Облако (≈80% времени) переходит в знаки ₪, + и %.
+   Цвет фона страницы поверх графитового блока: форма читается как вырез. Облако (≈80% времени) по очереди переходит в знаки ₪, #, ♥, +, @, % и ∞.
    Устройство и все подводные камни — в шапке src/components/home/hero-cutout.tsx.
    Размер слоя считается от ширины блока (он `@container`): на компьютере (от 65rem) форма крупная и слева от неё есть
    место для текста; уже 65rem и на телефоне форма меньше и лежит над надписью (в вёрстке блока для неё оставлена полоса).
@@ -276,28 +276,16 @@ html[data-telegram="1"] .site-footer {
   stroke-linejoin: round;
   opacity: 0;
   transform-origin: 111px 100px;
-  animation: hc-sign 30s ease-in-out infinite;
+  animation: hc-sign var(--hc-cycle) ease-in-out infinite;
 }
 .hc-sign circle { fill: var(--color-surface-alt); stroke: none; }
 .hc-sign .hc-ring { fill: none; stroke: var(--color-surface-alt); stroke-width: 22; }
-@keyframes hc-sign {
-  0% { opacity: 0; transform: scale(0.92); }
-  3.333% { opacity: 1; transform: scale(1); }
-  6.667% { opacity: 1; transform: scale(1); }
-  10% { opacity: 0; transform: scale(0.92); }
-  100% { opacity: 0; transform: scale(0.92); }
-}
-/* Облако гаснет на секунду, пока знак держится (кадры симметричны: сумма прозрачностей остаётся 1, пока растёт размытие) */
-.hc-cloud { animation: hc-cloud 30s ease-in-out infinite; }
-@keyframes hc-cloud {
-  0%, 18.333% { opacity: 1; }
-  21.667%, 25% { opacity: 0; }
-  28.333%, 51.667% { opacity: 1; }
-  55%, 58.333% { opacity: 0; }
-  61.667%, 85% { opacity: 1; }
-  88.333%, 91.667% { opacity: 0; }
-  95%, 100% { opacity: 1; }
-}
+/* Закрашенные знаки (сердечко): заливка плюс скруглённая обводка закругляют и острый низ, и ложбинку сверху */
+.hc-sign .hc-fill { fill: var(--color-surface-alt); }
+/* Кадры `hc-sign` (знак появляется, держится, гаснет) и `hc-cloud` (облако гаснет на секунду, пока знак держится)
+   зависят от числа знаков и длины цикла, поэтому их проценты считает компонент (в <style> рядом со слоем).
+   Длительность цикла — переменная --hc-cycle на самом слое. */
+.hc-cloud { animation: hc-cloud var(--hc-cycle) ease-in-out infinite; }
 .hc-orb { animation: hc-spin linear infinite; }
 @keyframes hc-spin { to { transform: rotate(360deg); } }
 .hc-pu, .hc-core { transform-box: fill-box; transform-origin: center; }
