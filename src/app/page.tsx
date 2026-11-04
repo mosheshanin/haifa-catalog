@@ -3,6 +3,7 @@ import { SearchForm } from "@/components/search/search-form";
 import { ShowMore } from "@/components/catalog/show-more";
 import { ArrowRightIcon } from "@/components/icons";
 import { Icon3d } from "@/components/ui/icon-3d";
+import { OwnerReel } from "@/components/home/owner-reel";
 import { categoryIcon3d } from "@/lib/icons-3d";
 import { getSectionCategories } from "@/lib/data/dictionaries";
 import { t } from "@/i18n/ru";
@@ -105,15 +106,19 @@ export default async function HomePage() {
         </section>
       ))}
 
-      <section className="rounded-[2rem] border-2 border-dashed border-primary/30 bg-white p-6 sm:p-12">
-        <h2 className="flex items-center gap-3 text-xl font-extrabold leading-snug text-balance sm:text-2xl">
-          <Icon3d name="megaphone" size={48} className="-my-2 shrink-0" />
-          <span>{t.home.ownerCta}</span>
-        </h2>
-        <p className="mt-3 max-w-2xl pl-15 leading-relaxed text-muted">{t.home.ownerCtaLead}</p>
-        <Link href="/kabinet/novaya" className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-accent px-5 font-bold text-on-accent hover:bg-accent-hover sm:w-auto sm:px-6">
-          {t.home.ownerCtaButton} <ArrowRightIcon className="size-5" />
-        </Link>
+      {/* Блок для владельцев (4 ноября 2026): сверху «монтаж» из пяти кадров, снизу неподвижные описание и кнопка.
+          Всё, что движется, обрезано краями карточки (overflow-hidden); заголовок для скринридера — sr-only. */}
+      <section aria-labelledby="h-owner" className="isolate overflow-hidden rounded-[2rem] border border-line bg-white">
+        <OwnerReel frames={t.home.ownerReel} summary={t.home.ownerReelStatic} pauseLabel={t.home.ownerReelPause} playLabel={t.home.ownerReelPlay} />
+        <div className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between sm:gap-10 sm:px-10 sm:py-8">
+          <div className="min-w-0">
+            <h2 id="h-owner" className="sr-only">{t.home.ownerCta}</h2>
+            <p className="max-w-2xl leading-relaxed text-muted">{t.home.ownerCtaLead}</p>
+          </div>
+          <Link href="/kabinet/novaya" className="inline-flex h-12 w-full shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-accent px-5 font-bold text-on-accent hover:bg-accent-hover sm:w-auto sm:px-6">
+            {t.home.ownerCtaButton} <ArrowRightIcon className="size-5" />
+          </Link>
+        </div>
       </section>
     </div>
   );
