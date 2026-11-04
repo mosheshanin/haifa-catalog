@@ -3,7 +3,7 @@ import { SearchForm } from "@/components/search/search-form";
 import { ShowMore } from "@/components/catalog/show-more";
 import { ArrowRightIcon } from "@/components/icons";
 import { Icon3d } from "@/components/ui/icon-3d";
-import { OwnerReel } from "@/components/home/owner-reel";
+import { OwnerFlow } from "@/components/home/owner-flow";
 import { HeroCutout } from "@/components/home/hero-cutout";
 import { categoryIcon3d } from "@/lib/icons-3d";
 import { getSectionCategories } from "@/lib/data/dictionaries";
@@ -122,20 +122,24 @@ export default async function HomePage() {
         </section>
       ))}
 
-      {/* Блок для владельцев (4 ноября 2026): сверху «монтаж» из пяти кадров, снизу неподвижные описание и кнопка.
-          Всё, что движется, обрезано краями карточки (overflow-hidden); заголовок для скринридера — sr-only. */}
-      <section aria-labelledby="h-owner" className="isolate overflow-hidden rounded-[2rem] border border-line bg-white">
-        <OwnerReel frames={t.home.ownerReel} summary={t.home.ownerReelStatic} />
-        <div className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between sm:gap-10 sm:px-10 sm:py-8">
-          <div className="min-w-0">
-            <h2 id="h-owner" className="sr-only">{t.home.ownerCta}</h2>
-            <p className="max-w-2xl leading-relaxed text-muted">{t.home.ownerCtaLead}</p>
+      {/* Блок для владельцев (4 ноября 2026, вариант В холста): графитовый, как первый экран; справа (на телефоне сверху)
+          карточка специалиста, к которой стекаются капли с логотипами. У блока нет overflow-hidden: сцена у края не должна
+          обрезаться скруглённым углом; свечение — в своей обрезающей обёртке. */}
+      <div className="owf-wrap">
+        <section aria-labelledby="h-owner" className="owf-block">
+          <div className="absolute inset-0 -z-10 overflow-hidden rounded-[2rem]" aria-hidden>
+            <div className="absolute -bottom-20 -left-16 size-64 rounded-full bg-[#facc15]/15 blur-3xl" />
           </div>
-          <Link href="/kabinet/novaya" className="inline-flex h-12 w-full shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-accent px-5 font-bold text-on-accent hover:bg-accent-hover sm:w-auto sm:px-6">
-            {t.home.ownerCtaButton} <ArrowRightIcon className="size-5" />
-          </Link>
-        </div>
-      </section>
+          <OwnerFlow card={t.home.ownerCard} />
+          <div className="owf-text">
+            <h2 id="h-owner" className="text-3xl font-extrabold leading-tight text-balance sm:text-[2.75rem] sm:leading-[1.1]">{t.home.ownerCta}</h2>
+            <p className="max-w-xl text-lg leading-relaxed text-white/90">{t.home.ownerCtaLead}</p>
+            <Link href="/kabinet/novaya" className="owf-cta mt-2 inline-flex h-13 w-full items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-accent px-6 font-display text-lg font-extrabold text-on-accent shadow-lg shadow-black/20 transition hover:-translate-y-0.5 hover:bg-accent-hover sm:w-fit">
+              {t.home.ownerCtaButton} <ArrowRightIcon className="size-5" />
+            </Link>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
