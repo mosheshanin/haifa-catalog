@@ -109,7 +109,7 @@ export default async function HomePage() {
             </div>
           </div>
         </section>
-        <HeroCutout pauseLabel={t.home.heroPause} playLabel={t.home.heroPlay} />
+        <HeroCutout />
       </div>
 
       {(["biznes", "specialisty"] as const).map((section) => (
@@ -122,7 +122,7 @@ export default async function HomePage() {
       {/* Блок для владельцев (4 ноября 2026): сверху «монтаж» из пяти кадров, снизу неподвижные описание и кнопка.
           Всё, что движется, обрезано краями карточки (overflow-hidden); заголовок для скринридера — sr-only. */}
       <section aria-labelledby="h-owner" className="isolate overflow-hidden rounded-[2rem] border border-line bg-white">
-        <OwnerReel frames={t.home.ownerReel} summary={t.home.ownerReelStatic} pauseLabel={t.home.ownerReelPause} playLabel={t.home.ownerReelPlay} />
+        <OwnerReel frames={t.home.ownerReel} summary={t.home.ownerReelStatic} />
         <div className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between sm:gap-10 sm:px-10 sm:py-8">
           <div className="min-w-0">
             <h2 id="h-owner" className="sr-only">{t.home.ownerCta}</h2>

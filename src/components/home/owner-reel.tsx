@@ -9,7 +9,8 @@
 //   (класс reel-done: входные анимации мгновенно в конечном состоянии, бесконечные — фигуры — продолжают идти).
 // - Время кадра — CSS-анимация полоски внизу (--reel-hold в globals.css); когда она закончилась (onAnimationEnd),
 //   включается следующий кадр. Поэтому пауза и возобновление ровно продолжают отсчёт, таймеров в JS нет.
-// - Запускается, когда сцена видна на экране; стоит на паузе, если вкладка скрыта или нажата кнопка паузы.
+// - Идёт по кругу, пока сцена видна на экране (хотя бы на 20%); стоит на месте, если вкладка скрыта. Кнопки паузы нет
+//   (заказчик убрал её 4 ноября 2026). Скорость задаёт --reel-speed в globals.css (с 4 ноября 2026 в 1,2 раза быстрее).
 // - При «уменьшении движения» в системе — один неподвижный кадр. Сцена для скринридера скрыта (aria-hidden):
 //   тот же смысл читается в заголовке и описании под ней.
 
@@ -60,8 +61,8 @@ function Shapes({ kind }: { kind: Shape }) {
       return (
         <>
           <span className="reel-sh reel-sh-pulse" style={{ animationDelay: "0s" }} />
-          <span className="reel-sh reel-sh-pulse" style={{ animationDelay: "1.1s" }} />
-          <span className="reel-sh reel-sh-pulse" style={{ animationDelay: "2.2s" }} />
+          <span className="reel-sh reel-sh-pulse" style={{ animationDelay: "calc(1.1s / var(--reel-speed))" }} />
+          <span className="reel-sh reel-sh-pulse" style={{ animationDelay: "calc(2.2s / var(--reel-speed))" }} />
         </>
       );
     case "dot":
@@ -95,29 +96,18 @@ function Frame({ style, lines, done }: { style: FrameStyle; lines: readonly stri
   );
 }
 
-export function OwnerReel({
-  frames,
-  summary,
-  pauseLabel,
-  playLabel,
-}: {
-  frames: readonly (readonly string[])[];
-  summary: readonly string[];
-  pauseLabel: string;
-  playLabel: string;
-}) {
+export function OwnerReel({ frames, summary }: { frames: readonly (readonly string[])[]; summary: readonly string[] }) {
   const total = Math.min(frames.length, FRAME_STYLES.length);
   const rootRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState<{ cur: number; prev: number | null }>({ cur: 0, prev: null });
   const [inView, setInView] = useState(false);
-  const [userPaused, setUserPaused] = useState(false);
   const reduced = useReducedMotion();
   const tabVisible = useTabVisible();
 
   useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
-    const io = new IntersectionObserver(([e]) => setInView(e.isIntersecting), { threshold: 0.4 });
+    const io = new IntersectionObserver(([e]) => setInView(e.isIntersecting), { threshold: 0.2 });
     io.observe(el);
     return () => io.disconnect();
   }, [reduced]);
@@ -134,34 +124,15 @@ export function OwnerReel({
     );
   }
 
-  const run = inView && tabVisible && !userPaused;
+  const run = inView && tabVisible;
   const { cur, prev } = pos;
 
+  // Сама сцена: всё внутри обрезается по её краям (overflow-hidden + isolate), наружу ничего не выходит
   return (
-    <div className="relative">
-      {/* Сама сцена: всё внутри обрезается по её краям (overflow-hidden + isolate), наружу ничего не выходит */}
-      <div ref={rootRef} className="reel @container relative isolate h-52 overflow-hidden bg-primary sm:h-72" data-run={run ? "1" : "0"} aria-hidden="true">
-        {prev !== null && prev !== cur ? <Frame key={prev} style={FRAME_STYLES[prev]} lines={frames[prev]} done /> : null}
-        <Frame key={cur} style={FRAME_STYLES[cur]} lines={frames[cur]} done={false} />
-        <span key={`prog-${cur}`} className="reel-prog" style={{ background: FRAME_STYLES[cur].fg }} onAnimationEnd={next} />
-      </div>
-      <button
-        type="button"
-        onClick={() => setUserPaused((v) => !v)}
-        aria-label={userPaused ? playLabel : pauseLabel}
-        className="absolute bottom-4 right-3 z-10 grid size-11 place-items-center rounded-full bg-white/90 text-primary shadow-md hover:bg-white sm:right-5"
-      >
-        {userPaused ? (
-          <svg viewBox="0 0 24 24" className="size-5" fill="currentColor" aria-hidden="true">
-            <path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" />
-          </svg>
-        ) : (
-          <svg viewBox="0 0 24 24" className="size-5" fill="currentColor" aria-hidden="true">
-            <rect x="6" y="5" width="4" height="14" rx="1" />
-            <rect x="14" y="5" width="4" height="14" rx="1" />
-          </svg>
-        )}
-      </button>
+    <div ref={rootRef} className="reel @container relative isolate h-52 overflow-hidden bg-primary sm:h-72" data-run={run ? "1" : "0"} aria-hidden="true">
+      {prev !== null && prev !== cur ? <Frame key={prev} style={FRAME_STYLES[prev]} lines={frames[prev]} done /> : null}
+      <Frame key={cur} style={FRAME_STYLES[cur]} lines={frames[cur]} done={false} />
+      <span key={`prog-${cur}`} className="reel-prog" style={{ background: FRAME_STYLES[cur].fg }} onAnimationEnd={next} />
     </div>
   );
 }

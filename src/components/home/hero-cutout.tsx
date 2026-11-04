@@ -15,8 +15,8 @@
 //   на разных экранах форма та же, только крупнее или мельче.
 // - Слой лежит над фоном блока и не обрезается его скруглённым углом (иначе по дуге угла остаётся серая линия:
 //   краевые пиксели скругления накладываются дважды), поэтому блок не `overflow-hidden`, а свечение в нём — в своей обёртке.
-// - Идёт, пока блок виден, вкладка активна и не нажата пауза (кнопка 44 px — для доступности, правило «пауза для
-//   движения дольше 5 секунд»). При «уменьшении движения» — один неподвижный знак ₪ и без кнопки.
+// - Идёт, пока блок виден и вкладка активна. Кнопки паузы нет (заказчик убрал её 4 ноября 2026). При «уменьшении
+//   движения» в системе — один неподвижный знак ₪.
 // - Для скринридера слой скрыт (aria-hidden): он ничего не сообщает, это украшение.
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
@@ -64,14 +64,13 @@ const H = 215.4;
 const TOP = 19.4;
 const WALL = 2; // отступ «стен» от края блока
 
-export function HeroCutout({ pauseLabel, playLabel }: { pauseLabel: string; playLabel: string }) {
+export function HeroCutout() {
   const rootRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const [inView, setInView] = useState(true);
-  const [userPaused, setUserPaused] = useState(false);
   const reduced = useReducedMotion();
   const tabVisible = useTabVisible();
-  const run = inView && tabVisible && !userPaused && !reduced;
+  const run = inView && tabVisible && !reduced;
 
   useEffect(() => {
     const el = rootRef.current;
@@ -178,25 +177,6 @@ export function HeroCutout({ pauseLabel, playLabel }: { pauseLabel: string; play
           </g>
         </svg>
       </div>
-      {reduced ? null : (
-        <button
-          type="button"
-          onClick={() => setUserPaused((v) => !v)}
-          aria-label={userPaused ? playLabel : pauseLabel}
-          className="absolute bottom-4 right-3 z-20 grid size-11 place-items-center rounded-full bg-primary text-white ring-1 ring-white/30 hover:bg-primary-hover sm:right-5"
-        >
-          {userPaused ? (
-            <svg viewBox="0 0 24 24" className="size-5" fill="currentColor" aria-hidden="true">
-              <path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" />
-            </svg>
-          ) : (
-            <svg viewBox="0 0 24 24" className="size-5" fill="currentColor" aria-hidden="true">
-              <rect x="6" y="5" width="4" height="14" rx="1" />
-              <rect x="14" y="5" width="4" height="14" rx="1" />
-            </svg>
-          )}
-        </button>
-      )}
     </>
   );
 }
