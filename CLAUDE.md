@@ -33,7 +33,7 @@
 | Вход Google | Google Cloud проект `haifa-catalog`, OAuth client «HBC web» | Экран согласия в режиме **Testing** (вход только у тестовых пользователей). Перевести в Production до публичного запуска |
 | Telegram | бот `@haifabcbot`, отображаемое имя «HBC» (рабочее) | `/setdomain` = haifa.business; Main Mini App → https://haifa.business (сменено 5 ноября 2026). Вебхук, команды, описание и кнопку меню «Каталог» ставит кнопка в админке → «Telegram» (токена у Claude нет). Встроенный поиск включается в @BotFather `/setinline`. Канал — бот в администраторах канала |
 | Карта | MapLibre 6 + бесплатные тайлы OpenFreeMap (`tiles.openfreemap.org/styles/liberty`), без ключей | Решение 1 ноября 2026. Запасной вариант — свои тайлы Protomaps на R2 |
-| Cloudflare | аккаунт есть, коннектор подключён (устаревший сервер) | R2 не включён (нужен только если уйдём с OpenFreeMap), Turnstile ещё не создан |
+| Cloudflare | аккаунт есть, коннектор подключён (устаревший сервер) | R2 не включён (нужен только если уйдём с OpenFreeMap). Turnstile — виджет «HBC» (5 ноября 2026, Managed, домен haifa.business): ключ сайта в `TURNSTILE_SITE_KEY`, секрет — Vercel `TURNSTILE_SECRET_KEY` |
 | Администраторы | таблица `public.admin_emails` | Роль admin выдаётся при входе **через Google** с адресом из списка |
 
 Название выбрано: HaifaBusinessClub (HBC). Домен — **haifa.business** (5 ноября 2026). `siteUrl()` в рабочей сборке (`VERCEL_ENV=production`)
@@ -256,8 +256,7 @@ Vercel не дал заказчику сохранить имена с `NEXT_PUB
    - ~~GA4~~ — `G-B7FVV3T3F8` в `GA_MEASUREMENT_ID` (5 ноября 2026, ресурс «HBC» в аккаунте заказчика);
    - правка 12 текстов категорий и стартовых списков «Особенностей» (админка → «Справочники» → категория);
    - консультация юриста по документам, затем `LEGAL_DRAFT = false` и дата редакции в `src/components/legal/legal-page.tsx`.
-3. Ключи от заказчика (по одному шагу): Cloudflare Turnstile — ключ сайта вписать в `TURNSTILE_SITE_KEY` в `src/lib/env.ts`,
-   секрет он кладёт в Vercel `TURNSTILE_SECRET_KEY`; ключ Google Maps Embed API (ограничить адресом сайта) — в
+3. Ключи от заказчика (по одному шагу): ~~Cloudflare Turnstile~~ — подключён 5 ноября 2026; ключ Google Maps Embed API (ограничить адресом сайта) — в
    `GOOGLE_MAPS_EMBED_KEY` в `src/lib/env.ts`. Пока ключей нет: формы защищены ловушкой и частотой, карта Google — без ключа по cid.
 4. Список 100 стартовых карточек: заказчик заполнит шаблон `public/import-shablon.csv` позже.
 5. Ждёт проверки заказчика: черновик списка районов (24 шт., «Рамот» записан как «Рамот-Ремез»).

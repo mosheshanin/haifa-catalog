@@ -38,7 +38,7 @@ export const GOOGLE_CLIENT_ID =
 
 // Cloudflare Turnstile (капча форм): ключ сайта не секретный. Пока пусто — формы работают с ограничением частоты,
 // а проверка капчи включится, когда в Vercel появится TURNSTILE_SECRET_KEY и здесь — ключ сайта.
-export const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "";
+export const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAAF0nuedjfu42CK31";
 
 // Ключ Google Maps Embed API (бесплатная карта с рейтингом). Не секретный: ограничен адресом сайта в Google Cloud.
 // Пока пусто — используется встраивание карты без ключа по коду места (cid).
