@@ -12,12 +12,22 @@ import { confirmListingFromCabinet } from "@/app/actions/cabinet";
 
 export const metadata: Metadata = { title: t.cabinet.title, robots: { index: false } };
 
+// Срок черновика — как SQL draft_expires_at (миграция 20261105000004): 30 дней с последней правки, но не раньше 3 дней
+// после напоминания в Telegram.
+function draftExpiresAt(l: { created_at: string; last_edit_at: string | null; draft_reminded_at: string | null }): string {
+  const edit = new Date(l.last_edit_at ?? l.created_at).getTime();
+  const reminded = l.draft_reminded_at ? new Date(l.draft_reminded_at).getTime() : 0;
+  const byEdit = edit + 30 * 86400_000;
+  const byReminder = reminded >= edit ? reminded + 3 * 86400_000 : 0;
+  return new Date(Math.max(byEdit, byReminder)).toISOString();
+}
+
 async function CabinetContent() {
   const user = await getSessionUser();
   if (!user) return <LoginRequired next="/kabinet" />;
   const sb = createAdminClient();
   const [{ data: listings }, { data: profile }] = await Promise.all([
-    sb.from("listings").select("id, section, slug, title, status, is_demo, updated_at, data_confirmed_at, published_at").eq("owner_id", user.id).order("updated_at", { ascending: false }),
+    sb.from("listings").select("id, section, slug, title, status, is_demo, updated_at, data_confirmed_at, published_at, created_at, last_edit_at, draft_reminded_at").eq("owner_id", user.id).order("updated_at", { ascending: false }),
     sb.from("profiles").select("telegram_id, notify_prefs").eq("id", user.id).single(),
   ]);
   const ids = (listings ?? []).map((l) => l.id);
@@ -55,6 +65,11 @@ async function CabinetContent() {
                     {draft ? <span className="rounded-full bg-[#f0efec] px-3 py-1 text-xs font-bold text-muted">Есть черновик</span> : null}
                   </div>
                   {rejected?.review_comment && !pending ? <p className="text-sm text-danger">Комментарий модератора: {rejected.review_comment}</p> : null}
+                  {l.status === "draft" ? (
+                    <p className="text-sm text-muted">
+                      Черновик хранится 30 дней с последней правки — до {formatDateRu(draftExpiresAt(l).slice(0, 10))}. Продолжите заполнение, чтобы он не удалился.
+                    </p>
+                  ) : null}
                   {l.status === "published" ? <Freshness id={l.id} confirmedAt={l.data_confirmed_at ?? l.published_at} /> : null}
                   <div className="flex flex-wrap gap-2">
                     <Link href={`/kabinet/kartochka/${l.id}`} className="inline-flex min-h-11 items-center rounded-xl bg-primary px-4 text-sm font-bold text-white hover:bg-primary-hover">
