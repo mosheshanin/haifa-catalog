@@ -112,7 +112,7 @@ async function geocode(address: string): Promise<{ lat: number; lng: number } | 
   try {
     const params = new URLSearchParams({ q: address, format: "jsonv2", limit: "1", countrycodes: "il", "accept-language": "ru", viewbox: "34.90,32.95,35.20,32.68" });
     const res = await fetch(`https://nominatim.openstreetmap.org/search?${params}`, {
-      headers: { "User-Agent": "HBC-catalog/1.0 (https://haifa-catalog.vercel.app)" },
+      headers: { "User-Agent": "HBC-catalog/1.0 (https://haifa.business)" },
       signal: AbortSignal.timeout(8000),
     });
     const found = (await res.json()) as Array<{ lat: string; lon: string }>;

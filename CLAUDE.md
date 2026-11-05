@@ -27,7 +27,7 @@
 | Что | Где | Примечание |
 | --- | --- | --- |
 | Код | GitHub `mosheshanin/haifa-catalog`, ветка `main` | Каждый push в `main` = сборка на Vercel |
-| Сайт (тест) | https://haifa-catalog.vercel.app | Vercel Hobby. До запуска закрыт от индексации |
+| Сайт | **https://haifa.business** (куплен и привязан в Vercel 5 ноября 2026; www → без www). Старый адрес https://haifa-catalog.vercel.app работает | Vercel Hobby. До запуска закрыт от индексации |
 | Vercel | проект `haifa-catalog` в аккаунте заказчика | **Коннектор Vercel подключён к другому аккаунту (команда «Yoggy») и проект не видит.** Сборки и переменные заказчик смотрит в панели сам; проверять сайт можно встроенным браузером |
 | База | Supabase, проект `haifa-catalog`, ref `kqzrnjjeyppkmqtwnspo`, регион eu-west-1 (Ирландия), тариф Free | Коннектор Supabase работает: миграции через `apply_migration`, проверки через `execute_sql`. Изменения с `delete`/`drop` требуют подтверждения заказчика во всплывающем окне — предупреждать заранее |
 | Вход Google | Google Cloud проект `haifa-catalog`, OAuth client «HBC web» | Экран согласия в режиме **Testing** (вход только у тестовых пользователей). Перевести в Production до публичного запуска |
@@ -36,7 +36,10 @@
 | Cloudflare | аккаунт есть, коннектор подключён (устаревший сервер) | R2 не включён (нужен только если уйдём с OpenFreeMap), Turnstile ещё не создан |
 | Администраторы | таблица `public.admin_emails` | Роль admin выдаётся при входе **через Google** с адресом из списка |
 
-Название выбрано: HaifaBusinessClub (HBC). Домен не выбран (заказчик выберет сам). Пока используется временный адрес Vercel.
+Название выбрано: HaifaBusinessClub (HBC). Домен — **haifa.business** (5 ноября 2026). `siteUrl()` в рабочей сборке (`VERCEL_ENV=production`)
+всегда отдаёт `PRODUCTION_SITE_URL` из `src/lib/env.ts`; предпросмотры — свой *.vercel.app.
+После смены домена заказчик должен: Supabase → Authentication → URL Configuration (Site URL и Redirect URLs),
+@BotFather `/setdomain` и адрес Main Mini App / кнопки меню, затем админка → «Telegram» → «Подключить бота» (вебхук на новый адрес).
 
 ## Переменные окружения
 

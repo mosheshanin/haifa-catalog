@@ -7,8 +7,13 @@ export const TELEGRAM_BOT_USERNAME = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNA
 // Короткое имя Mini App из @BotFather (t.me/<бот>/<имя>). Пусто — используется главное приложение бота.
 export const TELEGRAM_MINIAPP_SHORT_NAME = process.env.NEXT_PUBLIC_TELEGRAM_MINIAPP_SHORT_NAME ?? "";
 
+// Свой домен (куплен 5 ноября 2026). www.haifa.business в Vercel перенаправляется сюда.
+export const PRODUCTION_SITE_URL = "https://haifa.business";
+
 export function siteUrl(): string {
   if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
+  // Рабочая сборка — всегда свой домен; предпросмотры (preview) — свой адрес *.vercel.app.
+  if (process.env.VERCEL_ENV === "production") return PRODUCTION_SITE_URL;
   if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
   return "http://localhost:3000";

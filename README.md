@@ -3,7 +3,7 @@
 Сообщество проверенных бизнесов и специалистов Хайфы. Один сайт на Next.js работает и как обычный сайт,
 и как Telegram Mini App (бот `@haifabcbot`).
 
-- **Тестовый адрес:** https://haifa-catalog.vercel.app
+- **Адрес:** https://haifa.business (старый https://haifa-catalog.vercel.app тоже работает)
 - **Техническое задание (источник истины):** https://claude.ai/artifact/FRC2GByay4wHeq3jcMyfbV
 - **Для новой сессии Claude:** начните с [`CLAUDE.md`](CLAUDE.md) — там статус, доступы, решения и следующие шаги.
 

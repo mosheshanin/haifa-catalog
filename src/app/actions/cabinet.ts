@@ -307,7 +307,7 @@ export async function geocodeAddress(address: string): Promise<ActionResult<{ la
     if (q.length < 3) throw new ActionError("Введите адрес.");
     const params = new URLSearchParams({ q, format: "jsonv2", limit: "1", countrycodes: "il", "accept-language": "ru", viewbox: "34.90,32.95,35.20,32.68" });
     const res = await fetch(`https://nominatim.openstreetmap.org/search?${params}`, {
-      headers: { "User-Agent": "HBC-catalog/1.0 (https://haifa-catalog.vercel.app)" },
+      headers: { "User-Agent": "HBC-catalog/1.0 (https://haifa.business)" },
       signal: AbortSignal.timeout(8000),
     });
     if (!res.ok) throw new ActionError("Сервис карт сейчас недоступен. Укажите координаты вручную.");
