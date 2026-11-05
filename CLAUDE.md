@@ -27,10 +27,10 @@
 | Что | Где | Примечание |
 | --- | --- | --- |
 | Код | GitHub `mosheshanin/haifa-catalog`, ветка `main` | Каждый push в `main` = сборка на Vercel |
-| Сайт | **https://haifa.business** (куплен и привязан в Vercel 5 ноября 2026; www → без www). Старый адрес https://haifa-catalog.vercel.app работает | Vercel Hobby. До запуска закрыт от индексации |
+| Сайт | **https://haifa.business** (куплен и привязан в Vercel 5 ноября 2026; www → без www). Старый адрес https://haifa-catalog.vercel.app перенаправляется (308) на haifa.business с сохранением пути | Vercel Hobby. До запуска закрыт от индексации |
 | Vercel | проект `haifa-catalog` в аккаунте заказчика | **Коннектор Vercel подключён к другому аккаунту (команда «Yoggy») и проект не видит.** Сборки и переменные заказчик смотрит в панели сам; проверять сайт можно встроенным браузером |
 | База | Supabase, проект `haifa-catalog`, ref `kqzrnjjeyppkmqtwnspo`, регион eu-west-1 (Ирландия), тариф Free | Коннектор Supabase работает: миграции через `apply_migration`, проверки через `execute_sql`. Изменения с `delete`/`drop` требуют подтверждения заказчика во всплывающем окне — предупреждать заранее |
-| Вход Google | Google Cloud проект `haifa-catalog`, OAuth client «HBC web» | Экран согласия в режиме **Testing** (вход только у тестовых пользователей). Перевести в Production до публичного запуска |
+| Вход Google | Google Cloud проект `haifa-catalog`, OAuth client «HBC web» | Приложение опубликовано (**In production**, 5 ноября 2026): входят все. Branding заполнен (домен, политика, условия); логотип `public/brand/hbc-logo-120.png` — покажется после brand verification |
 | Telegram | бот `@haifabcbot`, отображаемое имя «HBC» (рабочее) | `/setdomain` = haifa.business; Main Mini App → https://haifa.business (сменено 5 ноября 2026). Вебхук, команды, описание и кнопку меню «Каталог» ставит кнопка в админке → «Telegram» (токена у Claude нет). Встроенный поиск включается в @BotFather `/setinline`. Канал — бот в администраторах канала |
 | Карта | MapLibre 6 + бесплатные тайлы OpenFreeMap (`tiles.openfreemap.org/styles/liberty`), без ключей | Решение 1 ноября 2026. Запасной вариант — свои тайлы Protomaps на R2 |
 | Cloudflare | аккаунт есть, коннектор подключён (устаревший сервер) | R2 не включён (нужен только если уйдём с OpenFreeMap). Turnstile — виджет «HBC» (5 ноября 2026, Managed, домен haifa.business): ключ сайта в `TURNSTILE_SITE_KEY`, секрет — Vercel `TURNSTILE_SECRET_KEY` |
