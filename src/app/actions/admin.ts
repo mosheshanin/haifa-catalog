@@ -458,6 +458,8 @@ export async function setupBot(): Promise<ActionResult> {
         max_connections: 20,
       });
       await api.setMyCommands(BOT_COMMANDS);
+      // Кнопка меню «Каталог» в личке с ботом открывает сайт как Mini App (адрес меняется вместе с доменом).
+      await api.setChatMenuButton({ menu_button: { type: "web_app", text: "Каталог", web_app: { url: siteUrl() } } });
       await api.setMyShortDescription("Каталог бизнесов и специалистов Хайфы: поиск, избранное, заявки.");
       await api.setMyDescription("Найдите мастера, кафе или специалиста в Хайфе. Нажмите «Старт», чтобы искать и получать заявки и ответы владельцев.");
     } catch (e) {
