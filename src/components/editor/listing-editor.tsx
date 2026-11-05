@@ -93,7 +93,7 @@ export function ListingEditor(props: {
   const [dragId, setDragId] = useState<string | null>(null);
   // Согласие при первой отправке карточки (раздел 9 ТЗ): владелец подтверждает права на данные и фото.
   const needsConsent = !isAdmin && !props.hasPublished;
-  const [agree, setAgree] = useState(false);
+  const [agree, setAgree] = useState(true); // отмечено по умолчанию (решение заказчика 5 ноября 2026)
 
   useEffect(() => {
     const onBefore = (e: BeforeUnloadEvent) => {

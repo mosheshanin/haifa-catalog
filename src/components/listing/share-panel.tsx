@@ -8,35 +8,71 @@ const noSubscribe = () => () => {};
 
 // «Поделиться» на карточке (разделы 4 и 5 ТЗ): QR-код, ссылка, короткая ссылка, Telegram, WhatsApp, Mini App.
 // QR-код готовится на сервере (SVG) и ведёт на короткую ссылку /k/<код>.
+function copyViaSelection(value: string): boolean {
+  const ta = document.createElement("textarea");
+  ta.value = value;
+  ta.setAttribute("readonly", "");
+  ta.style.cssText = "position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;";
+  document.body.appendChild(ta);
+  ta.select();
+  ta.setSelectionRange(0, value.length);
+  let ok = false;
+  try {
+    ok = document.execCommand("copy");
+  } catch {
+    ok = false;
+  }
+  ta.remove();
+  return ok;
+}
+
 export function SharePanel({
   title,
   url,
   shortUrl,
   miniAppUrl,
   qrSvg,
-  temporaryAddress = false,
 }: {
   title: string;
   url: string;
   shortUrl?: string;
   miniAppUrl: string;
   qrSvg?: string;
+  /** Больше не используется: домен подключён 5 ноября 2026. Оставлено, чтобы не менять вызовы. */
   temporaryAddress?: boolean;
 }) {
   const [copied, setCopied] = useState<string | null>(null);
-  // Системное меню «Поделиться» есть не во всех браузерах; на сервере кнопку не показываем.
-  const canShare = useSyncExternalStore(noSubscribe, () => typeof navigator.share === "function", () => false);
+  const [manual, setManual] = useState<string | null>(null);
+  // Системное меню «Поделиться» — только на телефоне вне Telegram: на компьютере (Windows) оно открывает непонятное
+  // окно системы, а во встроенном браузере Telegram ничего не делает (замечание заказчика 5 ноября 2026).
+  const canShare = useSyncExternalStore(
+    noSubscribe,
+    () => typeof navigator.share === "function" && window.matchMedia("(pointer: coarse)").matches,
+    () => false,
+  );
   const inTelegram = useInsideTelegram();
   const link = shortUrl ?? url;
   const text = `${title} — в каталоге HBC`;
 
+  // Копирование: Clipboard API есть не везде (Telegram, встроенные браузеры, запрет прав), поэтому сначала старый
+  // способ через выделенное поле — он работает почти везде; не вышло — показываем ссылку, чтобы скопировать вручную.
   async function copy(value: string) {
-    try {
-      await navigator.clipboard.writeText(value);
+    let ok = copyViaSelection(value);
+    if (!ok) {
+      try {
+        await navigator.clipboard.writeText(value);
+        ok = true;
+      } catch {
+        ok = false;
+      }
+    }
+    if (ok) {
+      haptic("light");
+      setManual(null);
       setCopied(value);
       setTimeout(() => setCopied(null), 2000);
-    } catch {
-      window.prompt("Скопируйте ссылку:", value);
+    } else {
+      setManual(value);
     }
   }
 
@@ -85,6 +121,18 @@ export function SharePanel({
             {copied === link ? "✓ Скопировано" : "📋 Копировать"}
           </button>
         </div>
+        {manual ? (
+          <label className="grid gap-1 text-sm">
+            <span className="text-muted">Не получилось скопировать автоматически. Нажмите на ссылку и скопируйте её:</span>
+            <input
+              readOnly
+              value={manual}
+              autoFocus
+              onFocus={(e) => e.currentTarget.select()}
+              className="h-11 w-full rounded-xl border border-line bg-white px-3 font-mono text-sm"
+            />
+          </label>
+        ) : null}
         <div className="flex flex-wrap gap-2">
           {inTelegram ? (
             // В Mini App: выбор чата прямо в Telegram, получатель откроет карточку в каталоге внутри Telegram.
@@ -119,7 +167,7 @@ export function SharePanel({
               ⬇️ Скачать QR
             </button>
           ) : null}
-          {canShare ? (
+          {canShare && !inTelegram ? (
             <button type="button" className={btn} onClick={() => void navigator.share({ title, text, url: link }).catch(() => {})}>
               🔗 Ещё…
             </button>
@@ -130,7 +178,6 @@ export function SharePanel({
             {copied === url ? "✓ Полная ссылка скопирована" : "Скопировать полную ссылку"}
           </button>
         ) : null}
-        {temporaryAddress && qrSvg ? <p className="text-xs text-muted">Пока сайт на временном адресе, QR-коды не печатаем: после подключения домена ссылка изменится.</p> : null}
       </div>
     </div>
   );

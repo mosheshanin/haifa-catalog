@@ -1,3 +1,4 @@
+import { singleDistrictName } from "@/lib/catalog/districts";
 import { renderOg, photoForOg, OG_SIZE } from "@/lib/seo/og";
 import { getCategories, getCategory, getDistricts, isSection } from "@/lib/data/dictionaries";
 import { getListingBySlug } from "@/lib/data/listings";
@@ -7,7 +8,7 @@ import { t } from "@/i18n/ru";
 // Страницы «категория + район» и подкатегории берут картинку своей категории.
 export const alt = "HaifaBusinessClub";
 export const size = OG_SIZE;
-export const contentType = "image/png";
+export const contentType = "image/jpeg";
 
 export default async function Image({ params }: { params: Promise<{ section: string; slug: string }> }) {
   const { section, slug } = await params;
@@ -24,7 +25,7 @@ export default async function Image({ params }: { params: Promise<{ section: str
   if (!listing || "redirect" in listing) return renderOg({ title: t.site.brand, subtitle: t.site.tagline });
   const [categories, districts] = await Promise.all([getCategories(), getDistricts()]);
   const cat = categories.find((c) => c.id === listing.categoryId);
-  const district = districts.find((d) => d.slug === listing.data.header.districtSlugs[0])?.name;
+  const district = singleDistrictName(listing.data.header.districtSlugs, districts);
   const { header } = listing.data;
   return renderOg({
     eyebrow: [cat?.name, district].filter(Boolean).join(" · "),

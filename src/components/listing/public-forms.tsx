@@ -277,7 +277,7 @@ export function RequestForm({
       </label>
       {/* Согласие — галочка без предзаполнения (раздел 9 ТЗ) */}
       <label className="flex items-start gap-2 text-sm">
-        <input type="checkbox" name="consent" required className="mt-0.5 size-5 shrink-0 accent-primary" />
+        <input type="checkbox" name="consent" required defaultChecked className="mt-0.5 size-5 shrink-0 accent-primary" />
         <span>
           Согласен(на) передать имя и контакт владельцу карточки для ответа на заявку. Подробнее —{" "}
           <Link href="/politika" className="font-semibold text-primary underline" target="_blank">политика конфиденциальности</Link>.

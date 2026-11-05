@@ -27,3 +27,11 @@ export function districtLabels(slugs: string[], names: Record<string, string>): 
   if (isAllHaifa(slugs, haifa)) return [ALL_HAIFA, ...slugs.filter((s) => !haifa.includes(s)).map((s) => names[s] ?? s)];
   return slugs.map((s) => names[s] ?? s);
 }
+
+// Район для заголовка, описания и картинки предпросмотра (5 ноября 2026): только если у карточки ровно один район.
+// Если районов несколько или выбрана «Вся Хайфа», пишем просто «Хайфа» — иначе в превью попадал первый район из списка
+// (например, «Адар» у специалиста, который работает по всему городу).
+export function singleDistrictName(slugs: string[], list: District[]): string | undefined {
+  if (slugs.length !== 1) return undefined;
+  return list.find((d) => d.slug === slugs[0])?.name;
+}

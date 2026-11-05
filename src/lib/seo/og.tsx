@@ -66,7 +66,7 @@ export async function renderOg(o: { eyebrow?: string; title: string; subtitle?: 
   const [f, mark] = await Promise.all([fonts(), logo()]);
   // Неразрывные пробелы из названий мешают переносу строки в картинке.
   const title = clip(o.title.replace(/\u00a0/g, " "), 70);
-  return new ImageResponse(
+  const png = new ImageResponse(
     (
       <div style={{ display: "flex", width: "100%", height: "100%", background: "#f4f4f2", fontFamily: "Onest" }}>
         {/* Ширина колонки задана явно: иначе длинное название уходит под фото, а не переносится */}
@@ -90,4 +90,11 @@ export async function renderOg(o: { eyebrow?: string; title: string; subtitle?: 
     ),
     { ...OG_SIZE, fonts: f },
   );
+  // WhatsApp не показывает картинку предпросмотра больше ~300 КБ, а PNG выходит около 400 КБ (с фото — больше).
+  // Перекодируем в JPEG: 60–120 КБ, Telegram и Facebook его тоже принимают (замечание заказчика 5 ноября 2026).
+  const sharp = (await import("sharp")).default;
+  const jpg = await sharp(Buffer.from(await png.arrayBuffer())).jpeg({ quality: 82, mozjpeg: true }).toBuffer();
+  return new Response(new Uint8Array(jpg), {
+    headers: { "Content-Type": "image/jpeg", "Cache-Control": png.headers.get("Cache-Control") ?? "public, max-age=0, must-revalidate" },
+  });
 }

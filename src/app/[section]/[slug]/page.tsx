@@ -21,7 +21,7 @@ import { getVimeoThumbs } from "@/lib/data/video";
 import { getListingReviews } from "@/lib/data/reviews";
 import { t } from "@/i18n/ru";
 import type { Section } from "@/lib/blocks/types";
-import { districtLabels, districtNameMap } from "@/lib/catalog/districts";
+import { districtLabels, districtNameMap, singleDistrictName } from "@/lib/catalog/districts";
 
 // Адрес /<раздел>/<slug> — это либо категория (/biznes/krasota), либо карточка (/biznes/nazvanie).
 // База не даёт им совпасть (раздел 8 ТЗ, постоянные адреса).
@@ -51,7 +51,7 @@ export async function generateMetadata({ params }: PageProps<"/[section]/[slug]"
   const { header } = listing.data;
   const [categories, districts] = await Promise.all([getCategories(), getDistricts()]);
   const cat = categories.find((c) => c.id === listing.categoryId);
-  const district = districts.find((d) => d.slug === header.districtSlugs[0])?.name;
+  const district = singleDistrictName(header.districtSlugs, districts);
   // Шаблон описания (раздел 8 ТЗ): «Название — категория в районе X, Хайфа. Профессия или слоган. Контакты, часы, отзывы».
   const where = district ? `в районе ${district}, Хайфа` : "в Хайфе";
   const description = [

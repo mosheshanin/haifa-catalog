@@ -121,7 +121,7 @@ export function ListingWizard(props: {
 
   const [extras, setExtras] = useState<Set<string>>(new Set());
   const [extrasComment, setExtrasComment] = useState("");
-  const [agree, setAgree] = useState(false);
+  const [agree, setAgree] = useState(true); // отмечено по умолчанию (решение заказчика 5 ноября 2026)
   const [done, setDone] = useState<{ moderated: boolean; ordered: boolean; orderError?: string } | null>(null);
 
   const headingRef = useRef<HTMLHeadingElement>(null);

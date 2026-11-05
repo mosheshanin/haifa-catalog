@@ -3,9 +3,10 @@ import Link from "next/link";
 import { KUPOT, LANGUAGES, SORTS, type CatalogFilters } from "@/lib/catalog/params";
 import type { Category, District } from "@/lib/data/dictionaries";
 import type { FilterAvailability } from "@/lib/data/filters";
+import { AutoSubmit } from "@/components/catalog/auto-submit";
 
 // Фильтры как обычная HTML-форма (GET): работают без JavaScript, результат можно отправить ссылкой.
-// На телефоне свёрнуты в раскрывающуюся панель (раздел 10 ТЗ).
+// На телефоне свёрнуты в раскрывающуюся панель (раздел 10 ТЗ). С JavaScript применяются сразу при изменении (AutoSubmit).
 // Набор и названия фильтров зависят от категории, пустые фильтры скрыты (avail, решение 2 ноября 2026).
 export function FiltersForm({
   action,
@@ -46,7 +47,8 @@ export function FiltersForm({
         <span className="text-sm font-semibold text-muted group-open:hidden">показать</span>
         <span className="hidden text-sm font-semibold text-muted group-open:inline">скрыть</span>
       </summary>
-      <Form action={action} className="grid gap-3 border-t border-line p-4">
+      <Form action={action} scroll={false} replace className="grid gap-3 border-t border-line p-4">
+        <AutoSubmit />
         {filters.q ? <input type="hidden" name="q" value={filters.q} /> : null}
         {filters.view === "map" ? <input type="hidden" name="view" value="map" /> : null}
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
