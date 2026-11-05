@@ -42,7 +42,7 @@ export const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || 
 
 // Ключ Google Maps Embed API (бесплатная карта с рейтингом). Не секретный: ограничен адресом сайта в Google Cloud.
 // Пока пусто — используется встраивание карты без ключа по коду места (cid).
-export const GOOGLE_MAPS_EMBED_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY || "";
+export const GOOGLE_MAPS_EMBED_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY || "AIzaSyDy80gi0w95zu0B5tWXJDAIgBKQnbw-TJE";
 
 // Этап 5: Google Analytics 4 (идентификатор вида G-XXXXXXX, не секрет). Пусто — аналитика и баннер cookie выключены.
 export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_ID || "G-B7FVV3T3F8";
