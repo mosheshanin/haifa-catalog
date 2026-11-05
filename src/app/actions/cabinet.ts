@@ -294,6 +294,7 @@ export async function updateNotifyPrefs(_: unknown, form: FormData): Promise<Act
       reviews: form.get("reviews") === "on",
       moderation: form.get("moderation") === "on",
       updates: form.get("updates") === "on",
+      tips: form.get("tips") === "on",
     };
     const supabase = await createClient();
     const { error } = await supabase.from("profiles").update({ notify_prefs: prefs }).eq("id", user.id);

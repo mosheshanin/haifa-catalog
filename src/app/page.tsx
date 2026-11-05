@@ -95,7 +95,7 @@ export default async function HomePage() {
           <div className="relative z-10 max-w-2xl">
             <div aria-hidden className="h-[calc(min(45.5cqw,12.9rem)_-_2.5rem)] sm:h-[calc(min(45.5cqw,12.9rem)_-_4rem)] @[65rem]:hidden" />
             <div className="@[65rem]:max-w-[37.5rem]">
-              <p className="font-bold text-highlight">{t.site.brand}</p>
+              <p className="font-bold text-highlight">#{t.site.brand}</p>
               <h1 className="mt-3 text-3xl font-extrabold leading-tight text-balance sm:text-5xl sm:leading-[1.1]">{t.home.title}</h1>
               <p className="mt-4 text-lg leading-relaxed text-white/90">{t.home.lead}</p>
               <div className="mt-8">

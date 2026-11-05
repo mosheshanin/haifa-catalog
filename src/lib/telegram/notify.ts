@@ -7,7 +7,7 @@ import { escapeHtml, safeCall } from "@/lib/telegram/api";
 
 export { escapeHtml };
 
-export type NotifyPref = "moderation" | "reviews" | "requests" | "updates";
+export type NotifyPref = "moderation" | "reviews" | "requests" | "updates" | "tips"; // tips — советы по заполненности (5 ноября 2026)
 
 // Бот может написать человеку, только если тот хоть раз нажал «Старт» у @haifabcbot (раздел 7).
 export async function sendText(chatId: number, text: string, keyboard?: InlineKeyboardButton[][]) {

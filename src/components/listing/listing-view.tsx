@@ -293,6 +293,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
         </Section>
       );
     case "gallery":
+      if (!block.data.photos.some((x) => x.url)) return null; // пустой блок (мастер добавляет блоки пустыми)
       return (
         <Section title={t.listing.gallery} icon="📷">
           {/* Фото открываются крупно целиком, с листанием по всей галерее */}
@@ -317,6 +318,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
         </Section>
       );
     case "before_after":
+      if (!block.data.pairs.some((x) => x.beforeUrl || x.afterUrl)) return null;
       return (
         <Section title={t.listing.beforeAfter} icon="✨">
           <div className={`grid gap-4 ${block.data.pairs.length > 1 ? "sm:grid-cols-2" : ""}`}>
@@ -328,6 +330,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
         </Section>
       );
     case "faq":
+      if (!block.data.items.some((x) => x.q?.trim() && x.a?.trim())) return null;
       return (
         <Section title={t.listing.faq} icon="❓">
           <div className="divide-y divide-line">
@@ -389,6 +392,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
       );
 
     case "google":
+      if (!block.data.url?.trim()) return null;
       return (
         <Section id="google" title={t.listing.google} icon="🌟">
           <GoogleRating url={block.data.url} placeId={block.data.placeId} cid={block.data.cid} />

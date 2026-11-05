@@ -9,6 +9,7 @@ import { clip, escapeHtml } from "@/lib/telegram/api";
 import { cardLine, cardMeta, cardMiniAppLink, cardSummary, cardWebUrl, describe, getCards, type CardInfo } from "@/lib/telegram/cards";
 import { decideRequest, requestKeyboard, requestText, type RequestStatus } from "@/lib/telegram/requests";
 import { confirmListingData } from "@/lib/telegram/freshness";
+import { turnOffTips } from "@/lib/telegram/fill";
 import { getChannel, setBotSetting, type ChannelCandidate, type ChannelConfig } from "@/lib/telegram/channel";
 
 // Бот каталога на grammY (раздел 7 ТЗ): /start, /search, /favorites, /leads, поиск в любом чате (@бот маникюр),
@@ -191,6 +192,28 @@ export function createBot(token: string): Bot {
     }
     await ctx.answerCallbackQuery({ text: "✅ Спасибо! Дата подтверждения обновлена." });
     await ctx.editMessageReplyMarkup({ reply_markup: { inline_keyboard: [] } }).catch(() => undefined);
+  });
+  // Совет по заполненности (5 ноября 2026): «Через неделю» ничего не меняет (следующий совет и так через 7 дней),
+  // «Не напоминать» выключает настройку уведомлений tips. В обоих случаях остаётся только кнопка редактора.
+  bot.callbackQuery(/^fill:(later|off):([0-9a-f-]{36})$/, async (ctx) => {
+    const keepEditor = async () => {
+      const rows = ctx.callbackQuery.message && "reply_markup" in ctx.callbackQuery.message ? ctx.callbackQuery.message.reply_markup?.inline_keyboard ?? [] : [];
+      const editor = rows.filter((r) => r.some((b) => "url" in b));
+      await ctx.editMessageReplyMarkup({ reply_markup: { inline_keyboard: editor } }).catch(() => undefined);
+    };
+    if (ctx.match[1] === "later") {
+      await ctx.answerCallbackQuery({ text: "Хорошо, напомню через неделю." });
+      await keepEditor();
+      return;
+    }
+    const profile = await profileByTelegram(ctx.from.id);
+    if (!profile) {
+      await ctx.answerCallbackQuery({ text: "Не нашли ваш профиль. Выключить советы можно в кабинете на сайте.", show_alert: true });
+      return;
+    }
+    await turnOffTips(profile.id);
+    await ctx.answerCallbackQuery({ text: "Больше не буду присылать советы. Включить снова — в кабинете, «Уведомления в Telegram».", show_alert: true });
+    await keepEditor();
   });
   bot.on("callback_query:data", (ctx) => ctx.answerCallbackQuery());
 

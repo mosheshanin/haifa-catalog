@@ -3,9 +3,8 @@ import type { ReactNode } from "react";
 import { getSiteSettings } from "@/lib/data/settings";
 import { LEGAL_PAGES } from "@/lib/legal";
 
-// Документы сайта (раздел 9 ТЗ). Пока юрист не проверил тексты, вверху видна пометка «проект».
-// После проверки поставить LEGAL_DRAFT = false и обновить дату редакции.
-export const LEGAL_DRAFT = true;
+// Документы сайта (раздел 9 ТЗ). Пометку «Проект документа» заказчик убрал 5 ноября 2026; после проверки юристом
+// обновить дату редакции.
 export const LEGAL_EDITION = "2 ноября 2026";
 
 
@@ -37,11 +36,6 @@ export function LegalPage({ title, current, children }: { title: string; current
       <header>
         <h1 className="text-2xl font-extrabold leading-tight sm:text-3xl">{title}</h1>
         <p className="mt-2 text-sm text-muted">Редакция от {LEGAL_EDITION}</p>
-        {LEGAL_DRAFT ? (
-          <p className="mt-3 rounded-2xl bg-[#f9eeda] p-3 text-sm text-[#8a5a00]">
-            Проект документа: текст будет проверен израильским юристом до открытия сайта для всех.
-          </p>
-        ) : null}
       </header>
       <div className="legal grid grid-cols-1 gap-4 leading-relaxed">{children}</div>
       <nav aria-label="Другие документы" className="flex flex-wrap gap-x-4 gap-y-2 border-t border-line pt-4 text-sm">

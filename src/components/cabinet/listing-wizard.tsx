@@ -3,6 +3,9 @@
 // Пошаговое добавление карточки (решение заказчика 3 ноября 2026): по одному вопросу на экран, всё после
 // первых четырёх шагов можно пропустить. После шага «Район» создаётся черновик (startListing), каждый
 // следующий шаг сохраняет его (saveDraft), поэтому можно прерваться и продолжить в обычном редакторе.
+// Заполненность (5 ноября 2026): с шага «Контакты» вместо полоски шагов — шкала заполненности (FillMeter,
+// src/lib/blocks/score.ts), она считает и то, что набрано на текущем шаге, до «Дальше». Шаг «Что ещё можно показать?»
+// добавляет отмеченные блоки пустыми — карточка пустые блоки не показывает, в редакторе их заполняют.
 // На последнем шаге — дополнительные услуги (из базы, правятся в админке; src/lib/extra-services.ts) и отправка на проверку.
 // Поля блоков — те же схемы, что в редакторе (BLOCK_SCHEMAS), чтобы данные были в одном формате.
 
@@ -18,13 +21,16 @@ import { ALL_HAIFA, isAllHaifa } from "@/lib/catalog/districts";
 import { Icon3d } from "@/components/ui/icon-3d";
 import { formatPrice, formatTotal, type ExtraService } from "@/lib/extra-services";
 import { inputCls, labelCls } from "@/components/forms/ui";
+import { BLOCK_TITLES } from "@/lib/blocks/types";
+import { BLOCK_SHORT, listingScore, suggestedBlocks, type ScoreTarget } from "@/lib/blocks/score";
+import { DescriptionCounter, FillMeter, FillTip } from "@/components/cabinet/fill-meter";
 import { orderExtras, saveDraft, startListing, submitListing } from "@/app/actions/cabinet";
 
 type Obj = Record<string, unknown>;
 type Section = "biznes" | "specialisty";
 export type WizardCategory = { id: number; section: string; name: string; slug: string; icon: string | null; icon_3d: string | null; parentId: number | null; amenities: string[] };
 
-type StepKey = "type" | "name" | "category" | "district" | "contacts" | "about" | "place" | "hours" | "services" | "photos" | "languages" | "features" | "final";
+type StepKey = "type" | "name" | "category" | "district" | "contacts" | "about" | "place" | "hours" | "services" | "photos" | "languages" | "features" | "more" | "final";
 type BlockType = ListingBlock["type"];
 
 const MAIN_CONTACTS: Field[] = [
@@ -51,6 +57,20 @@ const STEP_BLOCK: Partial<Record<StepKey, (s: Section) => BlockType>> = {
 const BLOCK_ORDER: BlockType[] = ["description", "services", "hours", "address", "service_area", "gallery", "features", "languages"];
 
 const REQUIRED: StepKey[] = ["type", "name", "category", "district"];
+
+// Какие пункты заполненности закрывает шаг: штриховка на шкале и подсказка «зачем».
+const STEP_ITEMS: Partial<Record<StepKey, ScoreTarget[]>> = {
+  contacts: ["contact"],
+  about: ["description"],
+  place: ["place"],
+  hours: ["hours"],
+  services: ["services"],
+  photos: ["cover", "gallery"],
+  languages: ["languages"],
+  features: ["features"],
+};
+// Блоки, у которых в мастере свой шаг: на шаге «Что ещё можно показать?» их не предлагаем.
+const WIZARD_BLOCKS: BlockType[] = ["description", "address", "service_area", "hours", "services", "gallery", "languages", "features"];
 
 const uid = (t: string) => `${t}-${crypto.randomUUID().slice(0, 8)}`;
 const hasContact = (c: ListingData["contacts"] | undefined) => Boolean(c && (c.phone || c.whatsapp || c.telegram || c.email));
@@ -104,10 +124,11 @@ export function ListingWizard(props: {
   const [extrasComment, setExtrasComment] = useState("");
   const [agree, setAgree] = useState(true); // отмечено по умолчанию (решение заказчика 5 ноября 2026)
   const [done, setDone] = useState<{ moderated: boolean; ordered: boolean; orderError?: string } | null>(null);
+  const [more, setMore] = useState<Set<BlockType>>(new Set()); // шаг «Что ещё можно показать?»
 
   const headingRef = useRef<HTMLHeadingElement>(null);
 
-  const steps: StepKey[] = ["type", "name", "category", "district", "contacts", "about", "place", "hours", "services", "photos", "languages", "features", "final"];
+  const steps: StepKey[] = ["type", "name", "category", "district", "contacts", "about", "place", "hours", "services", "photos", "languages", "features", "more", "final"];
   const step = steps[stepIdx];
   const sec: Section = section ?? "biznes";
 
@@ -121,6 +142,7 @@ export function ListingWizard(props: {
     () => amenityList(categoryId, props.categories, props.amenities[sec]),
     [categoryId, props.categories, props.amenities, sec],
   );
+  const topSlug = parent?.slug ?? category?.slug ?? null;
 
   // Фокус на вопросе при смене шага: экранный диктор читает новый вопрос, на телефоне экран начинается сверху.
   useEffect(() => {
@@ -156,6 +178,23 @@ export function ListingWizard(props: {
       return i < 0 ? 99 : i;
     };
     return { ...d, blocks: [...blocks].sort((a, b) => rank(a.type) - rank(b.type)) };
+  };
+
+  // Данные с тем, что набрано на текущем шаге (до «Дальше»): для «Дальше» и для живой шкалы.
+  const applyLocal = (d: ListingData): ListingData => {
+    if (step === "contacts") return { ...d, contacts: local as ListingData["contacts"] };
+    if (step === "photos") {
+      let nd: ListingData = { ...d, header: { ...d.header, logoUrl: local.logoUrl as string | undefined, coverUrl: local.coverUrl as string | undefined } };
+      const photos = (local.photos as Obj[] | undefined)?.filter((p) => p && p.url) ?? [];
+      if (photos.length) nd = upsertBlock(nd, "gallery", { photos });
+      return nd;
+    }
+    if (step === "more") {
+      const add = [...more].filter((t) => !d.blocks.some((b) => b.type === t));
+      return add.length ? { ...d, blocks: [...d.blocks, ...add.map((t) => ({ id: uid(t), type: t, data: defaultBlockData(t) }) as ListingBlock)] } : d;
+    }
+    const t = blockTypeOf(step);
+    return t ? upsertBlock(d, t, local) : d;
   };
 
   const persist = (next: ListingData, then: () => void) => {
@@ -212,19 +251,9 @@ export function ListingWizard(props: {
       });
     }
     if (!data) return;
-    if (step === "contacts") {
-      const nextData = { ...data, contacts: local as ListingData["contacts"] };
-      return persist(nextData, () => enterStep(stepIdx + 1, nextData));
-    }
-    if (step === "photos") {
-      let nextData: ListingData = { ...data, header: { ...data.header, logoUrl: local.logoUrl as string | undefined, coverUrl: local.coverUrl as string | undefined } };
-      const photos = (local.photos as Obj[] | undefined)?.filter((p) => p && p.url) ?? [];
-      if (photos.length) nextData = upsertBlock(nextData, "gallery", { photos });
-      return persist(nextData, () => enterStep(stepIdx + 1, nextData));
-    }
-    const t = blockTypeOf(step);
-    if (t) {
-      const nextData = upsertBlock(data, t, local);
+    if (step === "more" && !more.size) return enterStep(stepIdx + 1);
+    if (step === "contacts" || step === "photos" || step === "more" || blockTypeOf(step)) {
+      const nextData = applyLocal(data);
       return persist(nextData, () => enterStep(stepIdx + 1, nextData));
     }
   };
@@ -273,8 +302,18 @@ export function ListingWizard(props: {
       setDone({ moderated: !isAdmin, ordered, orderError });
     });
 
+  // ---------- Заполненность ----------
+  const scoreOpts = { topSlug, placeTitle: filter.places.title };
+  const preview = data && stepIdx >= 4 ? applyLocal(data) : null;
+  const score = preview ? listingScore(preview, scoreOpts) : null;
+  // Штриховка на шкале: сколько ещё даст текущий шаг, если его заполнить.
+  const stepGain = score ? score.items.filter((i) => STEP_ITEMS[step]?.includes(i.key) && !i.done).reduce((n, i) => n + i.points, 0) : 0;
+  const stepTip = score ? score.items.find((i) => i.key === STEP_ITEMS[step]?.[0]) : undefined;
+  const moreChoices = data ? suggestedBlocks(sec, topSlug).filter((t) => !WIZARD_BLOCKS.includes(t) && !data.blocks.some((b) => b.type === t && !more.has(t))) : [];
+
   // ---------- Экран «Готово» ----------
   if (done && listingId) {
+    const finalScore = data ? listingScore(data, scoreOpts) : null;
     return (
       <div className="grid gap-5 rounded-[var(--radius-card)] border border-line bg-white p-5 shadow-sm sm:p-8">
         <Icon3d name="tick" size={72} className="drop-shadow-[0_8px_8px_rgba(0,0,0,0.15)]" />
@@ -294,7 +333,31 @@ export function ListingWizard(props: {
             Карточка отправлена, но заказ услуг не прошёл: {done.orderError} Напишите администратору или попробуйте позже.
           </p>
         ) : null}
-        <p className="text-sm text-muted">Видео, команду, меню, спецпредложения и другие блоки можно добавить в редакторе карточки.</p>
+        {finalScore ? <FillMeter score={finalScore} /> : null}
+        {finalScore && finalScore.next.length ? (
+          <div className="grid gap-2">
+            <h2 className="text-lg font-extrabold">{done.moderated ? "Пока ждёте — три коротких шага" : "Сделайте карточку сильнее"}</h2>
+            <p className="text-sm text-muted">
+              Каждый добавляет {finalScore.next[0].points}% и больше поводов показать вас.{done.moderated ? " Новые блоки тоже пройдут проверку." : ""}
+            </p>
+            <ul className="grid gap-2">
+              {finalScore.next.slice(0, 3).map((i) => (
+                <li key={i.key}>
+                  <Link
+                    href={`/kabinet/kartochka/${listingId}?blok=${i.key}`}
+                    className="flex min-h-14 items-center justify-between gap-3 rounded-2xl border border-line bg-white px-4 py-2.5 hover:border-primary"
+                  >
+                    <span className="grid gap-0.5">
+                      <b>{i.action}</b>
+                      {i.need && i.have ? <span className="text-sm text-muted">сейчас {i.have} из {i.need}</span> : null}
+                    </span>
+                    <span className="whitespace-nowrap text-sm font-extrabold text-accent-ink">+{i.points}%</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
         <div className="flex flex-wrap gap-2">
           <Link href={`/kabinet/kartochka/${listingId}`} className="inline-flex min-h-12 items-center rounded-2xl bg-primary px-5 font-bold text-white hover:bg-primary-hover">
             Открыть редактор карточки
@@ -314,14 +377,17 @@ export function ListingWizard(props: {
   return (
     <EditorContext.Provider value={{ districts: props.districts, amenities, languages: props.languages, limits: props.limits, section: sec, filter }}>
       <div className="grid gap-5">
-        {/* Прогресс */}
+        {/* Прогресс: до черновика — шаги, дальше — заполненность карточки */}
+        {score ? <FillMeter score={score} gain={stepGain} /> : null}
         <div className="grid gap-2">
           <span className="text-sm font-bold text-muted">
             Шаг {stepIdx + 1} из {total}
           </span>
-          <div className="h-2 overflow-hidden rounded-full bg-surface-alt" aria-hidden>
-            <div className="h-full rounded-full bg-accent transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${((stepIdx + 1) / total) * 100}%` }} />
-          </div>
+          {!score ? (
+            <div className="h-2 overflow-hidden rounded-full bg-surface-alt" aria-hidden>
+              <div className="h-full rounded-full bg-accent transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${((stepIdx + 1) / total) * 100}%` }} />
+            </div>
+          ) : null}
           {saved ? <span className="text-xs font-semibold text-success" role="status">{saved}</span> : null}
         </div>
 
@@ -466,13 +532,52 @@ export function ListingWizard(props: {
 
           {blockTypeOf(step) ? <Fields fields={fieldsFor(blockTypeOf(step)!)} obj={local} onChange={setLocal} /> : null}
 
+          {step === "about" ? <DescriptionCounter length={String(local.text ?? "").trim().length} /> : null}
+
+          {step === "more" ? (
+            <div className="grid gap-2 sm:grid-cols-2">
+              {moreChoices.map((t) => {
+                const on = more.has(t);
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => {
+                      const n = new Set(more);
+                      if (on) n.delete(t);
+                      else n.add(t);
+                      setMore(n);
+                    }}
+                    className={`flex min-h-16 items-center justify-between gap-3 rounded-2xl border-2 px-3 py-2 text-left transition ${on ? "border-accent bg-recommended" : "border-line bg-white hover:border-primary/40"}`}
+                  >
+                    <span className="min-w-0">
+                      <span className="block font-bold leading-snug">{t === "service_area" ? filter.places.title : BLOCK_TITLES[t]}</span>
+                      {BLOCK_SHORT[t] ? <span className="mt-0.5 block text-sm leading-snug text-muted">{BLOCK_SHORT[t]}</span> : null}
+                    </span>
+                    <span aria-hidden className={`grid size-6 shrink-0 place-items-center rounded-md border-2 text-sm font-black ${on ? "border-accent bg-accent text-on-accent" : "border-line"}`}>
+                      {on ? "✓" : ""}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
+
+          {stepTip && !stepTip.done && stepTip.why ? (
+            <FillTip>
+              {stepTip.why}
+              {step === "photos" ? " Обложка — +10%, 5 фото в галерее — ещё +5%." : stepGain && step !== "about" ? ` Этот шаг: +${stepGain}%.` : ""}
+            </FillTip>
+          ) : null}
+
           {step === "final" ? (
             <div className="grid gap-6">
               {/* Что заполнено */}
               <div className="grid gap-2">
                 <h2 className="text-lg font-extrabold">Что в карточке</h2>
                 <ul className="grid gap-1.5 text-sm">
-                  {steps.slice(4, -1).map((k, i) => {
+                  {steps.slice(4, -2).map((k, i) => {
                     const filled = isFilled(k, data, sec);
                     return (
                       <li key={k} className="flex flex-wrap items-center gap-2">
@@ -679,6 +784,7 @@ function QUESTIONS(sec: Section, places: PlaceLabels): Record<StepKey, { title: 
     photos: { title: "Добавьте фото", hint: "Карточки с фото открывают в несколько раз чаще. Хватит обложки и 3–5 фото работ или места.", short: "Фото" },
     languages: { title: "На каких языках вы общаетесь?", short: "Языки" },
     features: { title: "Что у вас есть особенного?", hint: "По этим отметкам вас найдут фильтры каталога.", short: "Особенности" },
+    more: { title: "Что ещё можно показать?", hint: "Отметьте, что у вас есть. Эти блоки появятся в редакторе — заполните, когда будет время. Каждый заполненный блок: +5%.", short: "Ещё блоки" },
     final: { title: "Почти готово", hint: "Проверьте, что заполнено, и отправьте карточку на проверку.", short: "Отправка" },
   };
 }

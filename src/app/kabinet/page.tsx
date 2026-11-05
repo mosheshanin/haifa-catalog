@@ -9,6 +9,10 @@ import { TelegramStatus } from "@/components/cabinet/telegram-status";
 import { t } from "@/i18n/ru";
 import { formatDateRu } from "@/lib/format";
 import { confirmListingFromCabinet } from "@/app/actions/cabinet";
+import { getCategories } from "@/lib/data/dictionaries";
+import { listingScore, topCategorySlug, type ListingScore } from "@/lib/blocks/score";
+import { filterConfig } from "@/lib/catalog/filter-config";
+import type { ListingData } from "@/lib/blocks/types";
 
 export const metadata: Metadata = { title: t.cabinet.title, robots: { index: false } };
 
@@ -27,13 +31,34 @@ async function CabinetContent() {
   if (!user) return <LoginRequired next="/kabinet" />;
   const sb = createAdminClient();
   const [{ data: listings }, { data: profile }] = await Promise.all([
-    sb.from("listings").select("id, section, slug, title, status, is_demo, updated_at, data_confirmed_at, published_at, created_at, last_edit_at, draft_reminded_at").eq("owner_id", user.id).order("updated_at", { ascending: false }),
+    sb.from("listings").select("id, section, slug, title, status, is_demo, updated_at, data_confirmed_at, published_at, created_at, last_edit_at, draft_reminded_at, published_version_id").eq("owner_id", user.id).order("updated_at", { ascending: false }),
     sb.from("profiles").select("telegram_id, notify_prefs").eq("id", user.id).single(),
   ]);
   const ids = (listings ?? []).map((l) => l.id);
   const { data: versions } = ids.length
     ? await sb.from("listing_versions").select("listing_id, status, review_comment, block_decisions, created_at").in("listing_id", ids).in("status", ["draft", "pending", "rejected"]).order("created_at", { ascending: false })
     : { data: [] };
+  // Заполненность (5 ноября 2026): по рабочей версии — черновик, иначе на проверке, иначе опубликованная (как в редакторе).
+  const pubIds = (listings ?? []).map((l) => l.published_version_id).filter(Boolean) as string[];
+  const [{ data: work }, { data: pub }, categories] = await Promise.all([
+    ids.length
+      ? sb.from("listing_versions").select("listing_id, status, data, created_at").in("listing_id", ids).in("status", ["draft", "pending"]).order("created_at", { ascending: false })
+      : Promise.resolve({ data: [] as Array<{ listing_id: string; status: string; data: ListingData }> }),
+    pubIds.length ? sb.from("listing_versions").select("id, data").in("id", pubIds) : Promise.resolve({ data: [] as Array<{ id: string; data: ListingData }> }),
+    getCategories(),
+  ]);
+  const cats = categories.map((c) => ({ id: c.id, slug: c.slug, parentId: c.parent_id }));
+  const scores = new Map<string, ListingScore>();
+  for (const l of listings ?? []) {
+    const w = (work ?? []).filter((v) => v.listing_id === l.id);
+    const d = (w.find((v) => v.status === "draft") ?? w.find((v) => v.status === "pending"))?.data ?? (pub ?? []).find((v) => v.id === l.published_version_id)?.data;
+    if (!d) continue;
+    const data = d as ListingData;
+    const cat = categories.find((c) => c.id === data.header.categoryId);
+    const parent = cat?.parent_id ? categories.find((c) => c.id === cat.parent_id) : undefined;
+    const places = filterConfig(l.section, cat ? { slug: cat.slug, parentSlug: parent?.slug ?? null } : null).places;
+    scores.set(l.id, listingScore(data, { topSlug: topCategorySlug(data.header.categoryId, cats), placeTitle: places.title }));
+  }
   const { data: claims } = await sb.from("ownership_claims").select("id, status, created_at, listings(title)").eq("user_id", user.id).eq("status", "pending");
 
   return (
@@ -64,6 +89,7 @@ async function CabinetContent() {
                     </span>
                     {draft ? <span className="rounded-full bg-[#f0efec] px-3 py-1 text-xs font-bold text-muted">Есть черновик</span> : null}
                   </div>
+                  {scores.get(l.id) ? <FillLine id={l.id} score={scores.get(l.id)!} /> : null}
                   {rejected?.review_comment && !pending ? <p className="text-sm text-danger">Комментарий модератора: {rejected.review_comment}</p> : null}
                   {l.status === "draft" ? (
                     <p className="text-sm text-muted">
@@ -115,6 +141,33 @@ export default function CabinetPage() {
     <Suspense fallback={<Skeleton />}>
       <CabinetContent />
     </Suspense>
+  );
+}
+
+// Заполненность карточки и один следующий шаг (ссылка открывает нужный блок в редакторе).
+function FillLine({ id, score }: { id: string; score: ListingScore }) {
+  const next = score.next[0];
+  return (
+    <div className="grid gap-2">
+      <div className="flex items-center gap-3">
+        <div className="relative h-2 min-w-0 flex-1 rounded-full bg-[#ecebe5]" aria-hidden>
+          <div className="absolute inset-y-0 left-0 rounded-full bg-accent" style={{ width: `${score.percent}%` }} />
+        </div>
+        <b className="font-display tabular-nums">{score.percent}%</b>
+      </div>
+      <p className="text-sm leading-snug text-muted">
+        <span className="sr-only">Заполнено {score.percent}%. </span>
+        {score.message}
+      </p>
+      {next ? (
+        <Link href={`/kabinet/kartochka/${id}?blok=${next.key}`} className="flex min-h-12 items-center justify-between gap-3 rounded-2xl bg-primary-soft px-3 py-2 text-sm hover:bg-[#ebe8da]">
+          <span>
+            <span className="text-muted">Следующий шаг:</span> <b>{next.action}</b>
+          </span>
+          <b className="whitespace-nowrap text-accent-ink">+{next.points}%</b>
+        </Link>
+      ) : null}
+    </div>
   );
 }
 

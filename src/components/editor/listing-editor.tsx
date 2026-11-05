@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Component, useEffect, useMemo, useState, useTransition, type ReactNode } from "react";
+import { Component, useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
 import type { ListingBlock, ListingData, Limits } from "@/lib/blocks/types";
 import { BLOCK_ICONS, BLOCK_TITLES } from "@/lib/blocks/types";
 import { MODERATED_TYPES } from "@/lib/blocks/moderation";
@@ -13,6 +13,8 @@ import { inputCls, labelCls } from "@/components/forms/ui";
 import { ListingView } from "@/components/listing/listing-view";
 import { saveDraft, submitListing } from "@/app/actions/cabinet";
 import { districtNameMap } from "@/lib/catalog/districts";
+import { BLOCK_POINTS, listingScore, suggestedBlocks, topCategorySlug, type ScoreItem, type ScoreTarget } from "@/lib/blocks/score";
+import { FillMeter, NextStepCard } from "@/components/cabinet/fill-meter";
 
 type Obj = Record<string, unknown>;
 type Category = { id: number; name: string; slug: string; icon: string | null; parentId: number | null; amenities: string[] };
@@ -139,6 +141,70 @@ export function ListingEditor(props: {
     return filterConfig(listing.section, cat ? { slug: cat.slug, parentSlug: parent?.slug ?? null } : null);
   }, [props.categories, data.header.categoryId, listing.section]);
 
+  // Заполненность (5 ноября 2026): шкала в нижней панели, совет «следующий шаг», «+5%» на блоках, похвала, когда
+  // блок засчитался. Ссылка ?blok=<пункт> (из мастера, кабинета и бота) добавляет блок, если его нет, и прокручивает к нему.
+  const topSlug = topCategorySlug(data.header.categoryId, props.categories);
+  const score = listingScore(data, { topSlug, placeTitle: filter.places.title });
+  const suggested = suggestedBlocks(listing.section, topSlug);
+  const [cheer, setCheer] = useState<string | null>(null);
+  const doneRef = useRef<Set<string> | null>(null);
+  const doneKeys = score.items.filter((i) => i.done).map((i) => i.key).join(",");
+  useEffect(() => {
+    const now = new Set(doneKeys ? doneKeys.split(",") : []);
+    const before = doneRef.current;
+    doneRef.current = now;
+    if (!before) return;
+    const fresh = score.items.find((i) => i.done && !before.has(i.key));
+    if (!fresh) return;
+    setCheer(`«${fresh.title}» — засчитано, +${fresh.points}%. ${score.percent}% заполнено.`);
+    const t = setTimeout(() => setCheer(null), 5000);
+    return () => clearTimeout(t);
+    // score меняется на каждый ввод; реагируем только на смену набора засчитанных пунктов
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [doneKeys]);
+
+  const focusTarget = (key: ScoreTarget, d: ListingData = data) => {
+    let id = key === "cover" ? "ed-header" : key === "contact" ? "ed-contacts" : null;
+    let next = d;
+    if (!id) {
+      const type = (key === "description" ? "description" : key === "place" ? (listing.section === "biznes" ? "address" : "service_area") : key) as ListingBlock["type"];
+      let b = d.blocks.find((x) => x.type === type);
+      if (!b) {
+        b = { id: `${type}-${crypto.randomUUID().slice(0, 8)}`, type, data: defaultBlockData(type) } as ListingBlock;
+        next = { ...d, blocks: [...d.blocks, b] };
+        update(next);
+      } else if (b.hidden) {
+        next = { ...d, blocks: d.blocks.map((x) => (x.id === b!.id ? ({ ...x, hidden: false } as ListingBlock) : x)) };
+        update(next);
+      }
+      id = `blk-${b.id}`;
+    }
+    setPreview(false);
+    window.setTimeout(() => {
+      const el = document.getElementById(id!);
+      if (!el) return;
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      el.querySelector<HTMLElement>("input:not([type=checkbox]):not([type=hidden]), textarea, select")?.focus({ preventScroll: true });
+    }, 80);
+  };
+  // ?blok= из ссылки — один раз при открытии.
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const key = url.searchParams.get("blok");
+    if (!key) return;
+    // В обработчике таймера, а не в теле эффекта (правило react-hooks); адрес чистим там же — иначе двойной
+    // запуск эффекта в режиме разработки потерял бы параметр.
+    const timer = window.setTimeout(() => {
+      url.searchParams.delete("blok");
+      window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+      const known = score.items.some((i) => i.key === key) || (ADDABLE_ORDER as string[]).includes(key);
+      if (known) focusTarget(key as ScoreTarget, props.initial);
+    }, 0);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const onNextStep = (item: ScoreItem) => focusTarget(item.key);
+
   // «Особенности»: свой список категории (этап 5, вариант В) + общий список раздела.
   const amenities = useMemo(() => amenityList(data.header.categoryId, props.categories, props.amenities), [data.header.categoryId, props.categories, props.amenities]);
 
@@ -177,7 +243,7 @@ export function ListingEditor(props: {
 
   return (
     <EditorContext.Provider value={{ districts: props.districts, amenities, languages: props.languages, limits: props.limits, section: listing.section, filter }}>
-      <div className="grid gap-4 pb-28">
+      <div className="grid gap-4 pb-44">
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <Link href={isAdmin ? "/admin?tab=listings" : "/kabinet"} className="font-bold text-primary">
             ← {isAdmin ? "К карточкам в админке" : "Мои карточки"}
@@ -235,6 +301,8 @@ export function ListingEditor(props: {
           </div>
         ) : (
           <>
+            <NextStepCard score={score} onAction={onNextStep} />
+            <div id="ed-header" className="scroll-mt-4">
             <Card title="Шапка" icon="🏷️" hint={<ModerationHint moderated />}>
               <Fields
                 fields={[
@@ -275,23 +343,27 @@ export function ListingEditor(props: {
                 </div>
               </div>
             </Card>
+            </div>
 
+            <div id="ed-contacts" className="scroll-mt-4">
             <Card title="Контакты и кнопки" icon="📞" hint={<ModerationHint moderated />}>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Fields fields={CONTACT_FIELDS} obj={data.contacts as unknown as Obj} onChange={setContacts} />
               </div>
             </Card>
+            </div>
 
             {data.blocks.map((b, i) => (
               <div
                 key={b.id}
+                id={`blk-${b.id}`}
                 draggable={false}
                 onDragOver={(e) => dragId && e.preventDefault()}
                 onDrop={() => {
                   if (dragId && dragId !== b.id) moveBlock(dragId, i);
                   setDragId(null);
                 }}
-                className={dragId === b.id ? "opacity-50" : ""}
+                className={`scroll-mt-4 ${dragId === b.id ? "opacity-50" : ""}`}
               >
                 <Card
                   title={b.type === "service_area" ? filter.places.title : BLOCK_TITLES[b.type]}
@@ -349,18 +421,28 @@ export function ListingEditor(props: {
 
             {addable.length ? (
               <section className="rounded-[var(--radius-card)] border-2 border-dashed border-line p-4">
-                <h2 className="mb-3 text-lg font-extrabold">➕ Добавить блок</h2>
+                <h2 className="text-lg font-extrabold">➕ Добавить блок</h2>
+                <p className="mb-3 mt-1 text-sm text-muted">
+                  Каждый заполненный блок — <b className="text-accent-ink">+{BLOCK_POINTS}%</b>. Отмеченные точкой чаще всего пригодятся в вашей категории.
+                </p>
                 <div className="flex flex-wrap gap-2">
-                  {addable.map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => update({ ...data, blocks: [...data.blocks, { id: `${t}-${crypto.randomUUID().slice(0, 8)}`, type: t, data: defaultBlockData(t) } as ListingBlock] })}
-                      className="min-h-11 rounded-full border border-line bg-white px-3 text-sm font-bold hover:border-primary hover:bg-primary-soft"
-                    >
-                      {BLOCK_ICONS[t]} {t === "service_area" ? filter.places.title : BLOCK_TITLES[t]}
-                    </button>
-                  ))}
+                  {[...addable.filter((t) => suggested.includes(t)), ...addable.filter((t) => !suggested.includes(t))].map((t) => {
+                    const rec = suggested.includes(t);
+                    const counts = t !== "description" && t !== (listing.section === "biznes" ? "address" : "service_area");
+                    return (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => focusTarget(t)}
+                        className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-line bg-white px-3 text-sm font-bold hover:border-primary hover:bg-primary-soft"
+                      >
+                        {rec ? <span aria-hidden className="size-2 rounded-full bg-accent ring-1 ring-[#c9a10c]" /> : null}
+                        {BLOCK_ICONS[t]} {t === "service_area" ? filter.places.title : BLOCK_TITLES[t]}
+                        {counts ? <span className="text-accent-ink">+{BLOCK_POINTS}%</span> : null}
+                        {rec ? <span className="sr-only"> (советуем)</span> : null}
+                      </button>
+                    );
+                  })}
                 </div>
               </section>
             ) : null}
@@ -370,6 +452,15 @@ export function ListingEditor(props: {
         {/* Закреплённая панель действий */}
         <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white/95 px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 backdrop-blur">
           <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-2">
+            {cheer ? (
+              <p role="status" className="w-full rounded-2xl bg-primary px-3 py-2 text-sm font-bold text-white">
+                <span aria-hidden className="mr-1.5 inline-grid size-5 place-items-center rounded-full bg-accent text-xs text-on-accent">✓</span>
+                {cheer}
+              </p>
+            ) : null}
+            <div className="flex w-full">
+              <FillMeter score={score} compact />
+            </div>
             {needsConsent ? (
               <label className="flex w-full items-start gap-2 text-xs leading-snug">
                 <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-0.5 size-5 shrink-0 accent-primary" />
