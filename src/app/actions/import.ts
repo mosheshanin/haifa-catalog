@@ -96,13 +96,19 @@ async function importPhoto(url: string): Promise<string | undefined> {
     if (!res.ok || !type.startsWith("image/")) return undefined;
     const buf = Buffer.from(await res.arrayBuffer());
     if (buf.length > 10 * 1024 * 1024) return undefined;
+    // Две копии, как при загрузке из браузера (upload.ts): 1600 px — `.l.webp`, 640 px — `.s.webp`.
     const sharp = (await import("sharp")).default;
-    const webp = await sharp(buf).rotate().resize({ width: 2000, height: 2000, fit: "inside", withoutEnlargement: true }).webp({ quality: 82 }).toBuffer();
-    const path = `import/${crypto.randomUUID()}.webp`;
+    const base = sharp(buf).rotate();
+    const large = await base.clone().resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true }).webp({ quality: 82 }).toBuffer();
+    const small = await base.clone().resize({ width: 640, height: 640, fit: "inside", withoutEnlargement: true }).webp({ quality: 78 }).toBuffer();
+    const id = crypto.randomUUID();
     const sb = createAdminClient();
-    const { error } = await sb.storage.from("media").upload(path, webp, { contentType: "image/webp", cacheControl: "31536000" });
+    const opts = { contentType: "image/webp", cacheControl: "31536000" };
+    const s = await sb.storage.from("media").upload(`import/${id}.s.webp`, small, opts);
+    if (s.error) return undefined;
+    const { error } = await sb.storage.from("media").upload(`import/${id}.l.webp`, large, opts);
     if (error) return undefined;
-    return sb.storage.from("media").getPublicUrl(path).data.publicUrl;
+    return sb.storage.from("media").getPublicUrl(`import/${id}.l.webp`).data.publicUrl;
   } catch {
     return undefined;
   }

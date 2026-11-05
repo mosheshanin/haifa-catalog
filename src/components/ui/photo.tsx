@@ -1,7 +1,9 @@
 /* eslint-disable @next/next/no-img-element */
+import { mediaSmall } from "@/lib/blocks/links";
+
 // Фото с адаптивными размерами и отложенной загрузкой.
-// Для Unsplash размер и формат (WebP/AVIF) подбирает их CDN, для своих фото на этапе 2
-// подключим хранилище Supabase с переводом в WebP при загрузке (раздел 11 ТЗ).
+// Для Unsplash размер и формат подбирает их CDN. Свои фото при загрузке сохраняются в двух копиях WebP
+// (640 и 1600 px, решение 5 ноября 2026): браузер сам берёт маленькую для превью и большую для крупного показа.
 
 const WIDTHS = [320, 480, 640, 960, 1280];
 
@@ -26,11 +28,13 @@ export function Photo({
   priority?: boolean;
 }) {
   const responsive = src.startsWith("https://images.unsplash.com/");
+  const small = mediaSmall(src);
+  const srcSet = responsive ? WIDTHS.map((w) => `${sized(src, w)} ${w}w`).join(", ") : small ? `${small} 640w, ${src} 1600w` : undefined;
   return (
     <img
       src={sized(src, 960)}
-      srcSet={responsive ? WIDTHS.map((w) => `${sized(src, w)} ${w}w`).join(", ") : undefined}
-      sizes={responsive ? sizes : undefined}
+      srcSet={srcSet}
+      sizes={srcSet ? sizes : undefined}
       alt={alt}
       loading={priority ? "eager" : "lazy"}
       fetchPriority={priority ? "high" : undefined}

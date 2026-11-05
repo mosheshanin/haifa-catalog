@@ -8,10 +8,17 @@ export function safeHref(u: string | undefined | null): string | undefined {
 }
 
 export const MEDIA_PREFIX = `${SUPABASE_URL}/storage/v1/object/public/media/`;
+// PDF меню с 5 ноября 2026 лежат в отдельном хранилище docs (до 10 МБ); старые PDF остались в media.
+export const DOCS_PREFIX = `${SUPABASE_URL}/storage/v1/object/public/docs/`;
+
+// Своё фото с маленькой копией: `<id>.l.webp` (1600 px) → `<id>.s.webp` (640 px). У старых фото копии нет.
+export function mediaSmall(u: string): string | undefined {
+  return u.startsWith(MEDIA_PREFIX) && u.endsWith(".l.webp") ? `${u.slice(0, -".l.webp".length)}.s.webp` : undefined;
+}
 
 // Фото и файлы карточек: только из нашего хранилища (и Unsplash для примерных карточек).
 export function isMediaUrl(u: unknown): u is string {
-  return typeof u === "string" && (u.startsWith(MEDIA_PREFIX) || /^https:\/\/images\.unsplash\.com\/photo-[\w-]+$/.test(u));
+  return typeof u === "string" && (u.startsWith(MEDIA_PREFIX) || u.startsWith(DOCS_PREFIX) || /^https:\/\/images\.unsplash\.com\/photo-[\w-]+$/.test(u));
 }
 
 // Видео: из ссылки YouTube или Vimeo получить провайдера и код ролика.

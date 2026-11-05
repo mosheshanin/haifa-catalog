@@ -267,7 +267,7 @@ export function ListingAdminForms({
         <input type="hidden" name="id" value={id} />
         <input type="hidden" name="op" value="features" />
         <label className={labelCls}>
-          Функции и лимиты (задел под платные тарифы)
+          Функции и лимиты карточки
           <textarea name="features" rows={4} defaultValue={features} className={`${textareaCls} font-mono text-sm`} />
           <span className="text-xs font-normal text-muted">Например: {"{\"google_reviews_text\": true, \"limits\": {\"gallery\": 60}}"}</span>
         </label>
