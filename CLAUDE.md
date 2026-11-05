@@ -348,6 +348,10 @@ Vercel не дал заказчику сохранить имена с `NEXT_PUB
   sanitize.ts + (если нужен поиск) `refresh_listing_search`.
 - **Фото:** сжимаются в браузере до 2000 px WebP (`src/components/editor/upload.ts`), пишутся в `media/u/<id пользователя>/`
   (правила storage пускают только в свою папку); импорт кладёт в `media/import/` через sharp.
+- **Капча (`src/components/forms/captcha.tsx`, 5 ноября 2026):** Turnstile `interaction-only`, `size: flexible`. Если
+  Cloudflare просит галочку, она появляется над кнопкой; слушатель `submit` на форме (фаза захвата) не отпускает форму
+  без токена и показывает подсказку; после отправки виджет сбрасывается через 1,5 с (токен одноразовый). Встроенный
+  браузер Claude Cloudflare всегда просит галочку — проверять подменой скрипта в Playwright (`page.route`).
 - **Записи в новые таблицы (отзывы, жалобы, заявки) — только с сервера** секретным клиентом после `requireUser`/капчи/
   `rateLimit` (`src/lib/server/*`): insert-политик для anon/authenticated нет намеренно. Публичные отзывы читаются
   функцией `listing_reviews` (без id пользователя). Статистика — `track_listing_event` из браузера (`listing-tracker.tsx`).
