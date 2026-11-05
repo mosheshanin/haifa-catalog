@@ -308,6 +308,13 @@ Vercel не дал заказчику сохранить имена с `NEXT_PUB
 - Вход через Telegram (`src/lib/auth/telegram-session.ts`): подпись проверяется на сервере, пользователь Supabase
   создаётся со служебным адресом `tg-<id>@telegram.invalid`, сессия — через `generateLink` + `verifyOtp`.
   Supabase записывает `app_metadata` **после** вставки пользователя — поэтому есть триггер на обновление и явная запись в коде.
+- **Вход Google (5 ноября 2026):** окно Google Identity Services с нашего адреса (`GoogleIdentityButton`,
+  `src/components/auth/google-identity-button.tsx`) → токен и nonce на `POST /auth/google` → `signInWithIdToken` →
+  `finishGoogleSignIn` (`src/lib/auth/google-finish.ts`: роль админа и «Привязать Google»). Зачем: при прежнем входе
+  через Supabase Google писал «Переход в приложение kqzrnjjeyppkmqtwnspo.supabase.co». Нужны `GOOGLE_CLIENT_ID` в
+  `src/lib/env.ts` и адреса сайта в «Authorized JavaScript origins» клиента «HBC web». Без Client ID или если скрипт
+  Google не загрузился — прежняя кнопка через Supabase (`/auth/callback`, запасной путь). Свой поддомен Supabase
+  (auth.haifa.business: Pro $25 + домен $10 в месяц; основной домен Supabase не принимает) — заказчик отложил.
 - Привязка: одноразовые токены `link_tokens` (10 минут). «Открыть в Telegram» → `t.me/haifabcbot?startapp=link_<token>`.
   «Привязать Google» → cookie + вход Google → `merge_profiles`.
 - **`merge_profiles` (SQL) нужно дополнять** каждой новой таблицей со ссылкой на пользователя (избранное, отзывы, заявки).

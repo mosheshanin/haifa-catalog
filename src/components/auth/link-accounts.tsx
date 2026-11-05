@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { startGoogleSignIn } from "@/components/auth/sign-in-buttons";
+import { GoogleIdentityButton } from "@/components/auth/google-identity-button";
 import { GoogleLogo, TelegramLogo } from "@/components/icons";
 import { t } from "@/i18n/ru";
 import { openExternal, useInsideTelegram } from "@/components/telegram/use-inside-telegram";
@@ -78,7 +79,8 @@ export function LinkGoogleButton() {
     );
   }
 
-  return (
+  // Окно Google с нашего адреса; перед отправкой токена ставим cookie привязки. Прежняя кнопка — запасная.
+  const fallback = (
     <div>
       <button
         type="button"
@@ -99,8 +101,21 @@ export function LinkGoogleButton() {
         <GoogleLogo />
         {busy ? t.common.loading : t.profile.linkGoogle}
       </button>
-      <p className="mt-2 text-sm text-muted">{t.profile.linkGoogleHint}</p>
       {error ? <p className="mt-1 text-sm text-danger">{t.common.error}</p> : null}
+    </div>
+  );
+
+  return (
+    <div className="max-w-sm">
+      <GoogleIdentityButton
+        next="/profil?linked=google"
+        text="continue_with"
+        beforeSubmit={async () => {
+          await requestLink("google");
+        }}
+        fallback={fallback}
+      />
+      <p className="mt-2 text-sm text-muted">{t.profile.linkGoogleHint}</p>
     </div>
   );
 }

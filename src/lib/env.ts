@@ -30,6 +30,11 @@ export function miniAppLink(startParam?: string): string {
   return `${base}?startapp=${encodeURIComponent(startParam)}`;
 }
 
+// Client ID приложения Google (OAuth client «HBC web», вид …apps.googleusercontent.com; не секрет). С ним вход через
+// Google идёт окном Google прямо с сайта — в окне написано haifa.business, а не адрес Supabase. Пусто — прежний вход
+// через сервер Supabase. В Google Cloud у этого клиента в «Authorized JavaScript origins» должны быть адреса сайта.
+export const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
+
 // Cloudflare Turnstile (капча форм): ключ сайта не секретный. Пока пусто — формы работают с ограничением частоты,
 // а проверка капчи включится, когда в Vercel появится TURNSTILE_SECRET_KEY и здесь — ключ сайта.
 export const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "";

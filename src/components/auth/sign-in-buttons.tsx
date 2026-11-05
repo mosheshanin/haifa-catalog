@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { GoogleLogo, TelegramLogo } from "@/components/icons";
+import { GoogleIdentityButton } from "@/components/auth/google-identity-button";
 import { useInsideTelegram } from "@/components/telegram/use-inside-telegram";
 import { t } from "@/i18n/ru";
 
@@ -17,13 +18,17 @@ export async function startGoogleSignIn(next: string) {
   if (error) throw error;
 }
 
+// Вход через Google: окно Google с нашего адреса; прежняя кнопка (через Supabase) — запасная.
 export function GoogleSignInButton({ next, label = t.auth.google }: { next: string; label?: string }) {
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const inTelegram = useInsideTelegram();
-
   // Google запрещает вход во встроенных окнах приложений, поэтому внутри Telegram кнопку не показываем.
   if (inTelegram) return null;
+  return <GoogleIdentityButton next={next} fallback={<SupabaseGoogleButton next={next} label={label} />} />;
+}
+
+function SupabaseGoogleButton({ next, label }: { next: string; label: string }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   return (
     <div>
