@@ -45,7 +45,7 @@ export const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || 
 export const GOOGLE_MAPS_EMBED_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY || "";
 
 // Этап 5: Google Analytics 4 (идентификатор вида G-XXXXXXX, не секрет). Пусто — аналитика и баннер cookie выключены.
-export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_ID || "";
+export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_ID || "G-B7FVV3T3F8";
 
 // Коды подтверждения Google Search Console и Bing Webmaster Tools (мета-тег, не секрет). Подключаем после своего домена.
 export const GOOGLE_SITE_VERIFICATION = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "";
