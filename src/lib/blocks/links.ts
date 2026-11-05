@@ -11,9 +11,12 @@ export const MEDIA_PREFIX = `${SUPABASE_URL}/storage/v1/object/public/media/`;
 // PDF меню с 5 ноября 2026 лежат в отдельном хранилище docs (до 10 МБ); старые PDF остались в media.
 export const DOCS_PREFIX = `${SUPABASE_URL}/storage/v1/object/public/docs/`;
 
-// Своё фото с маленькой копией: `<id>.l.webp` (1600 px) → `<id>.s.webp` (640 px). У старых фото копии нет.
+// Своё фото с маленькой копией: `<id>.l.webp` (1600 px) → `<id>.s.webp` (640 px); из Safari — `.l.jpg` → `.s.jpg`.
+// У старых фото копии нет.
 export function mediaSmall(u: string): string | undefined {
-  return u.startsWith(MEDIA_PREFIX) && u.endsWith(".l.webp") ? `${u.slice(0, -".l.webp".length)}.s.webp` : undefined;
+  if (!u.startsWith(MEDIA_PREFIX)) return undefined;
+  const m = u.match(/\.l\.(webp|jpg)$/);
+  return m ? `${u.slice(0, -m[0].length)}.s.${m[1]}` : undefined;
 }
 
 // Фото и файлы карточек: только из нашего хранилища (и Unsplash для примерных карточек).

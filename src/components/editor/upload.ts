@@ -4,8 +4,8 @@ import { createClient } from "@/lib/supabase/client";
 
 // Загрузка фото и PDF (раздел 4 ТЗ, ограничения — решение 5 ноября 2026).
 // Фото человек выбирает в любом привычном формате (JPEG, PNG, HEIC с iPhone и т. д.): браузер сам уменьшает его и
-// переводит в WebP — две копии: большая 1600 px (просмотр, обложка) и маленькая 640 px (галерея, списки; на телефоне с плотным экраном 640 хватает плитке в полэкрана).
-// В карточку записывается адрес большой копии `<id>.l.webp`; маленькая лежит рядом как `<id>.s.webp` (см. Photo).
+// переводит в WebP (в Safari — в JPEG) — две копии: большая 1600 px (просмотр, обложка) и маленькая 640 px (галерея, списки; на телефоне с плотным экраном 640 хватает плитке в полэкрана).
+// В карточку записывается адрес большой копии `<id>.l.webp|jpg`; маленькая лежит рядом как `<id>.s.webp|jpg` (см. Photo).
 // Если браузер не смог сжать фото, а это JPEG/PNG до 3 МБ, грузим как есть. PDF — в отдельное хранилище docs.
 // Сервер (правила Supabase) всё равно проверяет тип, размер и квоту пользователя — обойти браузер не получится.
 
@@ -15,7 +15,11 @@ const MAX_INPUT = 25 * 1024 * 1024; // до сжатия: фото с телеф
 const MAX_RAW_IMAGE = 3 * 1024 * 1024; // запасной путь без сжатия = предел хранилища media
 const MAX_PDF = 10 * 1024 * 1024;
 
-async function toWebp(bitmap: ImageBitmap, maxSide: number, quality: number): Promise<Blob> {
+type Encoded = { blob: Blob; ext: "webp" | "jpg"; type: string };
+
+// Сжать до maxSide по длинной стороне. WebP умеют Chrome, Edge, Firefox и Android; Safari (iPhone, Mac) вместо WebP
+// отдаёт PNG — тогда сжимаем в JPEG, его умеют все браузеры.
+async function encode(bitmap: ImageBitmap, maxSide: number, quality: number, prefer: "webp" | "jpg"): Promise<Encoded> {
   const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
   const w = Math.max(1, Math.round(bitmap.width * scale));
   const h = Math.max(1, Math.round(bitmap.height * scale));
@@ -24,11 +28,28 @@ async function toWebp(bitmap: ImageBitmap, maxSide: number, quality: number): Pr
   canvas.height = h;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Браузер не умеет обрабатывать фото");
+  if (prefer === "jpg") {
+    ctx.fillStyle = "#fff"; // у JPEG нет прозрачности: прозрачный фон PNG станет белым, а не чёрным
+    ctx.fillRect(0, 0, w, h);
+  }
   ctx.drawImage(bitmap, 0, 0, w, h);
-  const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/webp", quality));
-  // Safari старых версий вместо WebP отдаёт PNG — такой файл не годится, идём запасным путём.
-  if (!blob || blob.type !== "image/webp") throw new Error("Не удалось сжать фото");
-  return blob;
+  const toBlob = (type: string) => new Promise<Blob | null>((res) => canvas.toBlob(res, type, quality));
+  if (prefer === "webp") {
+    const webp = await toBlob("image/webp");
+    if (webp && webp.type === "image/webp") return { blob: webp, ext: "webp", type: "image/webp" };
+    throw new Error("no-webp");
+  }
+  const jpg = await toBlob("image/jpeg");
+  if (!jpg || jpg.type !== "image/jpeg") throw new Error("Не удалось сжать фото");
+  return { blob: jpg, ext: "jpg", type: "image/jpeg" };
+}
+
+async function compress(bitmap: ImageBitmap): Promise<{ large: Encoded; small: Encoded }> {
+  try {
+    return { large: await encode(bitmap, LARGE, 0.82, "webp"), small: await encode(bitmap, SMALL, 0.78, "webp") };
+  } catch {
+    return { large: await encode(bitmap, LARGE, 0.82, "jpg"), small: await encode(bitmap, SMALL, 0.78, "jpg") };
+  }
 }
 
 function friendly(message: string): string {
@@ -63,24 +84,23 @@ export async function uploadMedia(file: File, kind: "image" | "file" = "image"):
   }
 
   if (file.size > MAX_INPUT) throw new Error("Фото больше 25 МБ");
-  let large: Blob | null = null;
-  let small: Blob | null = null;
+  let copies: { large: Encoded; small: Encoded } | null = null;
   try {
     const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
     try {
-      large = await toWebp(bitmap, LARGE, 0.82);
-      small = await toWebp(bitmap, SMALL, 0.78);
+      copies = await compress(bitmap);
     } finally {
       bitmap.close();
     }
   } catch {
-    large = null;
+    copies = null;
   }
 
-  if (large && small) {
+  if (copies) {
     // Сначала маленькая копия: если большая не загрузится, лишний файл уберёт ежедневная уборка.
-    await put("media", `u/${uid}/${id}.s.webp`, small, "image/webp");
-    return put("media", `u/${uid}/${id}.l.webp`, large, "image/webp");
+    const { large, small } = copies;
+    await put("media", `u/${uid}/${id}.s.${small.ext}`, small.blob, small.type);
+    return put("media", `u/${uid}/${id}.l.${large.ext}`, large.blob, large.type);
   }
 
   // Запасной путь: браузер не смог сжать (редкие форматы, старые браузеры).

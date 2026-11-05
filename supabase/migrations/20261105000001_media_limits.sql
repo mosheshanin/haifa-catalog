@@ -56,7 +56,7 @@ create policy media_admin_all on storage.objects for all to authenticated
   using (bucket_id in ('media', 'docs') and (select public.is_admin()))
   with check (bucket_id in ('media', 'docs') and (select public.is_admin()));
 
--- Ненужные файлы: ключ — имя без суффикса копии (.l.webp / .s.webp), чтобы маленькая копия жила, пока жива большая.
+-- Ненужные файлы: ключ — имя без суффикса копии (.l/.s + .webp или .jpg), чтобы маленькая копия жила, пока жива большая.
 create or replace function public.orphan_media(p_days int default 7, p_limit int default 500)
 returns table (bucket_id text, name text)
 language sql
@@ -75,7 +75,7 @@ as $$
   where o.bucket_id in ('media', 'docs')
     and split_part(o.name, '/', 1) in ('u', 'import')
     and o.created_at < now() - make_interval(days => p_days)
-    and position(regexp_replace(o.name, '\.(l|s)\.webp$', '') in coalesce(refs.txt, '')) = 0
+    and position(regexp_replace(o.name, '\.(l|s)\.(webp|jpg)$', '') in coalesce(refs.txt, '')) = 0
   order by o.created_at
   limit p_limit;
 $$;

@@ -355,7 +355,7 @@ Vercel не дал заказчику сохранить имена с `NEXT_PUB
   данные чистит `sanitizeListingData` (`src/lib/blocks/sanitize.ts`): неизвестное отбрасывается, фото — только из
   bucket `media` (или Unsplash у примеров), ссылки — только http(s). Новый блок = types.ts + схема + listing-view.tsx +
   sanitize.ts + (если нужен поиск) `refresh_listing_search`.
-- **Фото (с 5 ноября 2026, миграция `20261105000001_media_limits.sql`):** браузер делает из любого фото две копии WebP —
+- **Фото (с 5 ноября 2026, миграция `20261105000001_media_limits.sql`):** браузер делает из любого фото две копии WebP (Safari — JPEG, `.l.jpg`/`.s.jpg`) —
   `u/<uid>/<id>.l.webp` (1600 px, адрес в карточке) и `<id>.s.webp` (640 px); `Photo` даёт `srcSet` по `mediaSmall()`
   (`lib/blocks/links.ts`), у старых `.webp` копии нет. Не смог сжать — JPEG/PNG до 3 МБ как есть. PDF — bucket `docs`
   (до 10 МБ, `DOCS_PREFIX`), старые PDF в `media`. Bucket `media`: WebP/JPEG/PNG до 3 МБ. Квота (правило вставки,
