@@ -17,6 +17,7 @@ import {
   ReviewDecision,
   SetupBotButton,
   ServiceOrderForm,
+  ExtraServiceForm,
   SettingsForm,
   SynonymForm,
   UserAccessForm,
@@ -32,7 +33,8 @@ import { getSiteSettings } from "@/lib/data/settings";
 import { addDays, israelToday } from "@/lib/blocks/expire";
 import { t } from "@/i18n/ru";
 import { Icon3d } from "@/components/ui/icon-3d";
-import { formatShekels } from "@/lib/extra-services";
+import { formatPrice, formatTotal } from "@/lib/extra-services";
+import { EXTRA_SERVICE_COLUMNS, toExtraService, type ExtraServiceRow } from "@/lib/data/extra-services";
 import { categoryIcon3d } from "@/lib/icons-3d";
 
 export const metadata: Metadata = { title: t.admin.title, robots: { index: false } };
@@ -41,7 +43,7 @@ const TABS = [
   { k: "queue", label: "🛡 Очередь" },
   { k: "instant", label: "⚡ Правки без проверки" },
   { k: "listings", label: "🗂️ Карточки" },
-  { k: "orders", label: "🛎 Заказы услуг" },
+  { k: "orders", label: "🛎 Услуги и заказы" },
   { k: "users", label: "👥 Пользователи" },
   { k: "dict", label: "📚 Справочники" },
   { k: "import", label: "📥 Импорт" },
@@ -381,6 +383,45 @@ async function Dictionaries() {
 
 const ORDER_STATUS: Record<string, string> = { new: "🆕 Новый", in_progress: "🕓 В работе", done: "✅ Выполнен", cancelled: "✖ Отменён" };
 
+// Список дополнительных услуг мастера добавления (5 ноября 2026): название, описание, стоимость или «по запросу».
+async function ExtraServices() {
+  const { data } = await createAdminClient().from("extra_services").select(EXTRA_SERVICE_COLUMNS).order("sort").order("title");
+  const rows = (data ?? []) as ExtraServiceRow[];
+  const others = (code?: string) => rows.filter((r) => r.code !== code).map((r) => ({ code: r.code, title: r.title }));
+  const nextSort = rows.length ? Math.max(...rows.map((r) => r.sort)) + 10 : 10;
+  return (
+    <Panel title={`🧩 Дополнительные услуги (${rows.length})`}>
+      <div className="grid gap-3">
+        <p className="text-sm text-muted">Их предлагают владельцу при добавлении карточки: все включённые — на последнем шаге, отдельные — на шагах, отмеченных в «Где ещё предлагать». Изменения видны сразу; старые заказы сохраняют прежние названия и цены.</p>
+        <details className="rounded-2xl border-2 border-dashed border-line p-3">
+          <summary className="min-h-11 cursor-pointer font-bold text-primary">+ Новая услуга</summary>
+          <div className="mt-3">
+            <ExtraServiceForm sort={nextSort} others={others()} />
+          </div>
+        </details>
+        <div className="grid grid-cols-1 gap-2">
+          {rows.map((r) => {
+            const x = toExtraService(r);
+            const partner = r.exclusive_group ? rows.find((o) => o.code !== r.code && o.exclusive_group === r.exclusive_group) : undefined;
+            return (
+              <details key={r.code} className="rounded-2xl border border-line p-3">
+                <summary className="min-h-11 cursor-pointer">
+                  <Icon3d name={x.icon} size={26} className="mr-1 inline-block align-middle" /> <b>{x.title}</b>{" "}
+                  <span className="whitespace-nowrap text-sm font-bold tabular-nums">· {formatPrice(x.price)}</span>
+                  {r.is_active ? null : <span className="ml-1 whitespace-nowrap rounded-full bg-surface-alt px-2 py-0.5 text-xs font-bold text-muted">скрыта</span>}
+                </summary>
+                <div className="mt-3">
+                  <ExtraServiceForm service={x} active={r.is_active} sort={r.sort} exclusiveWith={partner?.code} others={others(r.code)} />
+                </div>
+              </details>
+            );
+          })}
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
 // Заказы дополнительных услуг с последнего шага добавления карточки (3 ноября 2026). Оплата — вне сайта.
 async function Orders() {
   const sb = createAdminClient();
@@ -398,7 +439,7 @@ async function Orders() {
         {rows.map((o) => {
           const l = o.listings as unknown as { id: string; title: string | null } | null;
           const u = o.profiles as unknown as { display_name: string | null; telegram_username: string | null; google_email: string | null } | null;
-          const items = (o.items as Array<{ title: string; price: number }>) ?? [];
+          const items = (o.items as Array<{ title: string; price: number | null }>) ?? [];
           return (
             <li key={o.id} className="grid gap-3 rounded-2xl border border-line p-4">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -412,12 +453,12 @@ async function Orders() {
                 {items.map((i) => (
                   <li key={i.title} className="flex justify-between gap-3">
                     <span>{i.title}</span>
-                    <b className="whitespace-nowrap tabular-nums">{formatShekels(i.price)}</b>
+                    <b className="whitespace-nowrap tabular-nums">{formatPrice(i.price)}</b>
                   </li>
                 ))}
                 <li className="flex justify-between gap-3 border-t border-line pt-1 font-extrabold">
                   <span>Итого</span>
-                  <span className="whitespace-nowrap tabular-nums">{formatShekels(o.total)}</span>
+                  <span className="whitespace-nowrap tabular-nums">{formatTotal(items)}</span>
                 </li>
               </ul>
               <p className="text-sm">
@@ -609,7 +650,12 @@ async function AdminContent({ searchParams }: { searchParams: Promise<Record<str
       {tab === "queue" ? <Queue /> : null}
       {tab === "instant" ? <Instant districtNames={districtNames} /> : null}
       {tab === "listings" ? <Listings q={one("q")} status={one("status")} /> : null}
-      {tab === "orders" ? <Orders /> : null}
+      {tab === "orders" ? (
+        <div className="grid grid-cols-1 gap-5">
+          <ExtraServices />
+          <Orders />
+        </div>
+      ) : null}
       {tab === "users" ? <Users q={one("q")} selfId={user.id} /> : null}
       {tab === "dict" ? <Dictionaries /> : null}
       {tab === "import" ? <ImportPanel /> : null}

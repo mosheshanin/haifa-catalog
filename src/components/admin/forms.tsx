@@ -8,6 +8,7 @@ import {
   decideVersion,
   revertInstant,
   saveCategory,
+  saveExtraService,
   updateServiceOrder,
   saveDistrict,
   saveSettings,
@@ -23,6 +24,7 @@ import {
 } from "@/app/actions/admin";
 import { FormMessage, SubmitButton, inputCls, labelCls, textareaCls } from "@/components/forms/ui";
 import { ICONS_3D, icon3dSrc, isIcon3d } from "@/lib/icons-3d";
+import { OFFER_STEPS, type ExtraService } from "@/lib/extra-services";
 
 const btn = "inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-bold";
 
@@ -301,25 +303,128 @@ type Cat = { id: number; section: string; parent_id: number | null; slug: string
 // Пусто: у подкатегории — иконка родительской категории, у категории верхнего уровня — эмодзи из поля «Эмодзи».
 const ICON_OPTIONS = Object.entries(ICONS_3D).sort((a, b) => a[1].localeCompare(b[1], "ru"));
 
-function Icon3dPicker({ value, isSub }: { value: string | null | undefined; isSub: boolean }) {
-  const [v, setV] = useState(isIcon3d(value) ? value : "");
+function Icon3dPicker({ value, isSub, name = "icon_3d", label = "3D-иконка на сайте", required = false }: { value: string | null | undefined; isSub: boolean; name?: string; label?: string; required?: boolean }) {
+  const [v, setV] = useState(isIcon3d(value) ? value : required ? "star" : "");
   return (
     <div className="grid gap-1">
-      <span className={labelCls}>3D-иконка на сайте</span>
+      <span className={labelCls}>{label}</span>
       <div className="flex items-center gap-3">
         <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-surface-alt" aria-hidden>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           {v ? <img src={icon3dSrc(v)} alt="" width={48} height={48} /> : <span className="px-1 text-center text-xs text-muted">{isSub ? "как у категории" : "эмодзи"}</span>}
         </span>
-        <select name="icon_3d" aria-label="3D-иконка на сайте" value={v} onChange={(e) => setV(e.target.value)} className={inputCls}>
-          <option value="">{isSub ? "— как у категории —" : "— без 3D-иконки (будет эмодзи) —"}</option>
+        <select name={name} aria-label={label} value={v} onChange={(e) => setV(e.target.value)} className={inputCls}>
+          {required ? null : <option value="">{isSub ? "— как у категории —" : "— без 3D-иконки (будет эмодзи) —"}</option>}
           {ICON_OPTIONS.map(([k, label]) => (
             <option key={k} value={k}>{label}</option>
           ))}
         </select>
       </div>
-      <span className="text-xs text-muted">Эмодзи остаётся для Telegram-бота и выпадающих списков.</span>
+      {required ? null : <span className="text-xs text-muted">Эмодзи остаётся для Telegram-бота и выпадающих списков.</span>}
     </div>
+  );
+}
+
+// Дополнительная услуга мастера добавления (5 ноября 2026): название, описание, стоимость или «по запросу»
+// и где её предлагать. Без service — форма новой услуги.
+export function ExtraServiceForm({
+  service,
+  active = true,
+  sort,
+  exclusiveWith,
+  others,
+}: {
+  service?: ExtraService;
+  active?: boolean;
+  sort: number;
+  exclusiveWith?: string;
+  others: Array<{ code: string; title: string }>;
+}) {
+  const [onRequest, setOnRequest] = useState(service ? service.price === null : false);
+  const idp = service?.code ?? "new";
+  return (
+    <Mini action={saveExtraService}>
+      {service ? <input type="hidden" name="code" value={service.code} /> : null}
+      <label className={labelCls}>
+        Название
+        <input name="title" required defaultValue={service?.title ?? ""} maxLength={100} className={inputCls} placeholder="Например, «Видеоролик о вас»" />
+      </label>
+      <label className={labelCls}>
+        Описание (видно на последнем шаге)
+        <textarea name="description" defaultValue={service?.text ?? ""} maxLength={500} rows={3} className={textareaCls} />
+      </label>
+      <fieldset className="grid gap-2">
+        <legend className={labelCls}>Стоимость</legend>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <label className="flex min-h-11 items-center gap-2 text-sm font-bold">
+            <input type="radio" name="price_mode" value="fixed" checked={!onRequest} onChange={() => setOnRequest(false)} className="size-5 accent-primary" /> Цена
+          </label>
+          <label className="flex min-h-11 items-center gap-2 text-sm font-bold">
+            <input type="radio" name="price_mode" value="on_request" checked={onRequest} onChange={() => setOnRequest(true)} className="size-5 accent-primary" /> По запросу
+          </label>
+        </div>
+        {onRequest ? (
+          <p className="text-sm text-muted">Владелец увидит «по запросу», цену вы обсудите с ним отдельно.</p>
+        ) : (
+          <label className={`${labelCls} max-w-48`}>
+            Сумма, ₪
+            <input name="price" type="number" inputMode="numeric" min={0} max={1000000} step={1} required defaultValue={service?.price ?? ""} className={inputCls} />
+          </label>
+        )}
+      </fieldset>
+      <details className="rounded-xl bg-surface-alt p-3">
+        <summary className="min-h-11 cursor-pointer text-sm font-bold">Иконка, где предлагать, порядок</summary>
+        <div className="mt-3 grid gap-3">
+          <Icon3dPicker value={service?.icon ?? "star"} isSub={false} name="icon" label="3D-иконка" required />
+          <fieldset className="grid gap-1">
+            <legend className={labelCls}>Где ещё предлагать (на последнем шаге видны все услуги)</legend>
+            <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+              {OFFER_STEPS.map(([k, label]) => (
+                <label key={k} htmlFor={`st-${idp}-${k}`} className="flex min-h-11 items-center gap-2 text-sm">
+                  <input id={`st-${idp}-${k}`} type="checkbox" name="steps" value={k} defaultChecked={service?.steps.includes(k)} className="size-5 accent-primary" /> Шаг «{label}»
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <label className={labelCls}>
+            Короткий текст на шагах (необязательно, иначе — описание)
+            <input name="step_text" defaultValue={service?.stepText ?? ""} maxLength={200} className={inputCls} placeholder="Нет хороших фото? Пришлём фотографа." />
+          </label>
+          <label className={labelCls}>
+            Нельзя заказать вместе с
+            <select name="exclusive_with" defaultValue={exclusiveWith ?? ""} className={inputCls}>
+              <option value="">— можно с любыми —</option>
+              {others.map((o) => (
+                <option key={o.code} value={o.code}>{o.title}</option>
+              ))}
+            </select>
+          </label>
+          <label className={`${labelCls} max-w-48`}>
+            Порядок (меньше — выше)
+            <input name="sort" type="number" step={1} defaultValue={sort} className={inputCls} />
+          </label>
+        </div>
+      </details>
+      <label className="flex min-h-11 items-center gap-2 text-sm font-bold">
+        <input type="checkbox" name="is_active" defaultChecked={active} className="size-5 accent-primary" /> Показывать владельцам
+      </label>
+      <div className="flex flex-wrap gap-2">
+        <SubmitButton>{service ? "Сохранить" : "Добавить услугу"}</SubmitButton>
+        {service ? (
+          <button
+            name="op"
+            value="delete"
+            formNoValidate
+            onClick={(e) => {
+              if (!window.confirm(`Удалить услугу «${service.title}»? Старые заказы сохранятся.`)) e.preventDefault();
+            }}
+            className={`${btn} border border-line bg-white text-danger`}
+          >
+            🗑 Удалить
+          </button>
+        ) : null}
+      </div>
+    </Mini>
   );
 }
 

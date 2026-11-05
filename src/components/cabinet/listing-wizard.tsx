@@ -3,7 +3,7 @@
 // Пошаговое добавление карточки (решение заказчика 3 ноября 2026): по одному вопросу на экран, всё после
 // первых четырёх шагов можно пропустить. После шага «Район» создаётся черновик (startListing), каждый
 // следующий шаг сохраняет его (saveDraft), поэтому можно прерваться и продолжить в обычном редакторе.
-// На последнем шаге — дополнительные услуги (src/lib/extra-services.ts) и отправка на проверку.
+// На последнем шаге — дополнительные услуги (из базы, правятся в админке; src/lib/extra-services.ts) и отправка на проверку.
 // Поля блоков — те же схемы, что в редакторе (BLOCK_SCHEMAS), чтобы данные были в одном формате.
 
 import Link from "next/link";
@@ -16,7 +16,7 @@ import { filterConfig, type PlaceLabels } from "@/lib/catalog/filter-config";
 import { categoryIcon3d } from "@/lib/icons-3d";
 import { ALL_HAIFA, isAllHaifa } from "@/lib/catalog/districts";
 import { Icon3d } from "@/components/ui/icon-3d";
-import { EXTRA_SERVICES, formatShekels } from "@/lib/extra-services";
+import { formatPrice, formatTotal, type ExtraService } from "@/lib/extra-services";
 import { inputCls, labelCls } from "@/components/forms/ui";
 import { orderExtras, saveDraft, startListing, submitListing } from "@/app/actions/cabinet";
 
@@ -52,26 +52,6 @@ const BLOCK_ORDER: BlockType[] = ["description", "services", "hours", "address",
 
 const REQUIRED: StepKey[] = ["type", "name", "category", "district"];
 
-// Какие дополнительные услуги предлагать на шаге (коды из src/lib/extra-services.ts).
-const OFFERS_BY_STEP: Partial<Record<StepKey, string[]>> = {
-  contacts: ["subdomain_site", "description"],
-  about: ["description", "interview"],
-  place: ["description"],
-  hours: ["description"],
-  services: ["consult", "description"],
-  photos: ["photoshoot", "description"],
-  languages: ["description"],
-  features: ["description"],
-};
-// Короткий текст предложения на шаге, если он отличается от описания услуги.
-const STEP_OFFER_TEXT: Record<string, string> = {
-  description: "Не хотите писать сами? Редактор HBC сделает описание за вас.",
-  subdomain_site: "Нет своего сайта? Сделаем сайт на основе этой карточки.",
-  photoshoot: "Нет хороших фото? Пришлём фотографа.",
-  interview: "Расскажите о себе в интервью — опубликуем в карточке и на главной.",
-  consult: "Подскажем, как выстроить цены и привлечь клиентов.",
-};
-
 const uid = (t: string) => `${t}-${crypto.randomUUID().slice(0, 8)}`;
 const hasContact = (c: ListingData["contacts"] | undefined) => Boolean(c && (c.phone || c.whatsapp || c.telegram || c.email));
 
@@ -100,8 +80,9 @@ export function ListingWizard(props: {
   languages: string[];
   limits: Limits;
   isAdmin: boolean;
+  extras: ExtraService[]; // дополнительные услуги из админки (таблица extra_services)
 }) {
-  const { isAdmin } = props;
+  const { isAdmin, extras: services } = props;
   const [section, setSection] = useState<Section | null>(null);
   const [title, setTitle] = useState("");
   const [profession, setProfession] = useState("");
@@ -260,16 +241,18 @@ export function ListingWizard(props: {
   // ---------- Отправка ----------
   const toggleExtra = (code: string) => {
     const s = new Set(extras);
-    const item = EXTRA_SERVICES.find((x) => x.code === code);
+    const item = services.find((x) => x.code === code);
     if (s.has(code)) s.delete(code);
     else {
-      // Два вида интервью — взаимоисключающие.
-      if (item?.group) EXTRA_SERVICES.filter((x) => x.group === item.group).forEach((x) => s.delete(x.code));
+      // Услуги одной группы (два вида интервью) — взаимоисключающие.
+      if (item?.group) services.filter((x) => x.group === item.group).forEach((x) => s.delete(x.code));
       s.add(code);
     }
     setExtras(s);
   };
-  const extrasTotal = EXTRA_SERVICES.filter((x) => extras.has(x.code)).reduce((sum, x) => sum + x.price, 0);
+  const extrasTotal = formatTotal(services.filter((x) => extras.has(x.code)));
+  // Услуги, которые предлагаются на текущем шаге (отметки «Где предлагать» в админке).
+  const stepOffers = step !== "final" ? services.filter((x) => (x.steps as string[]).includes(step)) : [];
   const needsConsent = !isAdmin;
   const contactOk = hasContact(data?.contacts);
 
@@ -514,14 +497,14 @@ export function ListingWizard(props: {
                 ) : null}
               </div>
 
-              {/* Дополнительные услуги */}
-              <div className="grid gap-3">
+              {/* Дополнительные услуги (список — админка → «Услуги и заказы»; пустой список — блока нет) */}
+              {services.length ? <div className="grid gap-3">
                 <div>
                   <h2 className="text-lg font-extrabold">Хотите, мы поможем?</h2>
                   <p className="mt-1 text-sm text-muted">Необязательно. Отметьте, что интересно, — администратор свяжется с вами и обсудит детали и оплату.</p>
                 </div>
                 <div className="grid gap-2 sm:grid-cols-2">
-                  {EXTRA_SERVICES.map((x) => {
+                  {services.map((x) => {
                     const on = extras.has(x.code);
                     return (
                       <button
@@ -535,7 +518,7 @@ export function ListingWizard(props: {
                         <span className="min-w-0 flex-1">
                           <span className="flex flex-wrap items-baseline justify-between gap-x-3">
                             <span className="font-bold leading-snug">{x.title}</span>
-                            <span className="whitespace-nowrap font-extrabold tabular-nums">{formatShekels(x.price)}</span>
+                            <span className="whitespace-nowrap font-extrabold tabular-nums">{formatPrice(x.price)}</span>
                           </span>
                           <span className="mt-0.5 block text-sm leading-snug text-muted">{x.text}</span>
                         </span>
@@ -549,7 +532,7 @@ export function ListingWizard(props: {
                 {extras.size ? (
                   <>
                     <p className="text-sm font-bold">
-                      Выбрано: {extras.size} · итого <span className="tabular-nums">{formatShekels(extrasTotal)}</span>
+                      Выбрано: {extras.size} · итого <span className="tabular-nums">{extrasTotal}</span>
                     </p>
                     <label className={labelCls}>
                       Комментарий к заказу (необязательно)
@@ -557,7 +540,7 @@ export function ListingWizard(props: {
                     </label>
                   </>
                 ) : null}
-              </div>
+              </div> : null}
 
               {needsConsent ? (
                 <label className="flex items-start gap-2 text-sm leading-snug">
@@ -572,22 +555,21 @@ export function ListingWizard(props: {
             </div>
           ) : null}
 
-          {/* Дополнительные услуги по ходу заполнения (3 ноября 2026): «Улучшить описание» — на каждом шаге,
-              остальное — там, где к месту. Отмеченное попадает в заказ на последнем шаге. */}
-          {listingId && step !== "final" && OFFERS_BY_STEP[step] ? (
+          {/* Дополнительные услуги по ходу заполнения (3 ноября 2026): на каких шагах что предлагать — отметки
+              «Где предлагать» в админке (extra_services.offer_steps). Отмеченное попадает в заказ на последнем шаге. */}
+          {listingId && stepOffers.length ? (
             <div className="grid gap-2">
-              {OFFERS_BY_STEP[step]!.map((code) => {
-                const x = EXTRA_SERVICES.find((e) => e.code === code);
-                if (!x) return null;
+              {stepOffers.map((x) => {
+                const code = x.code;
                 const on = extras.has(code);
                 return (
                   <div key={code} className={`flex flex-wrap items-center gap-3 rounded-2xl border p-3 ${on ? "border-accent bg-primary-soft" : "border-dashed border-line bg-surface-alt"}`}>
                     <Icon3d name={x.icon} size={36} />
                     <div className="min-w-0 flex-1 basis-48">
                       <p className="text-sm font-bold leading-snug">
-                        {x.title} · <span className="whitespace-nowrap tabular-nums">{formatShekels(x.price)}</span>
+                        {x.title} · <span className="whitespace-nowrap tabular-nums">{formatPrice(x.price)}</span>
                       </p>
-                      <p className="text-xs leading-snug text-muted">{STEP_OFFER_TEXT[code] ?? x.text}</p>
+                      <p className="text-xs leading-snug text-muted">{x.stepText ?? x.text}</p>
                     </div>
                     <button
                       type="button"

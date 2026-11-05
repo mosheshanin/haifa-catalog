@@ -27,6 +27,7 @@ import {
 import { telegramBotTokenOptional } from "@/lib/env.server";
 import { siteUrl } from "@/lib/env";
 import { isIcon3d } from "@/lib/icons-3d";
+import { isOfferStep } from "@/lib/extra-services";
 
 const titles = BLOCK_TITLES as Record<string, string>;
 const str = (f: FormData, k: string, max = 500) => String(f.get(k) ?? "").trim().slice(0, max);
@@ -169,6 +170,65 @@ export async function updateServiceOrder(_: unknown, form: FormData): Promise<Ac
     const { error } = await createAdminClient().from("service_orders").update({ status, admin_note: note, handled_by: admin.id }).eq("id", id);
     if (error) throw error;
     await audit(admin.id, "service_order.updated", "service_order", id, { status });
+    refresh();
+  }, "Сохранено.");
+}
+
+// ---------- Список дополнительных услуг (5 ноября 2026, просьба заказчика) ----------
+// Название, описание, цена или «по запросу», иконка, шаги мастера, «Нельзя вместе с», порядок, показывать.
+// Заказы хранят копию названия и цены, поэтому правка и удаление услуги старые заказы не меняют.
+export async function saveExtraService(_: unknown, form: FormData): Promise<ActionResult> {
+  return runAction(async () => {
+    const admin = await requireAdmin();
+    const sb = createAdminClient();
+    const existing = str(form, "code", 40);
+    if (existing && !/^[a-z0-9]+(_[a-z0-9]+)*$/.test(existing)) throw new ActionError("Неизвестная услуга.");
+
+    if (form.get("op") === "delete") {
+      if (!existing) throw new ActionError("Неизвестная услуга.");
+      const { error } = await sb.from("extra_services").delete().eq("code", existing);
+      if (error) throw error;
+      await audit(admin.id, "extra_service.deleted", "extra_service", existing, {});
+      updateTag("extra_services");
+      refresh();
+      return;
+    }
+
+    const title = str(form, "title", 100);
+    if (!title) throw new ActionError("Укажите название услуги.");
+    const description = str(form, "description", 500);
+    let price: number | null = null;
+    if (form.get("price_mode") !== "on_request") {
+      const raw = str(form, "price", 12).replace(/[\s₪,]/g, "");
+      if (!/^\d+$/.test(raw)) throw new ActionError("Укажите стоимость целым числом в шекелях или выберите «По запросу».");
+      price = Number(raw);
+      if (price > 1_000_000) throw new ActionError("Слишком большая стоимость.");
+    }
+    const icon = isIcon3d(str(form, "icon", 40)) ? str(form, "icon", 40) : "star";
+    const steps = [...new Set(form.getAll("steps").map(String))].filter(isOfferStep);
+    const stepText = str(form, "step_text", 200) || null;
+    const sort = Math.max(-1000, Math.min(10000, Math.round(Number(form.get("sort")) || 100)));
+    const isActive = form.get("is_active") === "on";
+    const code = existing || `s_${crypto.randomUUID().replace(/-/g, "").slice(0, 8)}`;
+
+    // «Нельзя заказать вместе с»: обе услуги попадают в одну группу (как два вида интервью).
+    const withCode = str(form, "exclusive_with", 40);
+    let group: string | null = null;
+    if (withCode && withCode !== code) {
+      const { data: other } = await sb.from("extra_services").select("code, exclusive_group").eq("code", withCode).maybeSingle();
+      if (other) {
+        group = other.exclusive_group || other.code;
+        if (!other.exclusive_group) await sb.from("extra_services").update({ exclusive_group: group }).eq("code", other.code);
+      }
+    }
+
+    const row = { title, description, price, icon, offer_steps: steps, step_text: stepText, sort, is_active: isActive, exclusive_group: group, updated_by: admin.id };
+    const { error } = existing
+      ? await sb.from("extra_services").update(row).eq("code", existing)
+      : await sb.from("extra_services").insert({ ...row, code });
+    if (error) throw error;
+    await audit(admin.id, existing ? "extra_service.updated" : "extra_service.created", "extra_service", code, { title, price, isActive });
+    updateTag("extra_services");
     refresh();
   }, "Сохранено.");
 }

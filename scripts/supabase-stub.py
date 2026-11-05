@@ -47,6 +47,19 @@ for f in glob.glob(os.path.join(mig, "*_category_texts.sql")):
             if c["section"] == m[1] and c["slug"] == m[2]:
                 c["seo_text"] = m[3]
 data = {"categories": sorted(categories, key=lambda c: c["sort"]), "districts": sorted(districts, key=lambda d: d["sort"])}
+# Дополнительные услуги мастера (5 ноября 2026) — из миграции *_extra_services.sql.
+_sq = lambda v: None if v == "null" else v.strip("'")
+data["extra_services"] = []
+for f in glob.glob(os.path.join(mig, "*_extra_services.sql")):
+    for m in re.finditer(r"\('([a-z0-9_]+)', '([^']+)',\s*'([^']*)', (\d+|null), '([^']+)', ('[^']+'|null),\s*(array\[[^\]]*\]|'\{\}'),\s*('[^']*'|null), (\d+)\)",
+                         open(f, encoding="utf-8").read()):
+        data["extra_services"].append({"code": m[1], "title": m[2], "description": m[3], "price": None if m[4] == "null" else int(m[4]),
+                                       "icon": m[5], "exclusive_group": _sq(m[6]), "offer_steps": re.findall(r"'([a-z]+)'", m[7]),
+                                       "step_text": _sq(m[8]), "sort": int(m[9]), "is_active": True})
+# Проверка «по запросу»: STUB_ON_REQUEST=consult — у этих услуг цена null.
+for s in data["extra_services"]:
+    if s["code"] in os.environ.get("STUB_ON_REQUEST", "").split(","):
+        s["price"] = None
 
 # Примерные карточки из миграции: jsonb_array_elements('[...]'::jsonb)
 listings, versions = [], {}

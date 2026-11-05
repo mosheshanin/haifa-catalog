@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { getSessionUser } from "@/lib/server/session";
 import { getCategories, getDistricts } from "@/lib/data/dictionaries";
 import { getSiteSettings } from "@/lib/data/settings";
+import { getExtraServices } from "@/lib/data/extra-services";
 import { limitsOf } from "@/lib/server/listing-edit";
 import { LoginRequired, Skeleton } from "@/components/cabinet/common";
 import { ListingWizard } from "@/components/cabinet/listing-wizard";
@@ -12,7 +13,7 @@ export const metadata: Metadata = { title: "Добавить бизнес или
 async function Content() {
   const user = await getSessionUser();
   if (!user) return <LoginRequired next="/kabinet/novaya" text="Чтобы добавить карточку, войдите через Google или Telegram." />;
-  const [categories, districts, settings] = await Promise.all([getCategories(), getDistricts(), getSiteSettings()]);
+  const [categories, districts, settings, extras] = await Promise.all([getCategories(), getDistricts(), getSiteSettings(), getExtraServices()]);
   // Пошаговое добавление (3 ноября 2026): по одному вопросу на экран, необязательное можно пропустить.
   return (
     <div className="mx-auto w-full max-w-2xl">
@@ -24,6 +25,7 @@ async function Content() {
         languages={settings.languages}
         limits={limitsOf({ features: {} })}
         isAdmin={user.role === "admin"}
+        extras={extras}
       />
     </div>
   );

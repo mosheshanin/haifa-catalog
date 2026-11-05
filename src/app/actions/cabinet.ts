@@ -13,7 +13,8 @@ import { escapeHtml, notifyAdmins, notifyUser } from "@/lib/telegram/notify";
 import { onFirstPublish, onOffersPublished } from "@/lib/telegram/channel";
 import { decideRequest } from "@/lib/telegram/requests";
 import { israelToday } from "@/lib/blocks/expire";
-import { extraByCode, formatShekels } from "@/lib/extra-services";
+import { formatPrice, formatTotal } from "@/lib/extra-services";
+import { getExtraServices } from "@/lib/data/extra-services";
 
 const titles = BLOCK_TITLES as Record<string, string>;
 
@@ -89,18 +90,21 @@ export async function orderExtras(listingId: string, codes: string[], comment?: 
     await rateLimit(`extras:${user.id}`, 10, 86400);
     const listing = await getListingRow(listingId);
     assertCanEdit(listing, user);
-    const picked = [...new Set(codes)].map((c) => extraByCode(c)).filter((s): s is NonNullable<typeof s> => Boolean(s));
+    // Список и цены — из админки (extra_services); скрытые и удалённые услуги заказать нельзя.
+    const services = await getExtraServices();
+    const picked = [...new Set(codes)].map((c) => services.find((s) => s.code === c)).filter((s): s is NonNullable<typeof s> => Boolean(s));
     if (!picked.length) throw new ActionError("Выберите хотя бы одну услугу.");
     const groups = picked.map((s) => s.group).filter(Boolean);
-    if (new Set(groups).size !== groups.length) throw new ActionError("Выберите один вариант интервью.");
+    if (new Set(groups).size !== groups.length) throw new ActionError("Из услуг одной группы (например, два вида интервью) можно выбрать только одну.");
+    // price: null — «по запросу»; total — сумма услуг с известной ценой.
     const items = picked.map((s) => ({ code: s.code, title: s.title, price: s.price }));
-    const total = items.reduce((sum, s) => sum + s.price, 0);
+    const total = items.reduce((sum, s) => sum + (s.price ?? 0), 0);
     const note = String(comment ?? "").trim().slice(0, 1000) || null;
     const sb = createAdminClient();
     const { data: order, error } = await sb.from("service_orders").insert({ listing_id: listing.id, user_id: user.id, items, total, comment: note }).select("id").single();
     if (error) throw error;
     notifyAdmins(
-      `🛎 Заказ услуг для «${escapeHtml(listing.title ?? "")}» на ${formatShekels(total)}:\n${items.map((i) => `• ${escapeHtml(i.title)} — ${formatShekels(i.price)}`).join("\n")}${note ? `\nКомментарий: ${escapeHtml(note)}` : ""}`,
+      `🛎 Заказ услуг для «${escapeHtml(listing.title ?? "")}» на ${formatTotal(items)}:\n${items.map((i) => `• ${escapeHtml(i.title)} — ${formatPrice(i.price)}`).join("\n")}${note ? `\nКомментарий: ${escapeHtml(note)}` : ""}`,
       "/admin?tab=orders",
     );
     await audit(user.id, "service_order.created", "listing", listing.id, { order: order.id, total, codes: items.map((i) => i.code) });
