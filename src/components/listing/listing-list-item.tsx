@@ -119,10 +119,11 @@ export function ListingListItem({
               </span>
             </span>
           ) : null}
+          {/* Подпись района короткая (districtListLabel), поэтому на узком экране переносится, а не обрезается многоточием */}
           {districtLabel ? (
-            <span className="inline-flex min-w-0 max-w-full items-center gap-1 text-muted">
-              <MapPinIcon className="size-4 shrink-0" />
-              <span className="truncate">{districtLabel}</span>
+            <span className="inline-flex min-w-0 max-w-full items-start gap-1 text-muted">
+              <MapPinIcon className="mt-0.5 size-4 shrink-0" />
+              <span className="min-w-0">{districtLabel}</span>
             </span>
           ) : null}
           {listing.distance_m != null ? <span className="whitespace-nowrap font-semibold text-primary">📍 {formatDistance(listing.distance_m)}</span> : null}
