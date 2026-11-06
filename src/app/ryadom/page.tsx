@@ -11,7 +11,7 @@ export default async function NearMePage() {
     <div className="grid grid-cols-1 gap-5">
       <h1 className="text-2xl font-extrabold leading-tight sm:text-3xl">📍 {t.search.nearMe}</h1>
       <NearMe
-        districts={districts.map((d) => ({ id: d.id, slug: d.slug, name: d.name }))}
+        districts={districts.map((d) => ({ id: d.id, slug: d.slug, name: d.name, kind: d.kind, sort: d.sort }))}
         categories={categories.map((c) => ({ id: c.id, name: c.name }))}
       />
     </div>

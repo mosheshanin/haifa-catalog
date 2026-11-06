@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { ListingListItem, type ListItemData } from "@/components/listing/listing-list-item";
+import { districtListLabel } from "@/lib/catalog/districts";
 import { MapPinIcon } from "@/components/icons";
 
 type Row = ListItemData & { district_ids: number[]; category_id: number | null; summary: string | null };
@@ -43,12 +44,11 @@ export function NearMe({
   districts,
   categories,
 }: {
-  districts: Array<{ id: number; slug: string; name: string }>;
+  districts: Array<{ id: number; slug: string; name: string; kind: string; sort: number }>;
   categories: Array<{ id: number; name: string }>;
 }) {
   const [state, setState] = useState<"idle" | "locating" | "loading" | "done" | "denied" | "error">("idle");
   const [rows, setRows] = useState<Row[]>([]);
-  const districtName = (id: number) => districts.find((d) => d.id === id)?.name ?? "";
   const categoryName = (id: number | null) => categories.find((c) => c.id === id)?.name ?? "";
 
   async function locate() {
@@ -116,7 +116,7 @@ export function NearMe({
                 key={l.id}
                 listing={l}
                 subtitle={l.section === "specialisty" && l.summary ? l.summary : categoryName(l.category_id)}
-                districtLabel={l.district_ids.map(districtName).filter(Boolean).slice(0, 2).join(", ")}
+                districtLabel={districtListLabel(l.district_ids, districts)}
               />
             ))}
           </div>

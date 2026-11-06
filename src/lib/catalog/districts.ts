@@ -28,6 +28,34 @@ export function districtLabels(slugs: string[], names: Record<string, string>): 
   return slugs.map((s) => names[s] ?? s);
 }
 
+// Короткая подпись района в списках (карточки каталога, избранное, «Рядом», «Похожие», Telegram) — 6 ноября 2026.
+// Раньше списки брали два первых района из `listings.district_ids` в порядке, в каком их сложила база, поэтому у
+// всех, кто работает по всему городу, стояло «Ахуза, Неве-Шаанан». Теперь: районы идут в порядке справочника, все
+// районы Хайфы сворачиваются в «Вся Хайфа», Хайфа вместе со всеми пригородами — в «Вся Хайфа и пригороды»,
+// больше двух названий — «Адар, Ахуза и ещё 3». `list` — справочник районов (getDistricts), с `kind` и `sort`.
+export const ALL_HAIFA_AND_SUBURBS = "Вся Хайфа и пригороды";
+
+type DistrictRow = { id: number; name: string; kind?: string; sort?: number };
+
+export function districtListParts(ids: Array<number | string> | null | undefined, list: DistrictRow[]): string[] {
+  const own = new Set((ids ?? []).map(Number));
+  const ordered = [...list].sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
+  const picked = ordered.filter((d) => own.has(d.id));
+  if (!picked.length) return [];
+  const haifa = ordered.filter((d) => d.kind === "haifa");
+  if (!haifa.length || !haifa.every((d) => own.has(d.id))) return picked.map((d) => d.name);
+  const suburbs = ordered.filter((d) => d.kind === "suburb");
+  const pickedSuburbs = picked.filter((d) => d.kind !== "haifa");
+  if (suburbs.length && suburbs.every((d) => own.has(d.id))) return [ALL_HAIFA_AND_SUBURBS];
+  return [ALL_HAIFA, ...pickedSuburbs.map((d) => d.name)];
+}
+
+export function districtListLabel(ids: Array<number | string> | null | undefined, list: DistrictRow[], max = 2): string {
+  const parts = districtListParts(ids, list);
+  if (parts.length <= max) return parts.join(", ");
+  return `${parts.slice(0, max).join(", ")} и ещё ${parts.length - max}`;
+}
+
 // Район для заголовка, описания и картинки предпросмотра (5 ноября 2026): только если у карточки ровно один район.
 // Если районов несколько или выбрана «Вся Хайфа», пишем просто «Хайфа» — иначе в превью попадал первый район из списка
 // (например, «Адар» у специалиста, который работает по всему городу).

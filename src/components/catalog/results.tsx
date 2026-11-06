@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ListingListItem } from "@/components/listing/listing-list-item";
 import { CatalogMap, type MapItem } from "@/components/catalog/catalog-map";
 import { getCategories, getDistricts } from "@/lib/data/dictionaries";
+import { districtListLabel } from "@/lib/catalog/districts";
 import { PAGE_SIZE, getListingPoints, searchListings, type ListingSummary } from "@/lib/data/listings";
 import { toSearch, withParams, type CatalogFilters, type RawParams } from "@/lib/catalog/params";
 import { pluralRu } from "@/lib/format";
@@ -85,7 +86,7 @@ export async function Results({
     const parent = cat.parent_id ? categoryById.get(cat.parent_id) : undefined;
     return filterConfig(l.section, parent ? { slug: cat.slug, parentSlug: parent.slug } : { slug: cat.slug }).places;
   };
-  const districtLabelOf = (l: ListingSummary) => l.district_ids.map(districtName).filter(Boolean).slice(0, 2).join(", ");
+  const districtLabelOf = (l: ListingSummary) => districtListLabel(l.district_ids, districts);
 
   if (!items.length) {
     return (

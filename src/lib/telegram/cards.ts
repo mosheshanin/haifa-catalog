@@ -2,6 +2,7 @@ import "server-only";
 import { InputFile } from "grammy";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCategories, getDistricts } from "@/lib/data/dictionaries";
+import { districtListParts } from "@/lib/catalog/districts";
 import { miniAppLink, siteUrl } from "@/lib/env";
 import type { Section } from "@/lib/blocks/types";
 import { clip, escapeHtml } from "@/lib/telegram/api";
@@ -57,7 +58,7 @@ export async function describe(rows: Row[]): Promise<CardInfo[]> {
     coverUrl: r.cover_url ?? null,
     categoryId: r.category_id,
     category: catName(r.category_id),
-    districts: (r.district_ids ?? []).map((id) => dists.find((d) => d.id === id)?.name).filter((x): x is string => Boolean(x)),
+    districts: districtListParts(r.district_ids, dists),
     ratingAvg: r.rating_avg ?? null,
     ratingCount: r.rating_count ?? 0,
     isDemo: Boolean(r.is_demo),
@@ -83,7 +84,7 @@ export const cardWebUrl = (c: Pick<CardInfo, "section" | "slug">) => `${siteUrl(
 
 // «💅 Маникюр · 📍 Адар · ⭐ 4.8»
 export function cardMeta(c: CardInfo): string {
-  const parts = [c.category, c.districts.length ? `📍 ${c.districts.slice(0, 2).join(", ")}` : null, c.ratingAvg && c.ratingCount ? `⭐ ${c.ratingAvg}` : null];
+  const parts = [c.category, c.districts.length ? `📍 ${c.districts.length > 2 ? `${c.districts.slice(0, 2).join(", ")} и ещё ${c.districts.length - 2}` : c.districts.join(", ")}` : null, c.ratingAvg && c.ratingCount ? `⭐ ${c.ratingAvg}` : null];
   return parts.filter(Boolean).join(" · ");
 }
 

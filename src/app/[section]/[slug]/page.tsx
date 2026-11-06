@@ -21,7 +21,7 @@ import { getVimeoThumbs } from "@/lib/data/video";
 import { getListingReviews } from "@/lib/data/reviews";
 import { t } from "@/i18n/ru";
 import type { Section } from "@/lib/blocks/types";
-import { districtLabels, districtNameMap, singleDistrictName } from "@/lib/catalog/districts";
+import { districtLabels, districtListLabel, districtNameMap, singleDistrictName } from "@/lib/catalog/districts";
 
 // Адрес /<раздел>/<slug> — это либо категория (/biznes/krasota), либо карточка (/biznes/nazvanie).
 // База не даёт им совпасть (раздел 8 ТЗ, постоянные адреса).
@@ -228,7 +228,6 @@ export default async function SlugPage({ params, searchParams }: PageProps<"/[se
     categorySlug: topCategory?.slug,
     districtSlug: listing.data.header.districtSlugs[0],
   });
-  const districtById = new Map(districts.map((d) => [d.id, d.name]));
 
   // «Поделиться»: QR ведёт на короткую ссылку /k/<код> (раздел 4 ТЗ), Mini App открывает карточку по start_param.
   const shortUrl = listing.shortCode ? `${siteUrl()}/k/${listing.shortCode}` : undefined;
@@ -302,7 +301,7 @@ export default async function SlugPage({ params, searchParams }: PageProps<"/[se
                 <ListingListItem
                   listing={l}
                   subtitle={l.summary ?? ""}
-                  districtLabel={l.district_ids.map((id) => districtById.get(id) ?? "").filter(Boolean).slice(0, 2).join(", ")}
+                  districtLabel={districtListLabel(l.district_ids, districts)}
                   wide={l.is_recommended}
                 />
               </div>
