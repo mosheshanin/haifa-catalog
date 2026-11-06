@@ -88,7 +88,7 @@ export function ListingListItem({
           initials(listing.title)
         )}
         {listing.has_offer ? (
-          <span className="absolute left-1 top-1 z-10 inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-accent px-2 py-0.5 text-xs font-bold">
+          <span className="absolute left-1 top-1 z-10 inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-accent px-2 py-0.5 text-xs font-bold text-on-accent">
             <TagIcon className="size-3" /> Акция
           </span>
         ) : null}
