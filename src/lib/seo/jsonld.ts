@@ -1,5 +1,6 @@
 import type { ListingBlock, ListingData } from "@/lib/blocks/types";
 import { israelOffset } from "@/lib/blocks/expire";
+import { offerDeal } from "@/lib/blocks/offers";
 
 const DAY_SCHEMA: Record<string, string> = {
   sun: "Sunday",
@@ -104,14 +105,17 @@ export function listingJsonLd(opts: {
   // Спецпредложения — Offer с ценой и сроком (раздел 8 ТЗ). Истёкшие уже убраны при загрузке карточки.
   const offers = block("offers");
   if (offers?.data.items.length) {
-    json.makesOffer = offers.data.items.map((o) => ({
+    json.makesOffer = offers.data.items.map((o) => {
+      const price = offerDeal(o).priceValue; // «Бесплатно» = 0, скидка от обычной цены — посчитанная цена
+      return {
       "@type": "Offer",
       name: o.title,
       description: o.description,
       url: opts.url,
-      ...(o.price !== undefined ? { price: o.price, priceCurrency: "ILS" } : {}),
+      ...(price !== undefined ? { price, priceCurrency: "ILS" } : {}),
       ...(o.validUntil ? { validThrough: o.validUntil } : {}),
-    }));
+      };
+    });
   }
 
   // Особенности заведения — amenityFeature (у бизнесов).

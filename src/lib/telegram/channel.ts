@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { miniAppLink } from "@/lib/env";
 import type { ListingData, OfferItem } from "@/lib/blocks/types";
 import { botApi, clip, escapeHtml, safeCall } from "@/lib/telegram/api";
+import { offerSummary } from "@/lib/blocks/offers";
 import { cardMeta, cardMiniAppLink, cardPhoto, cardSummary, getCards, type CardInfo } from "@/lib/telegram/cards";
 import { sendText, telegramOf } from "@/lib/telegram/notify";
 
@@ -38,7 +39,8 @@ async function composePost(post: PostRow, c: CardInfo): Promise<string> {
   const meta = escapeHtml(cardMeta(c));
   if (post.kind === "offer") {
     const offer = await currentOffer(c.id, post.item_key);
-    const head = `🎁 <b>${escapeHtml(offer?.title ?? post.item_title ?? "Спецпредложение")}</b>${offer?.discountPercent ? ` — −${offer.discountPercent}%` : ""}`;
+    const deal = offer ? offerSummary(offer) : "";
+    const head = `🎁 <b>${escapeHtml(offer?.title ?? post.item_title ?? "Спецпредложение")}</b>${deal ? ` — ${escapeHtml(deal)}` : ""}`;
     const body = offer?.description ? `\n${escapeHtml(clip(offer.description, 300))}` : "";
     const until = offer?.validUntil ? `\n⏳ До ${offer.validUntil.split("-").reverse().join(".")}` : "";
     const promo = offer?.promoCode ? `\n🏷 Промокод: <code>${escapeHtml(offer.promoCode)}</code>` : "";
@@ -157,7 +159,10 @@ async function notifyFavoriters(card: CardInfo, offers: OfferItem[]) {
   const { data: favs } = await createAdminClient().from("favorites").select("user_id").eq("listing_id", card.id).limit(5000);
   const text = `🎁 Новое спецпредложение в избранном — <b>${escapeHtml(card.title)}</b>:\n${offers
     .slice(0, 3)
-    .map((o) => `• ${escapeHtml(o.title)}${o.discountPercent ? ` (−${o.discountPercent}%)` : ""}`)
+    .map((o) => {
+      const deal = offerSummary(o);
+      return `• ${escapeHtml(o.title)}${deal ? ` (${escapeHtml(deal)})` : ""}`;
+    })
     .join("\n")}`;
   for (const f of favs ?? []) {
     if (f.user_id === card.ownerId) continue;

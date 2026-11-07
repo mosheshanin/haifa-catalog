@@ -464,6 +464,7 @@ function FieldView({ field, obj, onChange }: { field: Field; obj: Obj; onChange:
             onChange={(e) => set(e.target.value === "" ? undefined : Number(e.target.value))}
             className={`${inputCls} max-w-48`}
           />
+          {field.help ? <span className="text-xs font-normal text-muted">{field.help}</span> : null}
         </label>
       );
     case "date":
@@ -545,6 +546,7 @@ function FieldView({ field, obj, onChange }: { field: Field; obj: Obj; onChange:
 
 // Поле с условием when видно только в подходящей категории; уже отмеченные значения показываем всегда, чтобы их можно было снять.
 function applicable(f: Field, obj: Obj, opts: EditorOptions): boolean {
+  if (f.showIf && !f.showIf.in.includes(String(obj[f.showIf.k] ?? ""))) return false;
   if (f.type !== "multiselect" || !f.when) return true;
   const has = Array.isArray(obj[f.k]) && (obj[f.k] as unknown[]).length > 0;
   if (f.when === "kupa") return opts.filter.kupa || has;

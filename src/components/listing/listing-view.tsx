@@ -38,6 +38,7 @@ import { TeamBookButton } from "@/components/listing/blocks/team-book-button";
 import { SharePanel } from "@/components/listing/share-panel";
 import { vacancyUntil } from "@/lib/blocks/expire";
 import { safeHref } from "@/lib/blocks/links";
+import { offerDeal } from "@/lib/blocks/offers";
 import { GoogleRating } from "@/components/listing/blocks/google-rating";
 import { ListingTracker } from "@/components/listing/listing-tracker";
 import { ClaimButton, ComplaintButton, ReportListingButton, RequestForm, ReviewForm } from "@/components/listing/public-forms";
@@ -165,18 +166,33 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
       return (
         <Section id="offers" title={t.listing.offers} icon="🎁">
           <ul className="grid grid-cols-1 gap-3">
-            {block.data.items.map((o, i) => (
+            {block.data.items.map((o, i) => {
+              // Вид предложения → плашка, цена по акции и зачёркнутая обычная цена (src/lib/blocks/offers.ts, 7 ноября 2026)
+              const deal = offerDeal(o);
+              return (
               <li key={i} className="rounded-2xl border-2 border-accent/50 bg-[#fdf8e1] p-4">
-                <p className="flex items-start gap-2 font-extrabold leading-snug text-accent-ink">
-                  <TagIcon className="mt-0.5 size-5 shrink-0" />
-                  <span className="min-w-0">
-                    {o.discountPercent ? <span className="whitespace-nowrap">−{o.discountPercent}% · </span> : null}
-                    {o.title}
+                {deal.badge ? (
+                  <span className="mb-2 inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-accent px-2.5 py-0.5 text-sm font-extrabold text-on-accent">
+                    {deal.kind === "gift" ? <span aria-hidden>🎁</span> : <TagIcon className="size-4" />}
+                    {deal.badge}
                   </span>
+                ) : null}
+                <p className="flex items-start gap-2 font-extrabold leading-snug text-ink">
+                  {deal.badge ? null : <TagIcon className="mt-0.5 size-5 shrink-0 text-accent-ink" />}
+                  <span className="min-w-0">{o.title}</span>
                 </p>
-                {/* Описание и цена предложения (поля редактора; не выводились до 4 ноября 2026) */}
                 {o.description ? <p className="mt-1 text-sm leading-relaxed">{o.description}</p> : null}
-                {o.price !== undefined ? <p className="mt-1 font-extrabold">{formatPrice(o.price)}</p> : null}
+                {deal.now || deal.was ? (
+                  <p className="mt-2 flex flex-wrap items-baseline gap-x-2">
+                    {deal.now ? <span className="text-lg font-extrabold">{deal.now}</span> : null}
+                    {deal.was ? (
+                      <span className="text-muted">
+                        {deal.now ? <span className="sr-only">вместо </span> : "Обычная цена "}
+                        <s>{deal.was}</s>
+                      </span>
+                    ) : null}
+                  </p>
+                ) : null}
                 {o.promoCode ? (
                   <p className="mt-1 text-sm">
                     Промокод: <span className="rounded bg-white px-1.5 py-0.5 font-mono font-bold">{o.promoCode}</span>
@@ -184,7 +200,8 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
                 ) : null}
                 {o.validUntil ? <p className="mt-1 text-sm text-muted">До {formatDateRu(o.validUntil)}</p> : null}
               </li>
-            ))}
+              );
+            })}
           </ul>
         </Section>
       );

@@ -1,13 +1,18 @@
 import type { Limits, ListingBlock } from "@/lib/blocks/types";
+import { OFFER_KINDS } from "@/lib/blocks/offers";
 
 // Описание полей редактора для каждого блока карточки (раздел 4 ТЗ). Редактор строит формы по этим схемам,
 // поэтому новый блок = тип в types.ts + схема здесь + отображение в listing-view.tsx + проверка в sanitize.ts.
 
 export type Option = { value: string; label: string };
-export type Field =
+// showIf: поле видно, только когда другое поле того же объекта имеет одно из значений (вид спецпредложения).
+// Скрытые поля при сохранении чистит сервер (normalizeOffer), поэтому значения можно не стирать в редакторе.
+export type FieldShowIf = { k: string; in: string[] };
+
+export type Field = (
   | { k: string; label: string; type: "text" | "url" | "email" | "tel"; placeholder?: string; max?: number; help?: string; required?: boolean }
   | { k: string; label: string; type: "textarea"; rows?: number; max?: number; placeholder?: string; help?: string; required?: boolean }
-  | { k: string; label: string; type: "number"; min?: number; max?: number; step?: number; suffix?: string }
+  | { k: string; label: string; type: "number"; min?: number; max?: number; step?: number; suffix?: string; help?: string }
   | { k: string; label: string; type: "date" | "datetime" | "time"; help?: string; required?: boolean }
   | { k: string; label: string; type: "checkbox"; help?: string }
   | { k: string; label: string; type: "select"; options: Option[] | "districts" | "days"; required?: boolean }
@@ -20,7 +25,8 @@ export type Field =
   | { k: string; label: string; type: "video" }
   | { k: string; label: string; type: "list"; item: Field[]; max: number | keyof Limits; addLabel: string; titleKey?: string; defaults?: Record<string, unknown> }
   | { k: string; label: string; type: "hours" }
-  | { k: string; label: string; type: "geocode" };
+  | { k: string; label: string; type: "geocode" }
+) & { showIf?: FieldShowIf };
 
 export const DAYS: Option[] = [
   { value: "sun", label: "Воскресенье" },
@@ -88,11 +94,23 @@ export const BLOCK_SCHEMAS: Record<ListingBlock["type"], Field[]> = {
       max: 20,
       addLabel: "Добавить предложение",
       titleKey: "title",
+      defaults: { kind: "discount" },
       item: [
-        { k: "title", label: "Заголовок", type: "text", max: 150, required: true },
-        { k: "description", label: "Описание", type: "text", max: 400 },
-        { k: "price", label: "Цена", type: "number", min: 0, suffix: "₪" },
-        { k: "discountPercent", label: "Скидка", type: "number", min: 1, max: 100, suffix: "%" },
+        // Вид предложения решает, какие поля видны и как оно выглядит на сайте (src/lib/blocks/offers.ts, 7 ноября 2026)
+        { k: "kind", label: "Что предлагаете", type: "select", options: OFFER_KINDS, required: true },
+        { k: "title", label: "Заголовок", type: "text", max: 150, required: true, placeholder: "Бесплатная диагностика кожи головы" },
+        { k: "discountPercent", label: "Скидка", type: "number", min: 1, max: 99, suffix: "%", showIf: { k: "kind", in: ["discount"] } },
+        { k: "price", label: "Цена по акции", type: "number", min: 1, suffix: "₪", showIf: { k: "kind", in: ["price"] } },
+        {
+          k: "oldPrice",
+          label: "Обычная цена",
+          type: "number",
+          min: 1,
+          suffix: "₪",
+          help: "Необязательно. Покажем зачёркнутой рядом с ценой по акции",
+          showIf: { k: "kind", in: ["free", "discount", "price"] },
+        },
+        { k: "description", label: "Описание", type: "text", max: 400, placeholder: "Условия: для новых клиентов, по записи" },
         { k: "promoCode", label: "Промокод", type: "text", max: 30 },
         { k: "validUntil", label: "Действует до", type: "date", help: "После этой даты предложение скроется само" },
       ],

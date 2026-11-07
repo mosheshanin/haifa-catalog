@@ -1,6 +1,7 @@
 import { FREE_LIMITS, type Limits, type ListingBlock, type ListingData, type WeekdayKey } from "@/lib/blocks/types";
 import { KUPOT_LIST } from "@/lib/catalog/filter-config";
 import { isGoogleMapsUrl, isMediaUrl, parseGoogleMapsUrl, safeHref } from "@/lib/blocks/links";
+import { isOfferKind, normalizeOffer } from "@/lib/blocks/offers";
 
 // Проверка и очистка данных карточки, пришедших из редактора (на сервере, перед сохранением).
 // Всё неизвестное отбрасывается, строки обрезаются, ссылки и фото проверяются.
@@ -143,14 +144,16 @@ function block(raw: unknown, ctx: Ctx): ListingBlock | undefined {
             const o = obj(x);
             const title = str(o.title, 150);
             return title
-              ? {
+              ? normalizeOffer({
                   title,
+                  kind: isOfferKind(o.kind) ? o.kind : undefined,
                   description: str(o.description, 400),
                   price: num(o.price),
+                  oldPrice: num(o.oldPrice),
                   discountPercent: num(o.discountPercent, 1, 100),
                   promoCode: str(o.promoCode, 30),
                   validUntil: date(o.validUntil),
-                }
+                })
               : undefined;
           }),
         },

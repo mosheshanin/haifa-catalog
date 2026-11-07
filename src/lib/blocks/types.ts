@@ -37,7 +37,19 @@ export type ServiceGroup = { title: string; items: ServiceItem[] };
 
 export type FaqItem = { q: string; a: string };
 
-export type OfferItem = { title: string; description?: string; price?: number; discountPercent?: number; promoCode?: string; validUntil?: string };
+// Вид спецпредложения (7 ноября 2026): от него зависят поля и надписи, см. src/lib/blocks/offers.ts.
+// price — цена по акции (вид «price»), oldPrice — обычная цена (зачёркнутая), discountPercent — у вида «discount».
+export type OfferKind = "free" | "discount" | "price" | "gift" | "other";
+export type OfferItem = {
+  title: string;
+  kind?: OfferKind;
+  description?: string;
+  price?: number;
+  oldPrice?: number;
+  discountPercent?: number;
+  promoCode?: string;
+  validUntil?: string;
+};
 
 // Исключения в часах работы: праздник, короткий день, санитарный день. Дата — по Израилю.
 export type HoursException = { date: string; closed?: boolean; intervals?: HoursInterval[]; note?: string };
