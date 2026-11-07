@@ -79,6 +79,7 @@ export const ru = {
     address: "Адрес",
     serviceArea: "Зона выезда",
     about: "О нас",
+    aboutMe: "Обо мне", // у специалистов (7 ноября 2026)
     faq: "Вопросы и ответы",
     gallery: "Фото",
     beforeAfter: "До и после",

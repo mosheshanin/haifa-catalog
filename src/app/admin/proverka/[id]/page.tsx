@@ -137,11 +137,11 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 <div className="min-w-0 rounded-xl bg-[#fdecea]/50 p-2">
                   <p className="mb-1 text-xs font-extrabold text-danger">БЫЛО</p>
-                  {it.before ? <BlockPreview block={it.before as ListingBlock} districtNames={names.dist} /> : <p className="text-sm text-muted">Блока не было</p>}
+                  {it.before ? <BlockPreview block={it.before as ListingBlock} districtNames={names.dist} section={listing.section} /> : <p className="text-sm text-muted">Блока не было</p>}
                 </div>
                 <div className="min-w-0 rounded-xl bg-[#e5f4e4]/60 p-2">
                   <p className="mb-1 text-xs font-extrabold text-success">СТАЛО</p>
-                  {it.after ? <BlockPreview block={it.after as ListingBlock} districtNames={names.dist} /> : <p className="text-sm text-muted">Блок удалён</p>}
+                  {it.after ? <BlockPreview block={it.after as ListingBlock} districtNames={names.dist} section={listing.section} /> : <p className="text-sm text-muted">Блок удалён</p>}
                 </div>
               </div>
             )}

@@ -63,6 +63,7 @@ type BlockContext = {
   title: string;
   bookableNames: string[];
   filter: FilterConfig; // подписи «Доставка», «Выезд к клиенту»… по категории карточки
+  section: "biznes" | "specialisty"; // «О нас» у бизнеса, «Обо мне» у специалиста
 };
 
 const DAY_FULL: Record<WeekdayKey, string> = {
@@ -178,7 +179,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
     case "description":
       if (!block.data.text?.trim()) return null;
       return (
-        <Section title={t.listing.about} icon="📝">
+        <Section title={ctx.section === "specialisty" ? t.listing.aboutMe : t.listing.about} icon="📝">
           <MultilineText text={block.data.text} className="leading-relaxed" />
         </Section>
       );
@@ -756,6 +757,7 @@ export function ListingView({
     title: header.title,
     bookableNames: team?.type === "team" ? team.data.members.filter((m) => m.bookable).map((m) => m.name) : [],
     filter: filterFromHref(data.section, categoryHref),
+    section: data.section,
   };
 
   return (
@@ -1049,7 +1051,7 @@ function ContactAside({
 }
 
 // Один блок отдельно — для сравнения «было — стало» в админке.
-export function BlockPreview({ block, districtNames }: { block: ListingBlock; districtNames: Record<string, string> }) {
+export function BlockPreview({ block, districtNames, section = "biznes" }: { block: ListingBlock; districtNames: Record<string, string>; section?: "biznes" | "specialisty" }) {
   const ctx: BlockContext = {
     listingId: "preview",
     isDemo: true,
@@ -1060,7 +1062,8 @@ export function BlockPreview({ block, districtNames }: { block: ListingBlock; di
     requestEnabled: false,
     title: "",
     bookableNames: [],
-    filter: filterConfig("biznes", null),
+    filter: filterConfig(section, null),
+    section,
   };
   return <Block block={{ ...block, hidden: false } as ListingBlock} ctx={ctx} />;
 }

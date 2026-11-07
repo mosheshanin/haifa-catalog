@@ -175,11 +175,11 @@ async function Instant({ districtNames }: { districtNames: Record<string, string
     .select("id, listing_id, block_key, block_type, before, after, created_at, reverted_at, revert_reason, listings(title, section, slug)")
     .order("created_at", { ascending: false })
     .limit(80);
-  const render = (type: string, v: unknown) => {
+  const render = (type: string, v: unknown, section?: string) => {
     if (v === null || v === undefined) return <p className="text-sm text-muted">— нет —</p>;
     if (type === "review_reply") return <p className="whitespace-pre-line text-sm">{String(v)}</p>;
     if (type === "order") return <p className="text-sm text-muted">Порядок блоков изменён</p>;
-    return <BlockPreview block={v as ListingBlock} districtNames={districtNames} />;
+    return <BlockPreview block={v as ListingBlock} districtNames={districtNames} section={section === "specialisty" ? "specialisty" : "biznes"} />;
   };
   return (
     <Panel title="⚡ Правки, опубликованные без проверки">
@@ -199,11 +199,11 @@ async function Instant({ districtNames }: { districtNames: Record<string, string
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <div className="min-w-0 rounded-xl bg-[#fdecea]/50 p-2">
                     <p className="mb-1 text-xs font-extrabold text-danger">БЫЛО</p>
-                    {render(c.block_type, c.before)}
+                    {render(c.block_type, c.before, l?.section)}
                   </div>
                   <div className="min-w-0 rounded-xl bg-[#e5f4e4]/60 p-2">
                     <p className="mb-1 text-xs font-extrabold text-success">СТАЛО</p>
-                    {render(c.block_type, c.after)}
+                    {render(c.block_type, c.after, l?.section)}
                   </div>
                 </div>
                 {c.reverted_at ? <p className="text-sm text-muted">↩️ Снято: {c.revert_reason}</p> : <RevertForm id={c.id} />}
