@@ -47,6 +47,9 @@ export const GOOGLE_MAPS_EMBED_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_K
 // Этап 5: Google Analytics 4 (идентификатор вида G-XXXXXXX, не секрет). Пусто — аналитика и баннер cookie выключены.
 export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_ID || "G-B7FVV3T3F8";
 
+// Яндекс Метрика (7 ноября 2026, номер счётчика — не секрет). Грузится, как и GA, только после «Разрешить» в баннере cookie.
+export const YM_COUNTER_ID = Number(process.env.NEXT_PUBLIC_YM_ID || "114120716") || 0;
+
 // Коды подтверждения Google Search Console и Bing Webmaster Tools (мета-тег, не секрет). Подключаем после своего домена.
 export const GOOGLE_SITE_VERIFICATION = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "";
 export const BING_SITE_VERIFICATION = process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION || "";

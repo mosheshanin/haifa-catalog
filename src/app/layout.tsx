@@ -5,7 +5,7 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { MiniAppBridge } from "@/components/telegram/mini-app-bridge";
 import { TelegramBackButton } from "@/components/telegram/mini-app-chrome";
 import { FavoritesProvider } from "@/components/listing/favorites-provider";
-import { ConsentBanner } from "@/components/legal/consent";
+import { AnalyticsRouteHits, ConsentBanner } from "@/components/legal/consent";
 import { BING_SITE_VERIFICATION, GOOGLE_SITE_VERIFICATION, SITE_INDEXABLE, siteUrl } from "@/lib/env";
 import { t } from "@/i18n/ru";
 // Шрифты Onest (текст) и Manrope (заголовки) лежат в проекте и раздаются с нашего домена: без запросов к Google в браузере.
@@ -50,6 +50,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <SiteFooter />
         </FavoritesProvider>
         <ConsentBanner />
+        <Suspense fallback={null}>
+          <AnalyticsRouteHits />
+        </Suspense>
         <MiniAppBridge />
         <Suspense fallback={null}>
           <TelegramBackButton />

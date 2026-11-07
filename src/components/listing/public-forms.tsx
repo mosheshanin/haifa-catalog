@@ -41,7 +41,7 @@ export function ReviewForm({ listingId, isDemo }: { listingId: string; isDemo: b
     );
   }
   return (
-    <form action={action} className="relative grid gap-3 rounded-2xl border border-line p-4">
+    <form action={action} className="ym-hide-content relative grid gap-3 rounded-2xl border border-line p-4">
       <input type="hidden" name="listingId" value={listingId} />
       <input type="hidden" name="rating" value={rating || ""} />
       <fieldset>
@@ -109,7 +109,7 @@ export function ComplaintButton({
         ) : state?.ok ? (
           <FormMessage state={state} />
         ) : (
-          <form action={action} className="relative grid gap-3">
+          <form action={action} className="ym-hide-content relative grid gap-3">
             <input type="hidden" name="listingId" value={listingId} />
             <input type="hidden" name="kind" value={kind} />
             {reviewId ? <input type="hidden" name="reviewId" value={reviewId} /> : null}
@@ -158,7 +158,7 @@ export function ClaimButton({ listingId, className, label }: { listingId: string
         ) : state?.ok ? (
           <FormMessage state={state} />
         ) : (
-          <form action={action} className="relative grid gap-3">
+          <form action={action} className="ym-hide-content relative grid gap-3">
             <input type="hidden" name="listingId" value={listingId} />
             <p className="text-sm text-muted">
               Администратор проверит, что карточка ваша: позвонит или напишет по контакту из карточки. После этого вы сможете редактировать её в кабинете.
@@ -223,7 +223,7 @@ export function RequestForm({
   }, [state, listingId]);
   if (state?.ok) return <FormMessage state={state} />;
   return (
-    <form action={action} className="relative grid gap-3">
+    <form action={action} className="ym-hide-content relative grid gap-3">
       <input type="hidden" name="listingId" value={listingId} />
       <label className={labelCls}>
         Ваше имя
