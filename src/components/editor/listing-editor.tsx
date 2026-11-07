@@ -132,7 +132,7 @@ export function ListingEditor(props: {
 
   const present = new Set(data.blocks.map((b) => b.type));
   const addable = ADDABLE_ORDER.filter((t) => !present.has(t));
-  const districtNames = districtNameMap(props.districts.map((d) => ({ slug: d.value, name: d.label, kind: props.haifaDistricts?.includes(d.value) ? "haifa" : undefined })));
+  const districtNames = districtNameMap(props.districts.map((d) => ({ slug: d.value, name: d.label, kind: props.haifaDistricts ? (props.haifaDistricts.includes(d.value) ? "haifa" : "suburb") : undefined })));
   const categoryName = props.categories.find((c) => c.id === data.header.categoryId)?.name ?? "";
   // Фильтры категории: какие поля «Особенностей» показывать (кассы, доставка/выезд) и как их назвать.
   const filter = useMemo(() => {

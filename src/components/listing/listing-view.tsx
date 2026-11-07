@@ -45,7 +45,7 @@ import { ClaimButton, ComplaintButton, ReportListingButton, RequestForm, ReviewF
 import { filterConfig, type FilterConfig } from "@/lib/catalog/filter-config";
 import { TelegramRequestButton } from "@/components/telegram/mini-app-chrome";
 import type { PublicReview } from "@/lib/data/reviews";
-import { districtLabels } from "@/lib/catalog/districts";
+import { districtPlaceLabel } from "@/lib/catalog/districts";
 import { ContactLinks } from "@/components/listing/contact-links";
 
 export type ShareInfo = { url: string; shortUrl?: string; miniAppUrl: string; qrSvg?: string; temporaryAddress: boolean };
@@ -138,6 +138,24 @@ function Section({ id, title, icon, children }: { id?: string; title: string; ic
   );
 }
 
+// Текст из многострочных полей редактора (описание, ответы, «о себе», описания работ и мероприятий, новости).
+// Пустая строка — новый абзац, одиночный перенос — перенос строки. Раньше переносы схлопывались в один абзац.
+function MultilineText({ text, className = "" }: { text: string; className?: string }) {
+  const paragraphs = text
+    .replace(/\r\n?/g, "\n")
+    .split(/\n[ \t]*\n+/)
+    .map((p) => p.replace(/[ \t]+$/gm, "").trim())
+    .filter(Boolean);
+  if (paragraphs.length < 2) return <p className={`whitespace-pre-line ${className}`}>{paragraphs[0] ?? ""}</p>;
+  return (
+    <div className={`grid gap-3 ${className}`}>
+      {paragraphs.map((p, i) => (
+        <p key={i} className="whitespace-pre-line">{p}</p>
+      ))}
+    </div>
+  );
+}
+
 function PhotoPlaceholder({ label, url }: { label?: string; url?: string }) {
   return (
     <figure className="overflow-hidden rounded-2xl border border-line">
@@ -161,7 +179,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
       if (!block.data.text?.trim()) return null;
       return (
         <Section title={t.listing.about} icon="📝">
-          <p className="leading-relaxed">{block.data.text}</p>
+          <MultilineText text={block.data.text} className="leading-relaxed" />
         </Section>
       );
     case "offers":
@@ -184,7 +202,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
                   {deal.badge ? null : <TagIcon className="mt-0.5 size-5 shrink-0 text-accent-ink" />}
                   <span className="min-w-0">{o.title}</span>
                 </p>
-                {o.description ? <p className="mt-1 text-sm leading-relaxed">{o.description}</p> : null}
+                {o.description ? <p className="mt-1 whitespace-pre-line text-sm leading-relaxed">{o.description}</p> : null}
                 {deal.now || deal.was ? (
                   <p className="mt-2 flex flex-wrap items-baseline gap-x-2">
                     {deal.now ? <span className="text-lg font-extrabold">{deal.now}</span> : null}
@@ -311,7 +329,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
               </span>
             ))}
           </p>
-          <p>{districtLabels(block.data.districtSlugs, districtNames).join(", ")}</p>
+          {block.data.districtSlugs.length ? <p>{districtPlaceLabel(block.data.districtSlugs, districtNames)}</p> : null}
         </Section>
       );
     case "gallery":
@@ -362,7 +380,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
                   <span className="mr-2 text-primary group-open:rotate-90">›</span>
                   {f.q}
                 </summary>
-                <p className="mt-2 pl-5 text-muted">{f.a}</p>
+                <MultilineText text={f.a} className="mt-2 pl-5 text-muted" />
               </details>
             ))}
           </div>
@@ -445,7 +463,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
                 )}
                 <p className="mt-2 font-extrabold leading-tight">{m.name}</p>
                 {m.role ? <p className="text-sm text-muted">{m.role}</p> : null}
-                {m.bio ? <p className="mt-1 text-sm">{m.bio}</p> : null}
+                {m.bio ? <MultilineText text={m.bio} className="mt-1 text-sm" /> : null}
                 {m.bookable ? (
                   ctx.requestEnabled ? (
                     <TeamBookButton name={m.name} />
@@ -482,7 +500,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
                   </div>
                 ) : null}
                 <h3 className="mt-3 font-extrabold">{w.title}</h3>
-                {w.description ? <p className="mt-1 text-sm leading-relaxed">{w.description}</p> : null}
+                {w.description ? <MultilineText text={w.description} className="mt-1 text-sm leading-relaxed" /> : null}
                 {w.price !== undefined || w.duration ? (
                   <p className="mt-2 flex flex-wrap gap-2 text-sm">
                     {w.price !== undefined ? <span className="rounded-full bg-primary-soft px-2.5 py-1 font-bold text-primary">💰 {formatPrice(w.price, w.priceFrom)}</span> : null}
@@ -591,7 +609,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
                   <p className="text-sm font-extrabold text-accent-ink">📅 {formatEventWhen(e.start, e.end)}</p>
                   <h3 className="mt-1 text-lg font-extrabold leading-tight">{e.title}</h3>
                   {e.place ? <p className="mt-1 text-sm text-muted">📍 {e.place}</p> : null}
-                  {e.description ? <p className="mt-2 text-sm leading-relaxed">{e.description}</p> : null}
+                  {e.description ? <MultilineText text={e.description} className="mt-2 text-sm leading-relaxed" /> : null}
                   <div className="mt-3 flex flex-wrap items-center gap-2">
                     {e.price !== undefined ? (
                       <span className="rounded-full bg-primary-soft px-2.5 py-1 text-sm font-bold text-primary">{e.price === 0 ? "Бесплатно" : formatPrice(e.price)}</span>
@@ -617,7 +635,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
               <li key={i} className="min-w-0 rounded-2xl border border-line p-4">
                 <h3 className="text-lg font-extrabold">{v.title}</h3>
                 {v.terms ? <p className="mt-1 text-sm">🕒 {v.terms}</p> : null}
-                {v.requirements ? <p className="mt-1 text-sm">📋 {v.requirements}</p> : null}
+                {v.requirements ? <p className="mt-1 whitespace-pre-line text-sm">📋 {v.requirements}</p> : null}
                 {v.contact ? <p className="mt-1 text-sm font-semibold">📞 {v.contact}</p> : null}
                 <p className="mt-2 text-xs text-muted">
                   Опубликовано {formatDayMonth(v.postedAt)} · актуально до {formatDayMonth(vacancyUntil(v))}
@@ -633,7 +651,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
         <li key={i} className="grid min-w-0 gap-3 border-b border-line pb-4 last:border-0 last:pb-0 sm:grid-cols-[1fr_9rem]">
           <div className="min-w-0">
             <p className="text-sm font-bold text-muted">🗞️ {formatDayMonth(p.date)}</p>
-            <p className="mt-1 leading-relaxed">{p.text}</p>
+            <MultilineText text={p.text} className="mt-1 leading-relaxed" />
           </div>
           {p.photoUrl ? (
             <div className="overflow-hidden rounded-xl sm:order-none">
@@ -719,7 +737,7 @@ export function ListingView({
   const { header, contacts } = data;
   const hours = data.blocks.find((b) => b.type === "hours");
   const address = data.blocks.find((b) => b.type === "address");
-  const districts = districtLabels(header.districtSlugs, districtNames);
+  const place = districtPlaceLabel(header.districtSlugs, districtNames);
   const sectionTitle = t.sections[data.section].title;
   const waText = "Здравствуйте! Нашёл(а) вас в каталоге HBC.";
   const request = data.blocks.find((b) => b.type === "request" && !b.hidden);
@@ -791,7 +809,7 @@ export function ListingView({
           </div>
           <h1 className="mt-3 text-2xl font-extrabold leading-tight sm:text-3xl">{header.title}</h1>
           <p className="mt-2 text-muted">
-            {header.profession ?? categoryName} · {districts.join(", ")}, Хайфа
+            {header.profession ?? categoryName} · {place}
           </p>
           {header.slogan ? <p className="mt-3 text-lg font-semibold leading-snug">{header.slogan}</p> : null}
           {rating && reviewsCount > 0 ? (
@@ -905,7 +923,7 @@ export function ListingView({
         ) : null}
         {/* Короткое фактическое резюме для поисковиков и нейросетей (раздел 8 ТЗ). Внизу: наверху оно повторяло шапку. */}
           <p className="rounded-2xl bg-white/60 p-4 text-sm leading-relaxed text-muted">
-            {header.title} — {(header.profession ?? categoryName).toLowerCase()} в районе {districts.join(", ")}, Хайфа.
+            {header.title} — {(header.profession ?? categoryName).toLowerCase()}, {place}.
             {contacts.phone ? ` Телефон: ${formatPhone(contacts.phone)}.` : ""}
             {data.blocks.some((b) => b.type === "languages")
               ? ` Языки: ${(data.blocks.find((b) => b.type === "languages") as Extract<ListingBlock, { type: "languages" }>).data.items.join(", ").toLowerCase()}.`

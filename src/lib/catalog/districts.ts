@@ -5,12 +5,16 @@
 
 export const ALL_HAIFA = "Вся Хайфа";
 const HAIFA_KEY = "__haifa__";
+const SUBURBS_KEY = "__suburbs__"; // пригороды (kind = "suburb"), 7 ноября 2026
+const ORDER_KEY = "__order__"; // порядок справочника: районы в карточке идут так же, как в списках
 
 type District = { slug: string; name: string; kind?: string };
 
 export function districtNameMap(list: District[]): Record<string, string> {
   const map: Record<string, string> = Object.fromEntries(list.map((d) => [d.slug, d.name]));
   map[HAIFA_KEY] = list.filter((d) => d.kind === "haifa").map((d) => d.slug).join(",");
+  map[SUBURBS_KEY] = list.filter((d) => d.kind === "suburb").map((d) => d.slug).join(",");
+  map[ORDER_KEY] = list.map((d) => d.slug).join(",");
   return map;
 }
 
@@ -62,4 +66,26 @@ export function districtListLabel(ids: Array<number | string> | null | undefined
 export function singleDistrictName(slugs: string[], list: District[]): string | undefined {
   if (slugs.length !== 1) return undefined;
   return list.find((d) => d.slug === slugs[0])?.name;
+}
+
+// Районы на странице карточки (шапка, «Зона выезда», резюме внизу) — 7 ноября 2026. Сворачиваются так же, как в списках
+// (districtListParts), но без «и ещё N»: «Вся Хайфа и пригороды», «Вся Хайфа, Нешер», «Адар, Ахуза, Хайфа», «Нешер, Тират-Кармель».
+// Раньше шапка писала все районы и всегда добавляла «, Хайфа»: «Вся Хайфа, Кирьят-Бялик, … Кирьят-Тивон, Хайфа».
+// «Хайфа» в конце — только когда все районы в самой Хайфе (а справочник это знает).
+export function districtPlaceLabel(slugs: string[], names: Record<string, string>): string {
+  const split = (k: string) => (names[k] ?? "").split(",").filter(Boolean);
+  const haifa = split(HAIFA_KEY);
+  const suburbs = split(SUBURBS_KEY);
+  const order = split(ORDER_KEY);
+  const pos = (s: string) => (order.indexOf(s) + 1 || order.length + 1);
+  const picked = [...new Set(slugs)].sort((a, b) => pos(a) - pos(b));
+  const name = (s: string) => names[s] ?? s;
+  if (!picked.length) return "Хайфа";
+  if (!haifa.length) return `${picked.map(name).join(", ")}, Хайфа`; // справочник без видов районов — как раньше
+  if (isAllHaifa(picked, haifa)) {
+    if (suburbs.length && suburbs.every((s) => picked.includes(s))) return ALL_HAIFA_AND_SUBURBS;
+    return [ALL_HAIFA, ...picked.filter((s) => !haifa.includes(s)).map(name)].join(", ");
+  }
+  const list = picked.map(name).join(", ");
+  return picked.every((s) => haifa.includes(s)) ? `${list}, Хайфа` : list;
 }
