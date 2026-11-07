@@ -107,7 +107,7 @@ export const BLOCK_SCHEMAS: Record<ListingBlock["type"], Field[]> = {
           type: "number",
           min: 1,
           suffix: "₪",
-          help: "Необязательно. Покажем зачёркнутой рядом с ценой по акции",
+          help: "Необязательно. Покажем зачёркнутой, чтобы была видна выгода",
           showIf: { k: "kind", in: ["free", "discount", "price"] },
         },
         { k: "description", label: "Описание", type: "text", max: 400, placeholder: "Условия: для новых клиентов, по записи" },

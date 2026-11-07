@@ -11,9 +11,9 @@ import { formatPrice } from "@/lib/format";
 export const OFFER_KINDS: Array<{ value: OfferKind; label: string }> = [
   { value: "discount", label: "Скидка в процентах" },
   { value: "price", label: "Специальная цена" },
-  { value: "free", label: "Бесплатно — консультация, диагностика, пробное занятие" },
-  { value: "gift", label: "Подарок к покупке или визиту" },
-  { value: "other", label: "Другое — опишу словами" },
+  { value: "free", label: "Бесплатно" },
+  { value: "gift", label: "Подарок" },
+  { value: "other", label: "Другое" },
 ];
 
 const KIND_SET = new Set<string>(OFFER_KINDS.map((k) => k.value));
