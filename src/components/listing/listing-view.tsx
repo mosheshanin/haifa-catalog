@@ -46,6 +46,7 @@ import { filterConfig, type FilterConfig } from "@/lib/catalog/filter-config";
 import { TelegramRequestButton } from "@/components/telegram/mini-app-chrome";
 import type { PublicReview } from "@/lib/data/reviews";
 import { districtLabels } from "@/lib/catalog/districts";
+import { ContactLinks } from "@/components/listing/contact-links";
 
 export type ShareInfo = { url: string; shortUrl?: string; miniAppUrl: string; qrSvg?: string; temporaryAddress: boolean };
 
@@ -157,12 +158,14 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
   if (block.hidden) return null;
   switch (block.type) {
     case "description":
+      if (!block.data.text?.trim()) return null;
       return (
         <Section title={t.listing.about} icon="📝">
           <p className="leading-relaxed">{block.data.text}</p>
         </Section>
       );
     case "offers":
+      if (!block.data.items.length) return null; // пусто или все акции истекли (pruneExpired)
       return (
         <Section id="offers" title={t.listing.offers} icon="🎁">
           <ul className="grid grid-cols-1 gap-3">
@@ -206,6 +209,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
         </Section>
       );
     case "services":
+      if (!block.data.groups.some((g) => g.items.length)) return null;
       return (
         <Section id="services" title={t.listing.services} icon="💰">
           <div className="grid grid-cols-1 gap-5">
@@ -296,6 +300,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
         </Section>
       );
     case "service_area":
+      if (!block.data.formats.length && !block.data.districtSlugs.length) return null;
       return (
         // Подписи — по категории карточки: «Выезд на дом» или «Встреча у клиента» (4 ноября 2026)
         <Section title={ctx.filter.places.title} icon="🚗">
@@ -382,6 +387,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
       );
     }
     case "languages":
+      if (!block.data.items.length) return null;
       return (
         <Section title={t.listing.languages} icon="🗣️">
           <p className="flex items-center gap-2">
@@ -574,6 +580,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
       );
     }
     case "events":
+      if (!block.data.items.length) return null;
       return (
         <Section id="events" title={t.listing.events} icon="🎉">
           <ul className="grid grid-cols-1 gap-4">
@@ -602,6 +609,7 @@ function Block({ block, ctx }: { block: ListingBlock; ctx: BlockContext }) {
         </Section>
       );
     case "vacancies":
+      if (!block.data.items.length) return null;
       return (
         <Section id="vacancies" title={t.listing.vacancies} icon="💼">
           <ul className="grid grid-cols-1 gap-3">
@@ -779,7 +787,7 @@ export function ListingView({
             {header.badges.includes("documents_checked") ? (
               <span className="whitespace-nowrap rounded-full bg-[#e5f4e4] px-2.5 py-1 text-xs font-bold text-success">Документы проверены</span>
             ) : null}
-            {hours?.type === "hours" ? <OpenNowBadge week={hours.data.week} mode={hours.data.mode} /> : null}
+            {hours?.type === "hours" ? <OpenNowBadge week={hours.data.week} exceptions={hours.data.exceptions} mode={hours.data.mode} /> : null}
           </div>
           <h1 className="mt-3 text-2xl font-extrabold leading-tight sm:text-3xl">{header.title}</h1>
           <p className="mt-2 text-muted">
@@ -818,6 +826,8 @@ export function ListingView({
               <ShareIcon className="size-5" /> {t.listing.share}
             </a>
           </div>
+          {/* На компьютере с панелью «Связаться» (wide, от lg) эти ссылки — в панели */}
+          <ContactLinks contacts={contacts} telegram className={`mt-4 ${wide ? "lg:hidden" : ""}`} />
         </div>
       </header>
 
@@ -914,7 +924,7 @@ export function ListingView({
           listingId={listingId}
           contacts={contacts}
           waText={waText}
-          openNow={hours?.type === "hours" ? <OpenNowBadge week={hours.data.week} mode={hours.data.mode} /> : null}
+          openNow={hours?.type === "hours" ? <OpenNowBadge week={hours.data.week} exceptions={hours.data.exceptions} mode={hours.data.mode} /> : null}
           address={address?.type === "address" ? address.data : undefined}
           requestEnabled={Boolean(requestEnabled)}
         />
@@ -942,7 +952,7 @@ export function ListingView({
             >
               <MapPinIcon className="size-5" />
             </a>
-          ) : data.blocks.some((b) => b.type === "request") ? (
+          ) : requestEnabled ? (
             <a href="#request" className="flex h-12 min-w-0 flex-1 items-center justify-center rounded-2xl bg-accent px-1 font-bold text-on-accent">
               Записаться
             </a>
@@ -996,6 +1006,7 @@ function ContactAside({
             ✍️ {t.listing.request}
           </a>
         ) : null}
+        <ContactLinks contacts={contacts} layout="list" className="border-t border-line pt-3" />
         {address?.address ? (
           <div className="mt-1 grid gap-2 border-t border-line pt-4 text-sm">
             <p className="flex gap-2">
