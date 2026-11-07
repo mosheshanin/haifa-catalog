@@ -25,6 +25,7 @@ import { BLOCK_TITLES } from "@/lib/blocks/types";
 import { BLOCK_SHORT, listingScore, suggestedBlocks, type ScoreTarget } from "@/lib/blocks/score";
 import { DescriptionCounter, FillMeter, FillTip } from "@/components/cabinet/fill-meter";
 import { orderExtras, saveDraft, startListing, submitListing } from "@/app/actions/cabinet";
+import { ymGoal } from "@/components/legal/consent";
 
 type Obj = Record<string, unknown>;
 type Section = "biznes" | "specialisty";
@@ -127,6 +128,7 @@ export function ListingWizard(props: {
   const [more, setMore] = useState<Set<BlockType>>(new Set()); // шаг «Что ещё можно показать?»
 
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const goalsSent = useRef(new Set<string>());
 
   const steps: StepKey[] = ["type", "name", "category", "district", "contacts", "about", "place", "hours", "services", "photos", "languages", "features", "more", "final"];
   const step = steps[stepIdx];
@@ -149,6 +151,31 @@ export function ListingWizard(props: {
     headingRef.current?.focus();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [stepIdx, done]);
+
+  // Воронка владельца в Яндекс Метрике (7 ноября 2026): цель — когда человек ПРОШЁЛ шаг (заполнил или пропустил),
+  // поэтому срабатывает при входе на следующий шаг. Каждая цель — один раз за заполнение; администратор не считается.
+  // add_click → wizard_start → wizard_category → draft_created → wizard_contacts → wizard_description → wizard_services →
+  // wizard_photos → wizard_final → listing_submitted (add_click — в AnalyticsRouteHits, listing_submitted — в submit).
+  const goal = (name: string, params?: Record<string, string>) => {
+    if (isAdmin || goalsSent.current.has(name)) return;
+    goalsSent.current.add(name);
+    ymGoal(name, params);
+  };
+  useEffect(() => {
+    const ENTER_GOALS: Partial<Record<StepKey, string>> = {
+      type: "wizard_start", // открыл мастер
+      district: "wizard_category", // выбрал категорию
+      contacts: "draft_created", // выбрал районы, черновик создан
+      about: "wizard_contacts",
+      place: "wizard_description",
+      photos: "wizard_services",
+      languages: "wizard_photos",
+      final: "wizard_final", // дошёл до последнего шага
+    };
+    const name = ENTER_GOALS[steps[stepIdx]];
+    if (name) goal(name);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- цель зависит только от шага
+  }, [stepIdx]);
 
   // Данные блока для шага: уже заполненный блок или значения по умолчанию.
   const blockTypeOf = (k: StepKey) => STEP_BLOCK[k]?.(sec);
@@ -292,6 +319,7 @@ export function ListingWizard(props: {
       if (needsConsent && !agree) return setError("Отметьте согласие с условиями, чтобы отправить карточку.");
       const r = await submitListing(listingId, data, needsConsent ? agree : undefined);
       if (!r.ok) return setError(r.error);
+      goal("listing_submitted", { section: sec });
       let ordered = false;
       let orderError: string | undefined;
       if (extras.size) {

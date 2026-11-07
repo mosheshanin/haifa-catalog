@@ -119,8 +119,12 @@ function revokeAnalytics() {
 }
 
 // Цель Яндекс Метрики (идентификатор цели «JavaScript-событие»). Без согласия ничего не делает.
+// Согласие уже дано раньше, а баннер ещё не успел загрузить счётчик (эффекты страницы идут раньше) — загружаем сами,
+// чтобы «init» встал в очередь до цели.
 export function ymGoal(name: string, params?: Record<string, string | number | undefined>) {
-  if (typeof window !== "undefined" && ymLoaded && YM_COUNTER_ID) window.ym?.(YM_COUNTER_ID, "reachGoal", name, params);
+  if (typeof window === "undefined" || !YM_COUNTER_ID) return;
+  if (!ymLoaded && readChoice() === "granted") loadYm();
+  if (ymLoaded) window.ym?.(YM_COUNTER_ID, "reachGoal", name, params);
 }
 
 // Переходы внутри сайта без перезагрузки страницы (Next.js): Метрике нужен отдельный «хит» на каждый адрес.
@@ -130,6 +134,15 @@ export function AnalyticsRouteHits() {
   const pathname = usePathname();
   const search = useSearchParams().toString();
   const prev = useRef<string | null>(null);
+  // Цель «add_click» — нажатие любой кнопки «Добавить бизнес или специалиста» (ссылки на /kabinet/novaya), 7 ноября 2026.
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      const a = (e.target as HTMLElement | null)?.closest("a[href]") as HTMLAnchorElement | null;
+      if (a && a.origin === location.origin && a.pathname === "/kabinet/novaya") ymGoal("add_click");
+    };
+    document.addEventListener("click", onClick, { capture: true });
+    return () => document.removeEventListener("click", onClick, { capture: true });
+  }, []);
   useEffect(() => {
     const url = location.href;
     const main = document.getElementById("main");
